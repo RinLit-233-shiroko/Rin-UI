@@ -1,4 +1,4 @@
-<div align="center">
+<div align="center"> 
 <h1>RinUI</h1>
 <p>A Fluent Design-like UI library for Qt Quick (QML)</p>
 
