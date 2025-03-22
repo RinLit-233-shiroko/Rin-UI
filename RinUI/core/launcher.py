@@ -1,71 +1,54 @@
-import os
-import json
-
-PATH = "../RinUI/config"
-DEFAULT_CONFIG = {
-    "language": "zh_CN",
-    "theme": {
-        "current_theme": "Light",
-        "follow_system": True
-    },
-    "theme_color": "#605ed2",
-    "backdrop_effect": "mica"
-}
+import sys
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout
+from PySide6.QtQml import QQmlApplicationEngine
+from .theme import ThemeManager
 
 
-class ConfigCenter:
-    def __init__(self, path, filename):
-        self.path = path
-        self.filename = filename
-        self.config = {}
-        self.full_path = os.path.join(self.path, self.filename)
+class TestWindow(QWidget):
+    def __init__(self, theme_manager):
+        super().__init__()
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        self.setWindowTitle("Test Window")
+        btn = QPushButton("Hello World")
+        btn.clicked.connect(
+            lambda: theme_manager.toggle_theme("Light" if theme_manager.current_theme == "Dark" else "Dark")
+        )
+        self.layout().addWidget(btn)
+        self.resize(400, 300)
 
-    def load_config(self, default_config):
-        if default_config is None:
-            print('Warning: \"default_config\" is None, use empty config instead.')
-            default_config = {}
-        # 如果文件存在，加载配置
-        if os.path.exists(self.full_path):
-            with open(self.full_path, 'r', encoding='utf-8') as f:
-                self.config = json.load(f)
-        else:
-            self.config = default_config  # 如果文件不存在，使用默认配置
-            self.save_config()
 
-    def update_config(self):  # 更新配置
-        try:
-            with open(self.full_path, 'r', encoding='utf-8') as f:
-                self.config = json.load(f)
-        except Exception as e:
-            print(f'Error: {e}')
-            self.config = {}
+def create_qml_app(qml_path: str = "main.qml"):
+    """
+    创建基于 RinUI 的 QML 应用程序。
+    :param qml_path: str, QML 文件路径
+    """
+    app = QApplication([])
+    engine = QQmlApplicationEngine()
 
-    def upload_config(self, key=str or list, value=None):
-        if type(key) is str:
-            self.config[key] = value
-        elif type(key) is list:
-            for k in key:
-                self.config[k] = value
-        else:
-            raise TypeError('key must be str or list')
-        self.save_config()
+    # 设置主题管理器
+    theme_manager = ThemeManager()
+    engine.rootContext().setContextProperty("ThemeManager", theme_manager)
+    app.aboutToQuit.connect(theme_manager.clean_up)  # 退出时清理主题管理器
 
-    def save_config(self):
-        try:
-            with open(self.full_path, 'w', encoding='utf-8') as f:
-                json.dump(self.config, f, ensure_ascii=False, indent=4)
-        except FileNotFoundError:
-            os.makedirs(self.path)
-            self.save_config()
-        except Exception as e:
-            print(f'Error: {e}')
+    engine.load(qml_path)
+    if not engine.rootObjects():
+        sys.exit(-1)
 
-    def __getitem__(self, key):
-        return self.config.get(key)
+    root_window = engine.rootObjects()[0]
 
-    def __setitem__(self, key, value):
-        self.config[key] = value
-        self.save_config()
+    # 启用 DWM 效果（仅限 Windows）
+    if sys.platform == "win32":
+        theme_manager.set_window(root_window)
+        theme_manager.apply_backdrop_effect(theme_manager.get_backdrop_effect())
+        theme_manager.apply_window_effects()
 
-    def __repr__(self):
-        return json.dumps(self.config, ensure_ascii=False, indent=4)
+        # test_window = TestWindow(theme_manager)
+        #
+        # test_window.show()
+
+    app.exec()  # 启动应用程序
+
+
+if __name__ == "__main__":
+    create_qml_app("../../examples/gallery.qml")
