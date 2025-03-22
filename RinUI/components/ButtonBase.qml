@@ -9,6 +9,7 @@ Base {
     property alias text: buttonText.text  // 文本内容
     property alias icon: iconWidget.icon  // 图标 eg."\u1145"
     property bool compact: false  // 紧凑模式
+    property bool underline: root.underline // 下划线
 
     // Size //
     implicitWidth: {
@@ -63,6 +64,7 @@ Base {
             id: buttonText
             labelType: "body"
             color: root.textColor
+            font.underline: underline
         }
     }
 }

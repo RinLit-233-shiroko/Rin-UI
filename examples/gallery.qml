@@ -108,6 +108,10 @@ FluentWindow {
                     compact: true
                     text: "Transparent Button"
                 }
+                HyperlinkButton {
+                    text: "HyperLink Button"
+                    openUrl: "https://baidu.com"
+                }
             }
 
             TextLabel {

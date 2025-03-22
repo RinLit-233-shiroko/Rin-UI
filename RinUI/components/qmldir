@@ -14,6 +14,7 @@ ScrollBar 1.0 ScrollBar.qml
 ScrollView 1.0 ScrollView.qml
 
 Button 1.0 Button.qml
+HyperlinkButton 1.0 HyperlinkButton.qml
 ToolButton 1.0 ToolButton.qml
 ToggleSwitch 1.0 ToggleSwitch.qml
 Indicator 1.0 Indicator.qml

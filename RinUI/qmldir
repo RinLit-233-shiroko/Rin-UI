@@ -14,6 +14,7 @@ Tooltip 1.0 components/Tooltip.qml
 IconWidget 1.0 components/IconWidget.qml
 Slider 1.0 components/Slider.qml
 ProgressBar 1.0 components/ProgressBar.qml
+HyperlinkButton 1.0 components/HyperlinkButton.qml
 
 ContextMenu 1.0 components/ContextMenu.qml
 
