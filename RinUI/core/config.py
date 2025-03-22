@@ -51,8 +51,14 @@ class ConfigCenter:
         self.save_config()
 
     def save_config(self):
-        with open(self.full_path, 'w', encoding='utf-8') as f:
-            json.dump(self.config, f, ensure_ascii=False, indent=4)
+        try:
+            with open(self.full_path, 'w', encoding='utf-8') as f:
+                json.dump(self.config, f, ensure_ascii=False, indent=4)
+        except FileNotFoundError:
+            os.makedirs(self.path)
+            self.save_config()
+        except Exception as e:
+            print(f'Error: {e}')
 
     def __getitem__(self, key):
         return self.config.get(key)
