@@ -6,9 +6,10 @@ import "../themes"
 
 Item {
     id: navigationBar
-    implicitWidth: 300
+    implicitWidth: collapsed ? 50 : 250
     height: parent.height
 
+    property bool collapsed: false
     property var navModel: ListModel {
         // ListElement { title: "Home"; icon: null; page: "Home.qml"; key: "home" }
     }
@@ -18,6 +19,13 @@ Item {
     property alias windowIcon: iconLabel.source
     property var stackView: parent.stackView
     property ListModel lastIndex: ListModel {}  // 记录的索引
+
+    Behavior on implicitWidth {
+        NumberAnimation {
+            duration: Utils.animationSpeedMiddle
+            easing.type: Easing.InOutQuint
+        }
+    }
 
     Row {
         id: title
@@ -66,11 +74,36 @@ Item {
         }
     }
 
+    // 收起切换按钮
+    ToolButton {
+        id: collapseButton
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 16
+        anchors.rightMargin: 10
+        width: 30
+        height: 30
+        icon.name: collapsed ? "ic_fluent_chevron_right_20_regular" : "ic_fluent_chevron_left_20_regular"
+        
+        onClicked: {
+            collapsed = !collapsed
+        }
+        
+        Tooltip {
+            parent: parent
+            delay: 500
+            visible: parent.hovered
+            text: collapsed ? qsTr("Expand") : qsTr("Collapse")
+      }
+    }
+
     ListView {
         id: listView
         clip: true
-        spacing: 0
+        spacing: 4  // 增加项目间距
         anchors.fill: parent
+        anchors.topMargin: 10
+        anchors.bottomMargin: 60  // 为收起按钮留出空间
         model: navModel
         currentIndex: -1
 
@@ -102,7 +135,7 @@ Item {
                     spacing: 16
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    anchors.leftMargin: 11
+                    anchors.leftMargin: 16
                     anchors.topMargin: 6
                     anchors.bottomMargin: 8
 
@@ -110,8 +143,7 @@ Item {
                         id: icon
                         anchors.verticalCenter: parent.verticalCenter
                         size: 18
-                        icon: ! model.icon ? "ic_fluent_circle_20_regular" :
-                            model.icon
+                        icon: !model.icon ? "ic_fluent_circle_20_regular" : model.icon
                     }
 
                     Text {
@@ -119,18 +151,44 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         typography: Typography.Body
                         text: model.title
+                        width: navigationBar.collapsed ? 0 : implicitWidth
+                        clip: true
+                        opacity: navigationBar.collapsed ? 0 : 1
+                        wrapMode: Text.NoWrap
+                        horizontalAlignment: Text.AlignLeft
+                        
+                        Behavior on width {
+                            NumberAnimation {
+                                duration: Utils.animationSpeedMiddle
+                                easing.type: Easing.InOutQuint
+                            }
+                        }
+                        
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: Utils.animationSpeedMiddle
+                                easing.type: Easing.InOutQuint
+                            }
+                        }
                     }
                 }
 
+                // 收起状态下添加提示工具
+                Tooltip {
+                    visible: navigationBar.collapsed && delegateItem.hovered
+                    delay: 500
+                    text: model.title
+                }
 
                 // 指示器
                 Indicator {
                     id: indicator
                     y: listView.currentIndex >= 0
-                        ? listView.currentItem.y - (delegateItem.height) * index + height / 2
+                        ? listView.currentItem.y - delegateItem.y + height / 2
                         : 0
                     currentItemHeight: listView.currentItem.height
                     opacity: highlighted
+                    width: 3
 
                     Behavior on y {
                         NumberAnimation {
