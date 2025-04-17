@@ -1,0 +1,3 @@
+-i https://test.pypi.org/simple/ RinUI --no-deps
+PySide6
+darkdetect
