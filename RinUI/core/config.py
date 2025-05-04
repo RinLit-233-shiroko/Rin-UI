@@ -4,21 +4,21 @@ import platform
 from enum import Enum
 
 
-def is_win11():
+def is_win11() -> bool:
     if is_windows():
         if platform.release() >= '10' and int(platform.version().split('.')[2]) >= 22000:
             return True
     return False
 
 
-def is_win10():
+def is_win10() -> bool:
     if is_windows():
         if platform.release() >= '10' and int(platform.version().split('.')[2]) >= 19000:
             return True
     return False
 
 
-def is_windows():
+def is_windows() -> bool:
     return platform.system() == 'Windows'
 
 
@@ -52,7 +52,7 @@ class BackdropEffect(Enum):
 
 
 class ConfigCenter:
-    def __init__(self, path, filename):
+    def __init__(self, path: str, filename: str):
         self.path = path
         self.filename = filename
         self.config = {}
@@ -98,10 +98,10 @@ class ConfigCenter:
         except Exception as e:
             print(f'Error: {e}')
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str):
         return self.config.get(key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: str):
         self.config[key] = value
         self.save_config()
 

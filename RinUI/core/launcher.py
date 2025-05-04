@@ -8,7 +8,7 @@ from .theme import ThemeManager
 from .config import BackdropEffect, is_windows, Theme
 
 
-def resource_path(relative_path):
+def resource_path(relative_path: str):
     """兼容 PyInstaller 打包和开发环境的路径"""
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
@@ -118,7 +118,7 @@ class RinUIWindow:
         """
         self.theme_manager.toggle_theme(theme.value)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         """获取 QML 窗口属性"""
         try:
             root = object.__getattribute__(self, "root_window")

@@ -9,7 +9,7 @@ import sys
 import darkdetect
 
 
-def check_darkdetect_support():
+def check_darkdetect_support() -> bool:
     system = platform.system()
     if system == "Darwin":
         mac_ver = platform.mac_ver()[0]
@@ -149,12 +149,12 @@ class ThemeManager(QObject):
         self.listener.themeChanged.connect(self._handle_system_theme)
         self.listener.start()
 
-    def set_window(self, window):  # 绑定窗口句柄
+    def set_window(self, window: QObject):  # 绑定窗口句柄
         hwnd = int(window.winId())
         self.windows.append(hwnd)
         print(f"Window handle set: {hwnd}")
 
-    def _handle_system_theme(self, system_theme):
+    def _handle_system_theme(self, system_theme: str):
         if self.current_theme == "Auto":
             self._update_window_theme()
             self.themeChanged.emit(self._actual_theme())
