@@ -8,7 +8,7 @@ from .theme import ThemeManager
 from .config import BackdropEffect, is_windows, Theme
 
 
-def resource_path(relative_path):
+def resource_path(relative_path: str) -> str:
     """兼容 PyInstaller 打包和开发环境的路径"""
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
@@ -16,7 +16,7 @@ def resource_path(relative_path):
 
 
 class TestWindow(QWidget):
-    def __init__(self, theme_manager):
+    def __init__(self, theme_manager: ThemeManager):
         super().__init__()
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -60,7 +60,7 @@ class RinUIWindow:
         if app_instance:
             app_instance.aboutToQuit.connect(self.theme_manager.clean_up)
 
-    def _setup_application(self):
+    def _setup_application(self) -> None:
         """Setup"""
         # RInUI 模块
         rinui_path = os.path.abspath(os.path.dirname(__file__))  # RinUI/core 目录
@@ -90,7 +90,7 @@ class RinUIWindow:
         self.theme_manager.set_window(self.root_window)
         self._apply_windows_effects() if self.autoSetWindowsEffect else None
 
-    def _apply_windows_effects(self):
+    def _apply_windows_effects(self) -> None:
         """
         Apply Windows effects to the window.
         :return:
@@ -100,7 +100,7 @@ class RinUIWindow:
             self.theme_manager.apply_window_effects()
 
     # func名称遵循 Qt 命名规范
-    def setBackdropEffect(self, effect: BackdropEffect):
+    def setBackdropEffect(self, effect: BackdropEffect) -> None:
         """
         Sets the backdrop effect for the window. (Only available on Windows)
         :param effect: BackdropEffect, type of backdrop effect（Acrylic, Mica, Tabbed, None_）
@@ -110,7 +110,7 @@ class RinUIWindow:
             raise OSError("Only can set backdrop effect on Windows platform.")
         self.theme_manager.apply_backdrop_effect(effect.value)
 
-    def setTheme(self, theme: Theme):
+    def setTheme(self, theme: Theme) -> None:
         """
         Sets the theme for the window.
         :param theme: Theme, type of theme（Auto, Dark, Light）
@@ -118,15 +118,15 @@ class RinUIWindow:
         """
         self.theme_manager.toggle_theme(theme.value)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> object:
         """获取 QML 窗口属性"""
         try:
             root = object.__getattribute__(self, "root_window")
             return getattr(root, name)
         except AttributeError:
-            raise AttributeError(f"\"RinUIWindow\" object has no attribute '{name}'")
+            raise AttributeError(f"\"RinUIWindow\" object has no attribute '{name}'\ntry to use 'RinUI.core' module to get QML window attribute.")
 
-    def print_startup_info(self):
+    def print_startup_info(self) -> None:
         border = "=" * 40
         print(f"\n{border}")
         print("✨ RinUIWindow Loaded Successfully!")
