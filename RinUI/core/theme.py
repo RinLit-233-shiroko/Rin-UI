@@ -9,7 +9,7 @@ import sys
 import darkdetect
 
 
-def check_darkdetect_support():
+def check_darkdetect_support() -> bool:
     system = platform.system()
     if system == "Darwin":
         mac_ver = platform.mac_ver()[0]
@@ -60,7 +60,7 @@ class ThemeListener(QThread):
     """
     themeChanged = Signal(str)
 
-    def run(self):
+    def run(self) -> None:
         last_theme = darkdetect.theme()
         while True:
             current_theme = darkdetect.theme()
@@ -70,7 +70,7 @@ class ThemeListener(QThread):
                 print(f"Theme changed: {current_theme}")
             time.sleep(1)
 
-    def stop(self):
+    def stop(self) -> None:
         self.terminate()
 
 
@@ -94,7 +94,7 @@ class ThemeManager(QObject):
     DWMWCP_ROUND = 2
     DWMWCP_ROUNDSMALL = 3
 
-    def clean_up(self):
+    def clean_up(self) -> None:
         """
         清理资源并停止主题监听。
         """
@@ -105,7 +105,7 @@ class ThemeManager(QObject):
             self.listener.wait()  # 等待线程结束
             print("Theme listener stopped.")
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args, **kwargs) -> "ThemeManager":
         """
         单例管理，共享主题状态
         :param args:
@@ -141,7 +141,7 @@ class ThemeManager(QObject):
 
         self.start_listener()
 
-    def start_listener(self):
+    def start_listener(self) -> None:
         if not self.is_darkdetect_supported:
             print("darkdetect not supported on this platform")
             return
@@ -149,12 +149,12 @@ class ThemeManager(QObject):
         self.listener.themeChanged.connect(self._handle_system_theme)
         self.listener.start()
 
-    def set_window(self, window):  # 绑定窗口句柄
+    def set_window(self, window: QObject) -> None:  # 绑定窗口句柄
         hwnd = int(window.winId())
         self.windows.append(hwnd)
         print(f"Window handle set: {hwnd}")
 
-    def _handle_system_theme(self, system_theme):
+    def _handle_system_theme(self, system_theme: str) -> None:
         if self.current_theme == "Auto":
             self._update_window_theme()
             self.themeChanged.emit(self._actual_theme())
@@ -163,7 +163,7 @@ class ThemeManager(QObject):
             self._update_window_theme()
 
     @Slot(str)
-    def apply_backdrop_effect(self, effect_type: str):
+    def apply_backdrop_effect(self, effect_type: str) -> int:
         """
         应用背景效果
         :param effect_type: str, 背景效果类型（acrylic, mica, tabbed, none）
@@ -197,7 +197,7 @@ class ThemeManager(QObject):
         )
         return 0  # 成功
 
-    def _apply_win10_effect(self, effect_type, hwnd):
+    def _apply_win10_effect(self, effect_type, hwnd) -> None:
         """
         应用 Windows 10 背景效果
         :param effect_type: str, 背景效果类型（acrylic, tabbed(actually blur)
@@ -219,7 +219,7 @@ class ThemeManager(QObject):
         except Exception as e:
             print(f"Failed to apply acrylic on Win10: {e}")
 
-    def apply_window_effects(self):  # 启用圆角阴影
+    def apply_window_effects(self) -> None:  # 启用圆角阴影
         if sys.platform != "win32" or not self.windows:
             return
 
@@ -245,7 +245,7 @@ class ThemeManager(QObject):
             )
         print("Enabled Rounded and Shadows")
 
-    def _update_window_theme(self):  # 更新窗口的颜色模式
+    def _update_window_theme(self) -> None:  # 更新窗口的颜色模式
         if sys.platform != "win32" or not self.windows:
             return
         actual_theme = self._actual_theme()
@@ -264,18 +264,18 @@ class ThemeManager(QObject):
 
         print(f"Window theme updated to {actual_theme}")
 
-    def is_dark_theme(self):
+    def is_dark_theme(self) -> bool:
         """是否为暗黑主题"""
         return self._actual_theme() == "Dark"
 
-    def _actual_theme(self):
+    def _actual_theme(self) -> str:
         """实际应用的主题"""
         if self.current_theme == "Auto":
             return darkdetect.theme() if self.is_darkdetect_supported else "Light"
         return self.current_theme
 
     @Slot(str)
-    def toggle_theme(self, theme: str):  # 切换主题
+    def toggle_theme(self, theme: str) -> None:  # 切换主题
         if theme not in ["Auto", "Light", "Dark"]:  # 三状态
             return
         if self.current_theme != theme:
@@ -286,42 +286,42 @@ class ThemeManager(QObject):
             self.themeChanged.emit(self._actual_theme())
 
     @Slot(result=str)
-    def get_theme(self):
+    def get_theme(self) -> str:
         return self._actual_theme()
 
     @Slot(result=str)
-    def get_theme_name(self):
+    def get_theme_name(self) -> str:
         """获取当前主题名称"""
         return self.current_theme
 
     @Slot(str)
-    def receive(self, message):
+    def receive(self, message) -> None:
         print(message)
 
     @Slot(result=str)
-    def get_backdrop_effect(self):
+    def get_backdrop_effect(self) -> str:
         """获取当前背景效果"""
         return self.config["backdrop_effect"]
 
     @Slot(result=str)
-    def get_theme_color(self):
+    def get_theme_color(self) -> str:
         """获取当前主题颜色"""
         return self.config["theme_color"]
 
     @Slot(result=str)
-    def set_theme_color(self, color):
+    def set_theme_color(self, color) -> None:
         """设置当前主题颜色"""
         self.config["theme_color"] = color
         self.config.save_config()
 
     @Slot(QObject, result=int)
-    def getWindowId(self, window):
+    def getWindowId(self, window) -> int:
         """获取窗口的句柄"""
         print(f"GetWindowId: {window.winId()}")
         return int(window.winId())
 
     @Slot(int)
-    def dragWindowEvent(self, hwnd):
+    def dragWindowEvent(self, hwnd) -> None:
         """ 在Windows 用原生方法拖动"""
         if not is_windows() or hwnd not in self.windows:
             print(

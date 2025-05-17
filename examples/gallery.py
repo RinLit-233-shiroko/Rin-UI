@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QApplication
 from datetime import datetime
 
 import RinUI
-from RinUI import RinUIWindow
+from RinUI.core import RinUIWindow
 
 
 class Gallery(RinUIWindow):
