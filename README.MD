@@ -8,7 +8,7 @@
 </div>
 
 > [!TIP]
-> This project is still in development and not ready for production use! （This project has even not a logo yet）
+> This project is still in development and not ready for production use!
 > 
 > Of course, you are welcome to contribute to this project.
 
