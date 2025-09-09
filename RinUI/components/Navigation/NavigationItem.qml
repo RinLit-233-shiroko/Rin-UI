@@ -138,7 +138,7 @@ Item {
             }
             if (itemData.page && currentPage && !navigationItems.highlighted) {
                 // 记录上一次的索引
-                navigationView.safePush(itemData.page, true)
+                navigationView.safePush(itemData.page, false, true)
             }
         }
     }
