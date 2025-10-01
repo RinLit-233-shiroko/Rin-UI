@@ -7,7 +7,7 @@ from ctypes import wintypes
 
 import win32con
 from PySide6.QtQuick import QQuickWindow
-from win32gui import ReleaseCapture, GetWindowPlacement, ShowWindow, SetWindowPlacement
+from win32gui import ReleaseCapture, GetWindowPlacement, ShowWindow
 from win32con import SW_MAXIMIZE, SW_RESTORE
 from win32api import SendMessage
 
@@ -106,30 +106,7 @@ class WinEventManager(QObject):
             if current_state == SW_MAXIMIZE:
                 ShowWindow(hwnd, SW_RESTORE)
             else:
-                # 获取当前窗口矩形
-                current_rect = wintypes.RECT()
-                user32.GetWindowRect(hwnd, ctypes.byref(current_rect))
-                # 获取显示器工作区域
-                monitor = user32.MonitorFromWindow(hwnd, 2)  # MONITOR_DEFAULTTONEAREST
-                monitor_info = MONITORINFO()
-                monitor_info.cbSize = ctypes.sizeof(MONITORINFO)
-                user32.GetMonitorInfoW(monitor, ctypes.byref(monitor_info))
-                work_area = monitor_info.rcWork
-                # 计算目标位置和尺寸(工作区域)
-                target_x = work_area.left
-                target_y = work_area.top
-                target_width = work_area.right - work_area.left
-                target_height = work_area.bottom - work_area.top
-                user32.SetWindowPos(
-                    hwnd,
-                    0,  # hWndInsertAfter
-                    target_x, target_y,
-                    target_width, target_height,
-                    0x0040  # SWP_FRAMECHANGED
-                )
-                # 更新窗口状态
-                placement[1] = SW_MAXIMIZE
-                SetWindowPlacement(hwnd, placement)
+                ShowWindow(hwnd, SW_MAXIMIZE)
 
         except Exception as e:
             print(f"Error toggling window state: {e}")
@@ -247,8 +224,8 @@ class WinEventFilter(QAbstractNativeEventFilter):
                     # 最大化位置和大小
                     minmax_info.ptMaxPosition.x = monitor_info.rcWork.left - monitor_info.rcMonitor.left
                     minmax_info.ptMaxPosition.y = monitor_info.rcWork.top - monitor_info.rcMonitor.top
-                    minmax_info.ptMaxSize.x = monitor_info.rcWork.right - monitor_info.rcWork.left
-                    minmax_info.ptMaxSize.y = monitor_info.rcWork.bottom - monitor_info.rcWork.top
+                    minmax_info.ptMaxSize.x = monitor_info.rcWork.right - monitor_info.rcMonitor.left
+                    minmax_info.ptMaxSize.y = monitor_info.rcWork.bottom - monitor_info.rcMonitor.top
 
 
                     def get_window_int_property(window, name, default):
