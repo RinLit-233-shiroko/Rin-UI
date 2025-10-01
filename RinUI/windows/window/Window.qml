@@ -86,15 +86,15 @@ Window {
         anchors.fill: parent
         hoverEnabled: baseWindow.visibility !== Window.Maximized
         z: -1
-        cursorShape: {
-            const p = Qt.point(mouseX, mouseY)
+        onPositionChanged: (event) =>{
+            const p = Qt.point(event.x, event.y)
             const b = Utils.windowDragArea
-            if (p.x < b && p.y < b) return Qt.SizeFDiagCursor
-            if (p.x >= width - b && p.y >= height - b) return Qt.SizeFDiagCursor
-            if (p.x >= width - b && p.y < b) return Qt.SizeBDiagCursor
-            if (p.x < b && p.y >= height - b) return Qt.SizeBDiagCursor
-            if (p.x < b || p.x >= width - b) return Qt.SizeHorCursor
-            if (p.y < b || p.y >= height - b) return Qt.SizeVerCursor
+            if (p.x < b && p.y < b) cursorShape = Qt.SizeFDiagCursor
+            if (p.x >= width - b && p.y >= height - b) cursorShape = Qt.SizeFDiagCursor
+            if (p.x >= width - b && p.y < b) cursorShape = Qt.SizeBDiagCursor
+            if (p.x < b && p.y >= height - b) cursorShape = Qt.SizeBDiagCursor
+            if (p.x < b || p.x >= width - b) cursorShape = Qt.SizeHorCursor
+            if (p.y < b || p.y >= height - b) cursorShape = Qt.SizeVerCursor
         }
         acceptedButtons: Qt.NoButton
     }
