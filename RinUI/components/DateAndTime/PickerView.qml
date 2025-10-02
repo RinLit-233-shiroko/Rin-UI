@@ -90,7 +90,6 @@ Popup {
                     model: model1
                     visibleItemCount: root.visibleItemCount
                     delegate: delegateComponent
-
                 }
                 ToolSeparator {
                     Layout.fillHeight: true

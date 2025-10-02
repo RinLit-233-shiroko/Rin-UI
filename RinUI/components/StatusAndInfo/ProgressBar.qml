@@ -20,7 +20,6 @@ ProgressBar {
         Error
     }
 
-    implicitWidth: 200
     implicitHeight: 3
 
     // 背景轨道

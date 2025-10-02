@@ -150,19 +150,6 @@ RowLayout {
 
         }
 
-        // 导航切换逻辑
-        // Connections {
-        //     target: navigationBar
-        //     function onCurrentIndexChanged() {
-        //         let index = navigationBar.currentIndex
-        //         let page = navigationItems[index].page
-        //         console.log("Pushing Page:", page, "Index:", index)
-        //         if (stackView.depth === 0 || stackView.currentItem.objectName !== page) {
-        //             checkPage(page)
-        //         }
-        //     }
-        // }
-
 
         Component.onCompleted: {
             if (navigationItems.length > 0) {
