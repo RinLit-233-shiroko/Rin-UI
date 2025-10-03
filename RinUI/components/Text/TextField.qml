@@ -10,7 +10,7 @@ TextField {
     property bool frameless: false
     property bool editable: true
     property color primaryColor: Theme.currentTheme.colors.primaryColor
-    property bool showClearButton: true
+    property bool clearEnabled: true
     property int extraRightPadding: 0
 
     selectByMouse: true
@@ -83,7 +83,7 @@ TextField {
     placeholderTextColor: Theme.currentTheme.colors.textSecondaryColor
 
     leftPadding: 12
-    rightPadding: (showClearButton && clearBtn.visible ? 28 : 12) + extraRightPadding
+    rightPadding: (clearEnabled && clearBtn.visible ? 28 : 12) + extraRightPadding
     topPadding: 5
     bottomPadding: 7
 
@@ -97,11 +97,11 @@ TextField {
         implicitHeight: 24
         flat: true
         highlighted: true
-        visible: showClearButton && root.text && root.text.length > 0
+        visible: clearEnabled && root.text && root.text.length > 0
         onClicked: parent.text = ""
         contentItem: Icon {
             name: "ic_fluent_dismiss_20_regular"
-            size: 16
+            size: 14
             color: Theme.currentTheme.colors.textSecondaryColor
         }
     }

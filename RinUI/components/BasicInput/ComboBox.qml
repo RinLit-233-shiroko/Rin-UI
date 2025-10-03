@@ -116,7 +116,7 @@ ComboBox {
         editable: root.editable
         frameless: true
         placeholderText: root.placeholderText
-        showClearButton: false
+        clearEnabled: false
     }
 
     // 弹出菜单 / Menu //
