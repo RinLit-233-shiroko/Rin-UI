@@ -48,7 +48,7 @@ Frame {
                 }
 
                 Text {
-                    id: discriptionLabel
+                    id: descriptionLabel
                     width: parent.width
                     typography: Typography.Caption
                     text: description
@@ -59,7 +59,7 @@ Frame {
                     visible: description.length > 0
                 }
             }
-            visible: !(!titleLabel.visible && !discriptionLabel.visible)
+            visible: titleLabel.visible || descriptionLabel.visible
         }
         RowLayout {
             id: rightContent

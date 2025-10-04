@@ -90,7 +90,7 @@ RowLayout {
                     property: "opacity"
                     from: 0
                     to: 1
-                    duration: Utils.animationSpeed
+                    duration: Utils.apppearanceSpeed
                     easing.type: Easing.InOutQuad
                 }
 
@@ -114,20 +114,25 @@ RowLayout {
             }
 
             popExit : Transition {
-                PropertyAnimation {
-                    property: "opacity"
-                    from: 1
-                    to: 0
-                    duration: Utils.animationSpeed
-                    easing.type: Easing.InOutQuad
+                SequentialAnimation {
+                    PauseAnimation {  // 延时 200ms
+                        duration: Utils.animationSpeedFast * 0.6
+                    }
+                    PropertyAnimation {
+                        property: "opacity"
+                        from: 1
+                        to: 0
+                        duration: Utils.apppearanceSpeed
+                        easing.type: Easing.InOutQuad
+                    }
                 }
 
                 PropertyAnimation {
                     property: "y"
                     from: 0
                     to: pushEnterFromY
-                    duration: Utils.animationSpeedMiddle
-                    easing.type: Easing.InOutQuint
+                    duration: Utils.animationSpeed
+                    easing.type: Easing.InQuint
                 }
             }
 
@@ -140,7 +145,7 @@ RowLayout {
                         property: "opacity"
                         from: 0
                         to: 1
-                        duration: Utils.appearanceSpeed
+                        duration: 100
                         easing.type: Easing.InOutQuad
                     }
                 }

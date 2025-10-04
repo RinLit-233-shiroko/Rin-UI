@@ -93,6 +93,7 @@ Item {
 
         Indicator {
             id: indicator
+            x: left.x - 11
             y: (itemBtn.height + 3) / 2 - indicator.height / 2 - 2
             currentItemHeight: itemBtn.height + 3
             visible: highlighted ? 1 : 0

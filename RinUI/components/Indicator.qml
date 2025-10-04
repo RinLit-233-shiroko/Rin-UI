@@ -9,8 +9,8 @@ Rectangle {
     property int currentItemHeight: 38
     property var orientation: Qt.Vertical
 
-    implicitWidth: orientation === Qt.Horizontal? 16 : 3
-    implicitHeight: orientation === Qt.Horizontal? 3 : currentItemHeight - 23
+    implicitWidth: orientation === Qt.Horizontal? 14 : 1
+    implicitHeight: orientation === Qt.Horizontal? 1 : currentItemHeight - 25
     radius: 10
     color: Theme.currentTheme.colors.primaryColor
 

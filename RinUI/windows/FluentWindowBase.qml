@@ -8,10 +8,10 @@ import "../components"
 ApplicationWindow {
     id: baseWindow
     // visible: true
-    width: 800
-    height: 600
-    minimumWidth: 400
-    minimumHeight: 300
+    // width: 800
+    // height: 600
+    // minimumWidth: 400
+    // minimumHeight: 300
     property int hwnd: 0
     property bool isRinUIWindow: true
 
@@ -22,7 +22,8 @@ ApplicationWindow {
     property var icon: ""  // 图标
     property alias titleEnabled: titleBar.titleEnabled
     property alias minimizeEnabled: titleBar.minimizeEnabled
-    property alias maximizeEnabled: titleBar.maximizeEnabled
+    // property alias maximizeEnabled: titleBar.maximizeEnabled
+    property bool maximizeEnabled: maximumHeight === 16777215 && maximumWidth === 16777215
     property alias closeEnabled: titleBar.closeEnabled
 
     property alias minimizeVisible: titleBar.minimizeVisible
@@ -85,6 +86,8 @@ ApplicationWindow {
         title: baseWindow.title || ""
         Layout.fillWidth: true
         height: baseWindow.titleBarHeight
+
+        maximizeEnabled: baseWindow.maximizeEnabled
     }
 
 

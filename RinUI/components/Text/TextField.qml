@@ -10,6 +10,8 @@ TextField {
     property bool frameless: false
     property bool editable: true
     property color primaryColor: Theme.currentTheme.colors.primaryColor
+    property bool clearEnabled: true
+    property int extraRightPadding: 0
 
     selectByMouse: true
     enabled: editable
@@ -81,9 +83,28 @@ TextField {
     placeholderTextColor: Theme.currentTheme.colors.textSecondaryColor
 
     leftPadding: 12
-    rightPadding: 12
+    rightPadding: (clearEnabled && clearBtn.visible ? 28 : 12) + extraRightPadding
     topPadding: 5
     bottomPadding: 7
+
+    // 清空按钮 
+    Button {
+        id: clearBtn
+        anchors.right: parent.right
+        anchors.rightMargin: 6
+        anchors.verticalCenter: parent.verticalCenter
+        implicitWidth: 24
+        implicitHeight: 24
+        flat: true
+        highlighted: true
+        visible: clearEnabled && root.text && root.text.length > 0
+        onClicked: parent.text = ""
+        contentItem: Icon {
+            name: "ic_fluent_dismiss_20_regular"
+            size: 14
+            color: Theme.currentTheme.colors.textSecondaryColor
+        }
+    }
 
     // 状态变化
     states: [
@@ -91,7 +112,6 @@ TextField {
         name: "disabled"
             when: !enabled
             PropertyChanges {  // 禁用时禁止改变属性
-                target: root;
                 opacity: !editable ? 1 : 0.4
             }
         },

@@ -1,4 +1,4 @@
-module RinUI.Components
+module RinUI.AdvancedComponents
 
 Base 1.0 Base.qml
 Shadow 1.0 Shadow.qml

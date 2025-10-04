@@ -110,7 +110,7 @@ FluentPage {
 
             content: Text {
                 color: Theme.currentTheme.colors.textSecondaryColor
-                text: "0.1.6"
+                text: Backend.getVersion()
             }
 
             SettingItem {

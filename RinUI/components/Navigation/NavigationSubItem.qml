@@ -80,6 +80,7 @@ ItemDelegate {
 
         Indicator {
             id: indicator
+            x: left.x - 11
             y: root.height / 2 - indicator.height / 2 -2
             currentItemHeight: root.height
             visible: highlighted ? 1 : 0

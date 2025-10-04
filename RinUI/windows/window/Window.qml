@@ -14,7 +14,8 @@ Window {
     property int titleBarHeight: Theme.currentTheme.appearance.dialogTitleBarHeight
     property alias titleEnabled: titleBar.titleEnabled
     property alias minimizeEnabled: titleBar.minimizeEnabled
-    property alias maximizeEnabled: titleBar.maximizeEnabled
+    // property alias maximizeEnabled: titleBar.maximizeEnabled
+    property bool maximizeEnabled: maximumHeight === 16777215 && maximumWidth === 16777215
     property alias closeEnabled: titleBar.closeEnabled
 
     property alias minimizeVisible: titleBar.minimizeVisible
@@ -58,6 +59,8 @@ Window {
         title: baseWindow.title || ""
         Layout.fillWidth: true
         height: baseWindow.titleBarHeight
+
+        maximizeEnabled: baseWindow.maximizeEnabled
     }
 
     Rectangle {

@@ -130,22 +130,22 @@ Item {
             }
 
             Behavior on y {
-                NumberAnimation { duration: Utils.animationSpeed; easing.type: Easing.OutQuint }
+                NumberAnimation { duration: Utils.animationSpeedExpander; easing.type: expanded ? Easing.InQuint : Easing.OutQuint }
             }
 
             Behavior on opacity {
-                NumberAnimation { duration: Utils.appearanceSpeed; easing.type: Easing.OutQuint }
+                NumberAnimation { duration: Utils.appearanceSpeed; easing.type: expanded ? Easing.InQuint : Easing.OutQuint }
             }
         }
 
         Behavior on height {
-            NumberAnimation { duration: Utils.animationSpeed; easing.type: Easing.OutQuint }
+            NumberAnimation { duration: Utils.animationSpeedExpander; easing.type: expanded ? Easing.InQuint : Easing.OutQuint }
         }
     }
 
     // 动画
     Behavior on implicitHeight {
-        NumberAnimation { duration: Utils.animationSpeed; easing.type: Easing.OutQuint }
+        NumberAnimation { duration: Utils.animationSpeedExpander; easing.type: expanded ? Easing.InQuint : Easing.OutQuint }
     }
 
     // 圆角裁切

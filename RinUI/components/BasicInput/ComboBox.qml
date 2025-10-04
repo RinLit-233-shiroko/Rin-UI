@@ -70,6 +70,7 @@ ComboBox {
 
     // 指示器 / Indicator //
     indicator: ToolButton {
+        id: dropIndicator
         flat: true
         width: 32
         height: 24
@@ -85,6 +86,28 @@ ComboBox {
         onClicked: menu.open()
     }
 
+    // 清空按钮（仅可编辑时显示，位于下拉图标左侧）
+    ToolButton {
+        id: clearButton
+        flat: true
+        width: 24
+        height: 24
+        focusPolicy: root.editable ? Qt.StrongFocus : Qt.NoFocus
+        anchors.right: dropIndicator.left
+        anchors.rightMargin: 4
+        anchors.verticalCenter: parent.verticalCenter
+        icon.name: "ic_fluent_dismiss_20_regular"
+        size: 14
+        color: Theme.currentTheme.colors.textSecondaryColor
+        hoverable: root.editable
+        visible: root.editable && root.displayText.length > 0
+
+        onClicked: {
+            root.editText = ""
+            root.currentIndex = -1
+        }
+    }
+
 
     contentItem: TextField {
         id: text
@@ -93,6 +116,7 @@ ComboBox {
         editable: root.editable
         frameless: true
         placeholderText: root.placeholderText
+        clearEnabled: false
     }
 
     // 弹出菜单 / Menu //

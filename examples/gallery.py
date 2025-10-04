@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QApplication
 from datetime import datetime
 
 import RinUI
-from RinUI import RinUIWindow, RinUITranslator
+from RinUI import RinUIWindow, RinUITranslator, __version__
 from config import cfg
 
 
@@ -25,6 +25,10 @@ class Gallery(RinUIWindow):
 class Backend(QObject):
     def setBackendParent(self, parent):
         self.parent = parent
+
+    @Slot(result=str)
+    def getVersion(self):
+        return __version__
 
     @Slot(str)
     def copyToClipboard(self, text):
