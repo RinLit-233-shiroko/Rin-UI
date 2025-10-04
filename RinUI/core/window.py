@@ -1,24 +1,22 @@
-import platform
-from typing import Optional
-
-from PySide6.QtCore import QAbstractNativeEventFilter, QByteArray, QObject, Slot
 import ctypes
+import platform
 from ctypes import wintypes
 
 import win32con
+from PySide6.QtCore import QAbstractNativeEventFilter, QByteArray, QObject, QTimer, Slot
 from PySide6.QtQuick import QQuickWindow
-from win32gui import ReleaseCapture, GetWindowPlacement, ShowWindow
-from win32con import SW_MAXIMIZE, SW_RESTORE
 from win32api import SendMessage
+from win32con import SW_MAXIMIZE, SW_RESTORE
+from win32gui import GetWindowPlacement, ReleaseCapture, ShowWindow
 
 from RinUI.core.config import is_windows
+from RinUI.core.theme import ThemeManager
 
 # 定义 Windows 类型
 ULONG_PTR = ctypes.c_ulong if ctypes.sizeof(ctypes.c_void_p) == 4 else ctypes.c_ulonglong
 LONG = ctypes.c_long
 
 
-# 自定义结构体 MONITORINFO
 class MONITORINFO(ctypes.Structure):
     _fields_ = [
         ('cbSize', wintypes.DWORD),
@@ -27,6 +25,11 @@ class MONITORINFO(ctypes.Structure):
         ('dwFlags', wintypes.DWORD)
     ]
 
+class NCCALCSIZE_PARAMS(ctypes.Structure):
+    _fields_ = [
+        ("rgrc", wintypes.RECT * 3),
+        ("lppos", ctypes.c_void_p)
+    ]
 
 class MSG(ctypes.Structure):
     _fields_ = [
@@ -54,6 +57,16 @@ SC_MINIMIZE = 0xF020
 SC_MAXIMIZE = 0xF030
 SC_RESTORE = 0xF120
 
+SM_CXSIZEFRAME = 32  # 窗口边框宽度
+SM_CYSIZEFRAME = 33  # 窗口边框高度
+SM_CXPADDEDBORDER = 92  # 填充边框宽度
+
+MONITOR_DEFAULTTONEAREST = 2  # 最近的显示器
+DWMWA_WINDOW_CORNER_PREFERENCE = 33
+DWMWCP_DO_NOT_ROUND = 1
+
+DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = -4
+DPI_AWARENESS_CONTEXT_SYSTEM_AWARE = -2
 
 class MINMAXINFO(ctypes.Structure):
     _fields_ = [
@@ -117,13 +130,89 @@ class WinEventFilter(QAbstractNativeEventFilter):
         super().__init__()
         self.windows = windows  # 接受多个窗口
         self.hwnds = {}  # 用于存储每个窗口的 hwnd
-        self.resize_border = 8
+        self._is_maximized = {}
+        self._init_dpi_awareness()
 
         for window in self.windows:
             # 使用lambda创建闭包来捕获特定的窗口对象
             window.visibleChanged.connect(lambda visible, w=window: self._on_visible_changed(visible, w))
             if window.isVisible():
                 self._init_window_handle(window)
+
+    def _get_resize_border(self, hwnd):
+        """获取动态调整的边框大小"""
+        try:
+            dpi = self._get_dpi_for_window(hwnd)
+            base_border = 8
+            scale_factor = dpi / 96.0
+            border_size = max(4, int(base_border * scale_factor))
+            # print(f"[DEBUG] Border size: {border_size}, DPI: {dpi}, Scale: {scale_factor:.2f}")
+            return border_size
+        except Exception:
+            # print(f"[DEBUG] Border calculation error: {e}, using default 8")
+            return 8
+
+    def _init_dpi_awareness(self):
+        try:
+            user32.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
+        except Exception:
+            try:
+                user32.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE)
+            except Exception:
+                pass
+
+    def _get_window_property(self, window: QQuickWindow, property_name: str, default_value: int = 0) -> int:
+        """安全获取窗口属性值"""
+        try:
+            val = getattr(window, property_name, None)
+            if val is not None:
+                if callable(val):
+                    try:
+                        val = val()
+                    except Exception:
+                        val = None
+                if val is not None:
+                    return int(val)
+        except Exception:
+            pass
+        try:
+            prop = window.property(property_name)
+            if prop is not None:
+                return int(prop)
+        except Exception:
+            pass
+
+        return default_value
+
+    def _get_dpi_for_window(self, hwnd):
+        """获取窗口的 DPI 值"""
+        try:
+            dpi = user32.GetDpiForWindow(hwnd)
+            if dpi and dpi > 0:
+                return dpi
+        except Exception:
+            pass
+        try:
+            hmon = user32.MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST)
+            if hmon:
+                shcore = ctypes.windll.shcore
+                dpi_x = ctypes.c_uint()
+                dpi_y = ctypes.c_uint()
+                if shcore.GetDpiForMonitor(hmon, 0, ctypes.byref(dpi_x), ctypes.byref(dpi_y)) == 0:
+                    return dpi_x.value
+        except Exception:
+            pass
+        try:
+            hdc = user32.GetDC(0)
+            if hdc:
+                dpi = ctypes.windll.gdi32.GetDeviceCaps(hdc, 88)  # LOGPIXELSX
+                user32.ReleaseDC(0, hdc)
+                if dpi > 0:
+                    return dpi
+        except Exception:
+            pass
+
+        return 96
 
     def _on_visible_changed(self, visible: bool, window: QQuickWindow):
         # 直接使用传入的窗口对象
@@ -167,86 +256,104 @@ class WinEventFilter(QAbstractNativeEventFilter):
         # 遍历每个窗口，检查哪个窗口收到了消息
         for window in self.windows:
             hwnd_window = self.hwnds.get(window)
-            if hwnd_window == hwnd:
-                if message_id == WM_NCHITTEST:
-                    x = ctypes.c_short(lParam & 0xFFFF).value
-                    y = ctypes.c_short((lParam >> 16) & 0xFFFF).value
+            if hwnd_window != hwnd:
+                continue
 
-                    rect = wintypes.RECT()
-                    user32.GetWindowRect(hwnd_window, ctypes.byref(rect))
-                    left, top, right, bottom = rect.left, rect.top, rect.right, rect.bottom
-                    border = self.resize_border
+            if message_id == WM_NCHITTEST:
+                x = ctypes.c_short(lParam & 0xFFFF).value
+                y = ctypes.c_short((lParam >> 16) & 0xFFFF).value
 
-                    if left <= x < left + border:
-                        if top <= y < top + border:
-                            return True, 13  # HTTOPLEFT
-                        elif bottom - border <= y < bottom:
-                            return True, 16  # HTBOTTOMLEFT
-                        else:
-                            return True, 10  # HTLEFT
-                    elif right - border <= x < right:
-                        if top <= y < top + border:
-                            return True, 14  # HTTOPRIGHT
-                        elif bottom - border <= y < bottom:
-                            return True, 17  # HTBOTTOMRIGHT
-                        else:
-                            return True, 11  # HTRIGHT
-                    elif top <= y < top + border:
-                        return True, 12  # HTTOP
+                rect = wintypes.RECT()
+                user32.GetWindowRect(hwnd_window, ctypes.byref(rect))
+                left, top, right, bottom = rect.left, rect.top, rect.right, rect.bottom
+                border = self._get_resize_border(hwnd_window)
+                # print(f"[DEBUG] NCHITTEST: pos=({x},{y}), rect=({left},{top},{right},{bottom}), border={border}")
+
+                if left <= x < left + border:
+                    if top <= y < top + border:
+                        return True, 13  # HTTOPLEFT
                     elif bottom - border <= y < bottom:
-                        return True, 15  # HTBOTTOM
+                        return True, 16  # HTBOTTOMLEFT
+                    else:
+                        return True, 10  # HTLEFT
+                elif right - border <= x < right:
+                    if top <= y < top + border:
+                        return True, 14  # HTTOPRIGHT
+                    elif bottom - border <= y < bottom:
+                        return True, 17  # HTBOTTOMRIGHT
+                    else:
+                        return True, 11  # HTRIGHT
+                elif top <= y < top + border:
+                    return True, 12  # HTTOP
+                elif bottom - border <= y < bottom:
+                    return True, 15  # HTBOTTOM
 
-                    # 其他区域不处理
-                    return False, 0
+                # 其他区域不处理
+                return False, 0
 
-                # 移除标题栏
-                elif message_id == WM_NCCALCSIZE and wParam:
+            # 移除标题栏
+            if message_id == WM_NCCALCSIZE and wParam:
+                nccsp = NCCALCSIZE_PARAMS.from_address(lParam)
+                if user32.IsZoomed(hwnd_window):
+                    hmon = user32.MonitorFromWindow(hwnd_window, MONITOR_DEFAULTTONEAREST)
+                    if hmon:
+                        mi = MONITORINFO()
+                        mi.cbSize = ctypes.sizeof(MONITORINFO)
+                        if user32.GetMonitorInfoW(hmon, ctypes.byref(mi)):
+                            work_area = mi.rcWork
+                            nccsp.rgrc[0].left = work_area.left
+                            nccsp.rgrc[0].top = work_area.top
+                            nccsp.rgrc[0].right = work_area.right
+                            nccsp.rgrc[0].bottom = work_area.bottom
+                return True, 0
+
+            # 支持动画
+            if message_id == WM_SYSCOMMAND:
+                return False, 0
+
+            # 处理 WM_GETMINMAXINFO 消息以支持 Snap 功能
+            if message_id == WM_GETMINMAXINFO:
+                minmax_info = MINMAXINFO.from_address(lParam)
+                hmon = user32.MonitorFromWindow(hwnd_window, MONITOR_DEFAULTTONEAREST)
+                if hmon == 0:
                     return True, 0
-
-                # 支持动画
-                elif message_id == WM_SYSCOMMAND:
-                    return False, 0
-
-                # 处理 WM_GETMINMAXINFO 消息以支持 Snap 功能
-                elif message_id == WM_GETMINMAXINFO:
-                    # 获取屏幕工作区大小
-                    monitor = user32.MonitorFromWindow(hwnd_window, 2)  # MONITOR_DEFAULTTONEAREST
-
-                    # 使用自定义的 MONITORINFO 结构
-                    monitor_info = MONITORINFO()
-                    monitor_info.cbSize = ctypes.sizeof(MONITORINFO)
-                    monitor_info.dwFlags = 0
-                    user32.GetMonitorInfoW(monitor, ctypes.byref(monitor_info))
-
-                    # 获取 MINMAXINFO 结构
-                    minmax_info = MINMAXINFO.from_address(lParam)
-
-                    # 最大化位置和大小
-                    minmax_info.ptMaxPosition.x = monitor_info.rcWork.left - monitor_info.rcMonitor.left
-                    minmax_info.ptMaxPosition.y = monitor_info.rcWork.top - monitor_info.rcMonitor.top
-                    minmax_info.ptMaxSize.x = monitor_info.rcWork.right - monitor_info.rcMonitor.left
-                    minmax_info.ptMaxSize.y = monitor_info.rcWork.bottom - monitor_info.rcMonitor.top
-
-
-                    def get_window_int_property(window, name, default):
-                        val = getattr(window, name, default)
-                        if callable(val):
-                            val = val()  # 如果是方法就调用
-                        if val is None:
-                            val = default
-                        return int(val)
-
-                    min_w = get_window_int_property(window, "minimumWidth", 200)
-                    min_h = get_window_int_property(window, "minimumHeight", 150)
-                    max_w = get_window_int_property(window, "maximumWidth",
-                                                    monitor_info.rcWork.right - monitor_info.rcWork.left)
-                    max_h = get_window_int_property(window, "maximumHeight",
-                                                    monitor_info.rcWork.bottom - monitor_info.rcWork.top)
-                    minmax_info.ptMinTrackSize.x = int(min_w)
-                    minmax_info.ptMinTrackSize.y = int(min_h)
-                    minmax_info.ptMaxTrackSize.x = int(max_w)
-                    minmax_info.ptMaxTrackSize.y = int(max_h)
-
+                mi = MONITORINFO()
+                mi.cbSize = ctypes.sizeof(MONITORINFO)
+                if not user32.GetMonitorInfoW(hmon, ctypes.byref(mi)):
                     return True, 0
+                work_area = mi.rcWork
+                window_rect = wintypes.RECT()
+                window_rect.left = 0
+                window_rect.top = 0
+                window_rect.right = work_area.right - work_area.left
+                window_rect.bottom = work_area.bottom - work_area.top
+                window_style = user32.GetWindowLongW(hwnd_window, -16)  # GWL_STYLE
+                window_ex_style = user32.GetWindowLongW(hwnd_window, -20)  # GWL_EXSTYLE
+                if user32.AdjustWindowRectEx(
+                    ctypes.byref(window_rect),
+                    window_style,
+                    False,  # 没有菜单
+                    window_ex_style
+                ):
+                    border_width = -window_rect.left
+                    border_height = -window_rect.top
+                else:
+                    frame_x = user32.GetSystemMetrics(SM_CXSIZEFRAME)
+                    frame_y = user32.GetSystemMetrics(SM_CYSIZEFRAME)
+                    padded_border = user32.GetSystemMetrics(SM_CXPADDEDBORDER)
+                    dpi = self._get_dpi_for_window(hwnd_window)
+                    dpi_scale = dpi / 96.0 if dpi > 0 else 1.0
+                    border_width = int((frame_x + padded_border) * dpi_scale)
+                    border_height = int((frame_y + padded_border) * dpi_scale)
+                minmax_info.ptMaxPosition.x = work_area.left - border_width
+                minmax_info.ptMaxPosition.y = work_area.top - border_height
+                minmax_info.ptMaxSize.x = (work_area.right - work_area.left) + 2 * border_width
+                minmax_info.ptMaxSize.y = (work_area.bottom - work_area.top) + 2 * border_height
+                minmax_info.ptMinTrackSize.x = int(self._get_window_property(window, "minimumWidth", 100))
+                minmax_info.ptMinTrackSize.y = int(self._get_window_property(window, "minimumHeight", 100))
+                minmax_info.ptMaxTrackSize.x = int(self._get_window_property(window, "maximumWidth", 16777215))
+                minmax_info.ptMaxTrackSize.y = int(self._get_window_property(window, "maximumHeight", 16777215))
+
+                return True, 0
 
         return False, 0
