@@ -28,7 +28,6 @@ Item {
     anchors.top: parent.top
     anchors.left: parent.left
     anchors.right: parent.right
-    anchors.margins: (window !== null && window.visibility === Window.Maximized && Qt.platform.os === "windows") ? 5 : 0
     clip: true
     z: 999
 

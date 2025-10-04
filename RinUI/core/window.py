@@ -1,15 +1,25 @@
 import platform
-from typing import Optional
 
 from PySide6.QtCore import QAbstractNativeEventFilter, QByteArray, QObject, Slot
 import ctypes
 from ctypes import wintypes
 
 import win32con
+from PySide6.QtGui import QGuiApplication
 from PySide6.QtQuick import QQuickWindow
-from win32gui import ReleaseCapture, GetWindowPlacement, ShowWindow
-from win32con import SW_MAXIMIZE, SW_RESTORE
-from win32api import SendMessage
+from win32com.shell.shellcon import (
+    ABM_GETSTATE,
+    ABM_GETTASKBARPOS,
+    ABS_AUTOHIDE,
+)
+from win32gui import FindWindow, ReleaseCapture, GetWindowPlacement, ShowWindow
+from win32con import (
+    MONITOR_DEFAULTTONEAREST,
+    MONITOR_DEFAULTTOPRIMARY,
+    SW_MAXIMIZE,
+    SW_RESTORE
+)
+from win32api import GetSystemMetrics, MonitorFromWindow, SendMessage
 
 from RinUI.core.config import is_windows
 
@@ -39,6 +49,35 @@ class MSG(ctypes.Structure):
     ]
 
 
+
+class PWINDOWPOS(ctypes.Structure):
+    _fields_ = [
+        ("hWnd", wintypes.HWND),
+        ("hwndInsertAfter", wintypes.HWND),
+        ("x", ctypes.c_int),
+        ("y", ctypes.c_int),
+        ("cx", ctypes.c_int),
+        ("cy", ctypes.c_int),
+        ("flags", wintypes.UINT)
+    ]
+
+class NCCALCSIZE_PARAMS(ctypes.Structure):
+    _fields_ = [
+        ("rgrc", wintypes.RECT * 3),
+        ("lppos", ctypes.POINTER(PWINDOWPOS))
+    ]
+
+class APPBARDATA(ctypes.Structure):
+    _fields_ = [
+        ("cbSize", wintypes.UINT),
+        ("hWnd", wintypes.HWND),
+        ("uCallbackMessage", wintypes.UINT),
+        ("uEdge", wintypes.UINT),
+        ("rc", wintypes.RECT),
+        ("lParam", wintypes.LPARAM)
+    ]
+
+
 user32 = ctypes.windll.user32
 
 # 定义必要的 Windows 常量
@@ -63,6 +102,43 @@ class MINMAXINFO(ctypes.Structure):
         ("ptMinTrackSize", wintypes.POINT),
         ("ptMaxTrackSize", wintypes.POINT),
     ]
+
+
+def is_maximized(hwnd: int) -> bool:
+    placement = GetWindowPlacement(hwnd)
+    return placement[1] == SW_MAXIMIZE
+
+def is_composition_enabled() -> bool:
+    result = ctypes.c_int(0)
+    ctypes.windll.dwmapi.DwmIsCompositionEnabled(ctypes.byref(result))
+    return bool(result.value)
+
+def find_window(hwnd: wintypes.HWND):
+    if not hwnd:
+        return
+
+    windows = QGuiApplication.topLevelWindows()
+    if not windows:
+        return
+
+    hwnd = int(hwnd)
+    for window in windows:
+        if window and int(window.winId()) == hwnd:
+            return window
+
+def get_resize_border_thickness(hwnd: wintypes.HWND, horizontal=True) -> int:
+    window = find_window(hwnd)
+    if not window:
+        return 0
+
+    frame = win32con.SM_CXSIZEFRAME if horizontal else win32con.SM_CYSIZEFRAME
+    result = GetSystemMetrics(frame) + GetSystemMetrics(92)
+
+    if result > 0:
+        return result
+
+    thickness = 8 if is_composition_enabled() else 4
+    return round(thickness * window.devicePixelRatio())
 
 
 class WinEventManager(QObject):
@@ -100,10 +176,7 @@ class WinEventManager(QObject):
             return
 
         try:
-            placement = GetWindowPlacement(hwnd)
-            current_state = placement[1]
-
-            if current_state == SW_MAXIMIZE:
+            if is_maximized(hwnd):
                 ShowWindow(hwnd, SW_RESTORE)
             else:
                 ShowWindow(hwnd, SW_MAXIMIZE)
@@ -201,6 +274,45 @@ class WinEventFilter(QAbstractNativeEventFilter):
 
                 # 移除标题栏
                 elif message_id == WM_NCCALCSIZE and wParam:
+                    client_rect = ctypes.cast(lParam, ctypes.POINTER(NCCALCSIZE_PARAMS)).contents.rgrc[0]
+                    if is_maximized(hwnd):
+                        ty = get_resize_border_thickness(hwnd, False)
+                        client_rect.top += ty
+                        client_rect.bottom -= ty
+                        tx = get_resize_border_thickness(hwnd, True)
+                        client_rect.left += tx
+                        client_rect.right -= tx
+                        abd = APPBARDATA()
+                        ctypes.memset(ctypes.byref(abd), 0, ctypes.sizeof(abd))
+                        abd.cbSize = ctypes.sizeof(APPBARDATA)
+                        taskbar_state = ctypes.windll.shell32.SHAppBarMessage(ABM_GETSTATE, ctypes.byref(abd))
+                        if taskbar_state & ABS_AUTOHIDE:
+                            edge = -1
+                            abd2 = APPBARDATA()
+                            ctypes.memset(ctypes.byref(abd2), 0, ctypes.sizeof(abd2))
+                            abd2.cbSize = ctypes.sizeof(APPBARDATA)
+                            abd2.hWnd = FindWindow("Shell_TrayWnd", None)
+                            if abd2.hWnd:
+                                window_monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST)
+                                if window_monitor:
+                                    taskbar_monitor = MonitorFromWindow(abd2.hWnd, MONITOR_DEFAULTTOPRIMARY)
+                                    if taskbar_monitor and taskbar_monitor == window_monitor:
+                                        ctypes.windll.shell32.SHAppBarMessage(ABM_GETTASKBARPOS, ctypes.byref(abd2))
+                                        edge = abd2.uEdge
+                            top = (edge == 1)
+                            bottom = (edge == 3)
+                            left = (edge == 0)
+                            right = (edge == 2)
+                            if top:
+                                client_rect.top += 1
+                            elif bottom:
+                                client_rect.bottom -= 1
+                            elif left:
+                                client_rect.left += 1
+                            elif right:
+                                client_rect.right -= 1
+                            else:
+                                client_rect.bottom -= 1
                     return True, 0
 
                 # 支持动画
