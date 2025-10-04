@@ -113,7 +113,7 @@ def is_composition_enabled() -> bool:
     ctypes.windll.dwmapi.DwmIsCompositionEnabled(ctypes.byref(result))
     return bool(result.value)
 
-def find_window(hwnd: wintypes.HWND):
+def find_window(hwnd: int):
     if not hwnd:
         return
 
@@ -121,13 +121,12 @@ def find_window(hwnd: wintypes.HWND):
     if not windows:
         return
 
-    hwnd = int(hwnd)
     for window in windows:
         if window and int(window.winId()) == hwnd:
             return window
 
 def get_resize_border_thickness(hwnd: wintypes.HWND, horizontal=True) -> int:
-    window = find_window(hwnd)
+    window = find_window(int(hwnd))
     if not window:
         return 0
 
