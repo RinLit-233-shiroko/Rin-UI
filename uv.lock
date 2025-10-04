@@ -1,19 +1,19 @@
 version = 1
-revision = 1
-requires-python = ">=3.8"
+revision = 3
+requires-python = ">=3.9"
 
 [[package]]
 name = "darkdetect"
 version = "0.8.0"
 source = { registry = "https://mirrors.cernet.edu.cn/pypi/web/simple" }
-sdist = { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/45/77/7575be73bf12dee231d0c6e60ce7fb7a7be4fcd58823374fc59a6e48262e/darkdetect-0.8.0.tar.gz", hash = "sha256:b5428e1170263eb5dea44c25dc3895edd75e6f52300986353cd63533fe7df8b1", size = 7681 }
+sdist = { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/45/77/7575be73bf12dee231d0c6e60ce7fb7a7be4fcd58823374fc59a6e48262e/darkdetect-0.8.0.tar.gz", hash = "sha256:b5428e1170263eb5dea44c25dc3895edd75e6f52300986353cd63533fe7df8b1", size = 7681, upload-time = "2022-12-16T14:14:42.113Z" }
 wheels = [
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/f2/f2/728f041460f1b9739b85ee23b45fa5a505962ea11fd85bdbe2a02b021373/darkdetect-0.8.0-py3-none-any.whl", hash = "sha256:a7509ccf517eaad92b31c214f593dbcf138ea8a43b2935406bbd565e15527a85", size = 8955 },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/f2/f2/728f041460f1b9739b85ee23b45fa5a505962ea11fd85bdbe2a02b021373/darkdetect-0.8.0-py3-none-any.whl", hash = "sha256:a7509ccf517eaad92b31c214f593dbcf138ea8a43b2935406bbd565e15527a85", size = 8955, upload-time = "2022-12-16T14:14:40.92Z" },
 ]
 
 [[package]]
 name = "pyside6"
-version = "6.6.3.1"
+version = "6.9.3"
 source = { registry = "https://mirrors.cernet.edu.cn/pypi/web/simple" }
 dependencies = [
     { name = "pyside6-addons" },
@@ -21,63 +21,94 @@ dependencies = [
     { name = "shiboken6" },
 ]
 wheels = [
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/ba/9a/3483d05305701ba810192572cee5977ff884c033a1b8f96ab9582d81ccd4/PySide6-6.6.3.1-cp38-abi3-macosx_11_0_universal2.whl", hash = "sha256:3d2ebb08a7744b59e1270e57f264a9ef5b45fccdc0328a9aeb50d890d6b3f4f2", size = 512759 },
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/14/60/dc79d4ea59ed1ebe6062c5db972b31d489ea84315dcf3bd58a2a741c73b3/PySide6-6.6.3.1-cp38-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:35936f06257e5c37ae8993da0cb5a528e5db3ea1fc2bb6b12cdf899a11510966", size = 513325 },
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/51/3e/b77d2b9a1efcb5c90a2df4f51eb10bce45b3787c4fa16b69c599fd6620b9/PySide6-6.6.3.1-cp38-abi3-manylinux_2_31_aarch64.whl", hash = "sha256:f7acd26fe8e1a745ef0be66b49ee49ee8ae50c2a2855d9792db262ebc7916d98", size = 513326 },
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/af/90/3164ace42cb80ed55642e965934133d0c49bfa3ea79e43631dd331cdc866/PySide6-6.6.3.1-cp38-abi3-win_amd64.whl", hash = "sha256:d993989a10725c856f5b07f25e0664c5059daa92c259549c9df0972b5b0c7935", size = 520559 },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/fe/15/1fa71e44d3b345b9eca82d38cf7e6d7505168b978fe98b3610c0e25d8c0e/pyside6-6.9.3-cp39-abi3-macosx_12_0_universal2.whl", hash = "sha256:6fd9fbbc14e2a5707df611bfacbf3f71283c637b8a29b28708801eeb28bfcb69", size = 554720, upload-time = "2025-09-30T12:02:07.235Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/34/0e/1e9841cc46196c55ac3eac0b8e08044a88cc70c8cc29e9dc1e33b2ced2b7/pyside6-6.9.3-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:6485aebec8eba4e55d1ec1cebe68ca1413589880cc8ccd8a49acae852ec6cfb3", size = 554849, upload-time = "2025-09-30T12:02:08.909Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/3d/6b/6aeb7124a5c08ac537776d7d0be1011cf22ccfc6f95cf901fe1eb1a16e91/pyside6-6.9.3-cp39-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:8f4ff61b24a64153373b68a96339bd765fc010d02c4d98d0f6dba2a6c9686e11", size = 554846, upload-time = "2025-09-30T12:02:10.762Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/6e/29/4eb0ab29ee7d60da4c5fefdb514c22ae3c91c3f855f46608cfbe23816518/pyside6-6.9.3-cp39-abi3-win_amd64.whl", hash = "sha256:71b41b9ebd1c044c3777f2b32278d3919f07bda4f15c504bc165b643bc3cec01", size = 561082, upload-time = "2025-09-30T12:02:12.411Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/3f/c2/b936d50974a14846ccb883cbce0034ec431e1013af7f2aa29d3746a1565f/pyside6-6.9.3-cp39-abi3-win_arm64.whl", hash = "sha256:33fb70addd02e1adaa45573485c431bca43cf12bb7b2596535b824ff169138ce", size = 545910, upload-time = "2025-09-30T12:02:13.746Z" },
 ]
 
 [[package]]
 name = "pyside6-addons"
-version = "6.6.3.1"
+version = "6.9.3"
 source = { registry = "https://mirrors.cernet.edu.cn/pypi/web/simple" }
 dependencies = [
     { name = "pyside6-essentials" },
     { name = "shiboken6" },
 ]
 wheels = [
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/5f/43/b4d9264969552450c2e889450908279302360901b530f3ec3eb1154db5bf/PySide6_Addons-6.6.3.1-cp38-abi3-macosx_11_0_universal2.whl", hash = "sha256:31135adc521ed6e3fdc8203507e7e9d72424d6b9ebd245d1189d991e90669d6a", size = 250159667 },
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/02/fc/e265aa0c338ddd8a4f2c3526aadc58f60980508ac56999ba79cf2ce744a7/PySide6_Addons-6.6.3.1-cp38-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:7373479565e5bd963b9662857c40c20768bc0b5853334e2076a62cb039e91f74", size = 125913866 },
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/9e/52/d56c3380f300b14f26be8eaf98af71a128e7e7952a2b3f4c8b24b1547e0a/PySide6_Addons-6.6.3.1-cp38-abi3-manylinux_2_31_aarch64.whl", hash = "sha256:3abdc1e21de0c6763e5392af5ed8b2349291318ce235e7c310d84a2f9d5001a9", size = 111711166 },
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/f3/c6/fc354ab30ca87b34fa62794e75a65a6b8bc7f4e858c5fd217b8706a143bb/PySide6_Addons-6.6.3.1-cp38-abi3-win_amd64.whl", hash = "sha256:d8fbcd726dbf3e713e5d5ccc45ff0e1a9edfe336d7190c96cf7e7c7598681239", size = 111743197 },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/23/56/714c55e4514ec6603be8126355baf416e507557a73e7fc76870e6f5c20b9/pyside6_addons-6.9.3-cp39-abi3-macosx_12_0_universal2.whl", hash = "sha256:189c9a9a2fdaffa95e91731f5c0afdc47ba231f5f683d3f8977b22c233749ba4", size = 316906068, upload-time = "2025-09-30T12:03:28.268Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/17/fe/d5c67665f866b8859d02aa1a859f101a1b2fd348cb61746a3e16fd98fb20/pyside6_addons-6.9.3-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:68932327e1c33d729d79b2b94242f97b77601efe0427e757cd3fd588939ea479", size = 167175405, upload-time = "2025-09-30T12:04:11.793Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/66/f2/66da0d8ba8e4eb934d2bb042f2199664d2366c121844e36376f724b53fd9/pyside6_addons-6.9.3-cp39-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:61f4f4859bd1711eea2202fe364a701597140ed4f3900ddf1f90d91ae631fdf9", size = 163102125, upload-time = "2025-09-30T12:04:55.193Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/d7/fb/849599666942ce35e9f250bce1abc7b1248eccdcbe8b3fe697a0f98a1326/pyside6_addons-6.9.3-cp39-abi3-win_amd64.whl", hash = "sha256:0aece2a81ccf16ef9b750b09601b6876aa116bbc700e848ce82df42906f04c5c", size = 160681555, upload-time = "2025-09-30T12:05:36.44Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/b1/2d/e71face0149519d6ded4e77b5c5e266c094ce5ef8c5c96c2af2f0afadf3c/pyside6_addons-6.9.3-cp39-abi3-win_arm64.whl", hash = "sha256:3b8749c9c2b297f53c980192e89ce38ac59019f290a2669fe1abb3128f9a09d9", size = 33759045, upload-time = "2025-09-30T12:05:48.373Z" },
 ]
 
 [[package]]
 name = "pyside6-essentials"
-version = "6.6.3.1"
+version = "6.9.3"
 source = { registry = "https://mirrors.cernet.edu.cn/pypi/web/simple" }
 dependencies = [
     { name = "shiboken6" },
 ]
 wheels = [
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/ec/47/69e1c0dd4305a30e01e54257fe08d7719da0464b1e2bd351d23831c0018c/PySide6_Essentials-6.6.3.1-cp38-abi3-macosx_11_0_universal2.whl", hash = "sha256:6c16530b63079711783796584b640cc80a347e0b2dc12651aa2877265df7a008", size = 147274572 },
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/4a/29/2375cccf188862c3297f40cb06832cd48fd98fd5da73b0b296a59f54c9f4/PySide6_Essentials-6.6.3.1-cp38-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:1f41f357ce2384576581e76c9c3df1c4fa5b38e347f0bcd0cae7c5bce42a917c", size = 82521622 },
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/0f/2c/d6c6102a1a803f0619932996fed59c90429a09850a2b8c19f44f92dd4189/PySide6_Essentials-6.6.3.1-cp38-abi3-manylinux_2_31_aarch64.whl", hash = "sha256:27034525fdbdd21ef21f20fcd7aaf5c2ffe26f2bcf5269a69dd9492dec7e92aa", size = 66881609 },
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/03/c2/d4e78dd7661889b97e52fbfed908ce65abf1422dc03cc7e90752b52ff1f5/PySide6_Essentials-6.6.3.1-cp38-abi3-win_amd64.whl", hash = "sha256:31f7e70ada44d3cdbe6686670b3df036c720cfeb1dced0f7704e5f5a4be6a764", size = 77264921 },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/80/a9/51549844900837c70e5c89cbd840956c2533732ef4f05c2b656e35ca8182/pyside6_essentials-6.9.3-cp39-abi3-macosx_12_0_universal2.whl", hash = "sha256:ad3664ff0ced9f92ed7872e512c86328894d29f262e6c3400400232a36dda357", size = 134586559, upload-time = "2025-09-30T12:06:22.681Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/85/e8/9396cf11a60f80175bb3c5c1d498d84e87b7af653ab4ea001acf821a3981/pyside6_essentials-6.9.3-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:c70d5544e892b201a677b615156fab6a0fef865e7fc287f55a0eae00a682e83f", size = 97495307, upload-time = "2025-09-30T12:06:49.213Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/57/a5/0187b2845a6fa534217988f9351c0b85ba1c04e8fd31f1e3c13ba1c4386e/pyside6_essentials-6.9.3-cp39-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:e22e517c592657e291c0cbe7d04078ab415cb225188d7e895f8f7adcdba755d2", size = 95199568, upload-time = "2025-09-30T12:07:13.726Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/a0/52/b558c79bc32310361a37d1e894c2251a3557daec380be5f6d2a9223e8ef3/pyside6_essentials-6.9.3-cp39-abi3-win_amd64.whl", hash = "sha256:21f98077c135864473089e59a6a0bd828e64c6644b3dd7267b102da4a2ee8f21", size = 73593457, upload-time = "2025-09-30T12:07:33.98Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/d2/22/4ec828f6360e6e9bcd6fde2dec20fa4865fe1a77cb6bac6812f7d0aa55b3/pyside6_essentials-6.9.3-cp39-abi3-win_arm64.whl", hash = "sha256:2e34081933e005686d79265cc04370a28fea3844ab63d432e493adcd4465070c", size = 54301788, upload-time = "2025-09-30T12:07:49.504Z" },
 ]
 
 [[package]]
-name = "rin-ui"
-version = "0.1.0"
+name = "pywin32"
+version = "311"
+source = { registry = "https://mirrors.cernet.edu.cn/pypi/web/simple" }
+wheels = [
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/7b/40/44efbb0dfbd33aca6a6483191dae0716070ed99e2ecb0c53683f400a0b4f/pywin32-311-cp310-cp310-win32.whl", hash = "sha256:d03ff496d2a0cd4a5893504789d4a15399133fe82517455e78bad62efbb7f0a3", size = 8760432, upload-time = "2025-07-14T20:13:05.9Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/5e/bf/360243b1e953bd254a82f12653974be395ba880e7ec23e3731d9f73921cc/pywin32-311-cp310-cp310-win_amd64.whl", hash = "sha256:797c2772017851984b97180b0bebe4b620bb86328e8a884bb626156295a63b3b", size = 9590103, upload-time = "2025-07-14T20:13:07.698Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/57/38/d290720e6f138086fb3d5ffe0b6caa019a791dd57866940c82e4eeaf2012/pywin32-311-cp310-cp310-win_arm64.whl", hash = "sha256:0502d1facf1fed4839a9a51ccbcc63d952cf318f78ffc00a7e78528ac27d7a2b", size = 8778557, upload-time = "2025-07-14T20:13:11.11Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/7c/af/449a6a91e5d6db51420875c54f6aff7c97a86a3b13a0b4f1a5c13b988de3/pywin32-311-cp311-cp311-win32.whl", hash = "sha256:184eb5e436dea364dcd3d2316d577d625c0351bf237c4e9a5fabbcfa5a58b151", size = 8697031, upload-time = "2025-07-14T20:13:13.266Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/51/8f/9bb81dd5bb77d22243d33c8397f09377056d5c687aa6d4042bea7fbf8364/pywin32-311-cp311-cp311-win_amd64.whl", hash = "sha256:3ce80b34b22b17ccbd937a6e78e7225d80c52f5ab9940fe0506a1a16f3dab503", size = 9508308, upload-time = "2025-07-14T20:13:15.147Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/44/7b/9c2ab54f74a138c491aba1b1cd0795ba61f144c711daea84a88b63dc0f6c/pywin32-311-cp311-cp311-win_arm64.whl", hash = "sha256:a733f1388e1a842abb67ffa8e7aad0e70ac519e09b0f6a784e65a136ec7cefd2", size = 8703930, upload-time = "2025-07-14T20:13:16.945Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/e7/ab/01ea1943d4eba0f850c3c61e78e8dd59757ff815ff3ccd0a84de5f541f42/pywin32-311-cp312-cp312-win32.whl", hash = "sha256:750ec6e621af2b948540032557b10a2d43b0cee2ae9758c54154d711cc852d31", size = 8706543, upload-time = "2025-07-14T20:13:20.765Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/d1/a8/a0e8d07d4d051ec7502cd58b291ec98dcc0c3fff027caad0470b72cfcc2f/pywin32-311-cp312-cp312-win_amd64.whl", hash = "sha256:b8c095edad5c211ff31c05223658e71bf7116daa0ecf3ad85f3201ea3190d067", size = 9495040, upload-time = "2025-07-14T20:13:22.543Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/ba/3a/2ae996277b4b50f17d61f0603efd8253cb2d79cc7ae159468007b586396d/pywin32-311-cp312-cp312-win_arm64.whl", hash = "sha256:e286f46a9a39c4a18b319c28f59b61de793654af2f395c102b4f819e584b5852", size = 8710102, upload-time = "2025-07-14T20:13:24.682Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/a5/be/3fd5de0979fcb3994bfee0d65ed8ca9506a8a1260651b86174f6a86f52b3/pywin32-311-cp313-cp313-win32.whl", hash = "sha256:f95ba5a847cba10dd8c4d8fefa9f2a6cf283b8b88ed6178fa8a6c1ab16054d0d", size = 8705700, upload-time = "2025-07-14T20:13:26.471Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/e3/28/e0a1909523c6890208295a29e05c2adb2126364e289826c0a8bc7297bd5c/pywin32-311-cp313-cp313-win_amd64.whl", hash = "sha256:718a38f7e5b058e76aee1c56ddd06908116d35147e133427e59a3983f703a20d", size = 9494700, upload-time = "2025-07-14T20:13:28.243Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/04/bf/90339ac0f55726dce7d794e6d79a18a91265bdf3aa70b6b9ca52f35e022a/pywin32-311-cp313-cp313-win_arm64.whl", hash = "sha256:7b4075d959648406202d92a2310cb990fea19b535c7f4a78d3f5e10b926eeb8a", size = 8709318, upload-time = "2025-07-14T20:13:30.348Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/c9/31/097f2e132c4f16d99a22bfb777e0fd88bd8e1c634304e102f313af69ace5/pywin32-311-cp314-cp314-win32.whl", hash = "sha256:b7a2c10b93f8986666d0c803ee19b5990885872a7de910fc460f9b0c2fbf92ee", size = 8840714, upload-time = "2025-07-14T20:13:32.449Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/90/4b/07c77d8ba0e01349358082713400435347df8426208171ce297da32c313d/pywin32-311-cp314-cp314-win_amd64.whl", hash = "sha256:3aca44c046bd2ed8c90de9cb8427f581c479e594e99b5c0bb19b29c10fd6cb87", size = 9656800, upload-time = "2025-07-14T20:13:34.312Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/c0/d2/21af5c535501a7233e734b8af901574572da66fcc254cb35d0609c9080dd/pywin32-311-cp314-cp314-win_arm64.whl", hash = "sha256:a508e2d9025764a8270f93111a970e1d0fbfc33f4153b388bb649b7eec4f9b42", size = 8932540, upload-time = "2025-07-14T20:13:36.379Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/59/42/b86689aac0cdaee7ae1c58d464b0ff04ca909c19bb6502d4973cdd9f9544/pywin32-311-cp39-cp39-win32.whl", hash = "sha256:aba8f82d551a942cb20d4a83413ccbac30790b50efb89a75e4f586ac0bb8056b", size = 8760837, upload-time = "2025-07-14T20:12:59.59Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/9f/8a/1403d0353f8c5a2f0829d2b1c4becbf9da2f0a4d040886404fc4a5431e4d/pywin32-311-cp39-cp39-win_amd64.whl", hash = "sha256:e0c4cfb0621281fe40387df582097fd796e80430597cb9944f0ae70447bacd91", size = 9590187, upload-time = "2025-07-14T20:13:01.419Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/60/22/e0e8d802f124772cec9c75430b01a212f86f9de7546bda715e54140d5aeb/pywin32-311-cp39-cp39-win_arm64.whl", hash = "sha256:62ea666235135fee79bb154e695f3ff67370afefd71bd7fea7512fc70ef31e3d", size = 8778162, upload-time = "2025-07-14T20:13:03.544Z" },
+]
+
+[[package]]
+name = "rinui"
+version = "0.1.7.3"
 source = { editable = "." }
 dependencies = [
     { name = "darkdetect" },
     { name = "pyside6" },
+    { name = "pywin32", marker = "sys_platform == 'win32'" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "darkdetect", specifier = "~=0.8.0" },
-    { name = "pyside6", specifier = "~=6.6.3.1" },
+    { name = "pyside6", specifier = ">=6.9.3" },
+    { name = "pywin32", marker = "sys_platform == 'win32'" },
 ]
 
 [[package]]
 name = "shiboken6"
-version = "6.6.3.1"
+version = "6.9.3"
 source = { registry = "https://mirrors.cernet.edu.cn/pypi/web/simple" }
 wheels = [
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/af/fb/183b7889168f44b19526f58c571b88e23375150abcbd5b603dd3a288ef7a/shiboken6-6.6.3.1-cp38-abi3-macosx_11_0_universal2.whl", hash = "sha256:2a8df586aa9eb629388b368d3157893083c5217ed3eb637bf182d1948c823a0f", size = 345925 },
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/77/f1/feb2a8be699f91fb27fbe8758b405fb38a22e3ae5bd5e05258dbef18d462/shiboken6-6.6.3.1-cp38-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:b1aeff0d79d84ddbdc9970144c1bbc3a52fcb45618d1b33d17d57f99f1246d45", size = 171474 },
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/b9/03/e71f0f3fc35fcc90265d1345e3afa509bbd2d6bb305c6e78427a9b27efea/shiboken6-6.6.3.1-cp38-abi3-manylinux_2_31_aarch64.whl", hash = "sha256:902d9e126ac57cc3841cdc50ba38d53948b40cf667538172f253c4ae7b2dcb2c", size = 162427 },
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/b8/f3/b4153287806a63ee064570ed527f16f9eacedab4f4ea99cb84b55e624e21/shiboken6-6.6.3.1-cp38-abi3-win_amd64.whl", hash = "sha256:88494b5e08a1f235efddbe2b0b225a3a66e07d72b6091fcc2fc5448572453649", size = 1068203 },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/6b/ed/eac552326349629f8c3a89b57a754a860d9665aea78c172777395905d36b/shiboken6-6.9.3-cp39-abi3-macosx_12_0_universal2.whl", hash = "sha256:e9b240828790b8e21a50e66449a5aa8b99f9b8a538c80c1a325fa04f8364985e", size = 400999, upload-time = "2025-09-30T12:00:08.123Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/be/82/c1c6932f9849bc5e75c93c38a29419505a6e3e0037261e28f3e7ecbf2751/shiboken6-6.9.3-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:f3f5337a3a8fc660ba1462265bd9a2bdda9588f8d90fbc3d5ac4ce3134c11e59", size = 204927, upload-time = "2025-09-30T12:00:10.334Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/4a/fc/026f4c8660494e513fd8c6d95d4d694d490795c6880f1fd23ec996a83e13/shiboken6-6.9.3-cp39-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:f66e82510e3a3170a42e3ef865329559b69811ce83102ad1ee57920319427c10", size = 200684, upload-time = "2025-09-30T12:00:11.967Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/50/be/f6bb3fc89623dd01ac67cd6be357e585ea5081536b275008b6c8d6fa7c28/shiboken6-6.9.3-cp39-abi3-win_amd64.whl", hash = "sha256:f1498176d2d5bcade7d662e1fc5143980fb008b6c78b966289d29a4ae86cd0c6", size = 1166242, upload-time = "2025-09-30T12:00:13.447Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/c1/66/097a5f80ed1058071466c8c4fd72f94886851f6e03028f980ef0c42a7b54/shiboken6-6.9.3-cp39-abi3-win_arm64.whl", hash = "sha256:0c87bcfd483a1980794e03cf5ec6b2061691a1b075f92b78edb0d13847139ecf", size = 1727949, upload-time = "2025-09-30T12:00:15.23Z" },
 ]

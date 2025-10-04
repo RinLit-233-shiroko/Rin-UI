@@ -10,9 +10,9 @@ authors = [
 ]
 description = "A Fluent Design-like UI library for Qt Quick (QML) based on PySide6"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
-    "PySide6",
+    "PySide6>=6.9.3",
     "darkdetect~=0.8.0",
     "pywin32 ; sys_platform == 'win32'"
 ]
