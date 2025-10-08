@@ -51,7 +51,7 @@
     </message>
     <message>
         <location filename="../components/Navigation/ErrorPage.qml" line="30"/>
-        <source> load failed! 
+        <source> load failed!
 
  Because of </source>
         <translation> 加载 QML 失败！

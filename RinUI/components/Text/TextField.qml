@@ -87,7 +87,7 @@ TextField {
     topPadding: 5
     bottomPadding: 7
 
-    // 清空按钮 
+    // 清空按钮
     Button {
         id: clearBtn
         anchors.right: parent.right

@@ -19,7 +19,7 @@ RowLayout {
     property var lastPages: []  // 上个页面索引
     property int pushEnterFromY: height
     property var window: parent  // 窗口对象
-    
+
     // 页面实例缓存
     property var pageCache: ({})
 
@@ -209,7 +209,7 @@ RowLayout {
 
         } else if (typeof page === "object" || typeof page === "string" ) {
             let pageKey = page.toString()
-            
+
             // 检查缓存中是否已有该页面实例
             if (!pageCache[pageKey] || reload) {
                 let component = Qt.createComponent(page)  // 页面转控件
@@ -232,11 +232,11 @@ RowLayout {
                     return
                 }
             }
-            
+
             // 使用缓存的页面实例
             if (pageCache[pageKey]) {
                 console.log("Using cached page:", pageKey, "Depth:", stackView.depth)
-                
+
                 // 对于侧边栏导航，始终推送页面以保持一致的动画效果
                 // 如果页面已在栈中，创建一个新的实例来避免StackView限制
                 let pageInstance = pageCache[pageKey]
@@ -247,11 +247,11 @@ RowLayout {
                         break
                     }
                 }
-                
+
                 if (isInStack && fromNavigation) {
                     // 如果是侧边栏导航且页面已在栈中，先从栈中移除该实例，然后重新推送
                     console.log("Removing and re-pushing cached page:", pageKey)
-                    
+
                     // 找到页面在栈中的位置并移除
                     let targetIndex = -1
                     for (let i = 0; i < stackView.depth; i++) {
@@ -260,19 +260,19 @@ RowLayout {
                             break
                         }
                     }
-                    
+
                     if (targetIndex >= 0) {
                         // 移除该页面实例（但不销毁，因为它在缓存中）
                         let tempItems = []
                         for (let i = targetIndex + 1; i < stackView.depth; i++) {
                             tempItems.push(stackView.get(i))
                         }
-                        
+
                         // 弹出到目标页面之前
                         while (stackView.depth > targetIndex) {
                             stackView.pop(null, StackView.Immediate)
                         }
-                        
+
                         // 现在可以安全推送页面
                         navigationBar.lastPages.push(navigationBar.currentPage)
                         navigationBar.lastPages = navigationBar.lastPages

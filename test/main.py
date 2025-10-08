@@ -1,8 +1,10 @@
 import sys
-from PySide6.QtWidgets import QApplication
-from RinUI import RinUIWindow, Theme, WinEventFilter
 
-if __name__ == '__main__':
+from PySide6.QtWidgets import QApplication
+
+from RinUI import RinUIWindow, Theme
+
+if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     window2 = RinUIWindow("test3.qml")

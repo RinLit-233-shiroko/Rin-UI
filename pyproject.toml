@@ -1,44 +1,94 @@
 [build-system]
-requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+requires = ["setuptools", "wheel"]
 
 [project]
 name = "RinUI"
 version = "0.1.8.1.post1"
 authors = [
-    { name = "RinLit", email = "lintu233_qwq@icloud.com" }
+  {email = "lintu233_qwq@icloud.com", name = "RinLit"}
 ]
 description = "A Fluent Design-like UI library for Qt Quick (QML) based on PySide6"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "PySide6>=6.9.3",
-    "darkdetect~=0.8.0",
-    "pywin32 ; sys_platform == 'win32'"
+  "PySide6>=6.9.3",
+  "darkdetect~=0.8.0",
+  "pywin32 ; sys_platform == 'win32'"
 ]
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent"
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3"
 ]
-
 [tool.setuptools]
 packages = ["RinUI"]
 include-package-data = true
 
 [tool.setuptools.package-data]
 RinUI = [
-    "*",  # 根目录下所有文件
-    "assets/**/*",
-    "components/**/*",
-    "themes/**/*",
-    "windows/**/*",
-    "utils/**/*",
-    "hooks/**/*",
+  "*", # 根目录下所有文件
+  "assets/**/*",
+  "components/**/*",
+  "hooks/**/*",
+  "themes/**/*",
+  "utils/**/*",
+  "windows/**/*"
 ]
 
 [tool.setuptools.data-files]
-"" = ["README.md", "LICENSE"]
+"" = ["LICENSE", "README.md"]
 
 [project.entry-points."pyinstaller40"]
 hook-dirs = "RinUI.hooks:get_hook_dirs"
+
+[project.optional-dependencies]
+dev = [
+  "pre-commit>=4.0.0",
+  "ruff>=0.14.0"
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+
+[tool.ruff.format]
+indent-style = "space"
+line-ending = "lf"
+quote-style = "double"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+ignore = [
+  "ARG002",
+  "B008",
+  "C901",
+  "E501",
+  "F841",
+  "N801",
+  "N802",
+  "N815",
+  "N999",
+  "PLR0912",
+  "PLR0913",
+  "PLR0915"
+]
+select = [
+  "B",
+  "C4",
+  "E",
+  "F",
+  "I",
+  "N",
+  "PIE",
+  "PTH",
+  "RET",
+  "SIM",
+  "TRY",
+  "UP",
+  "W"
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "F403"]
+"tests/*" = ["B011"]

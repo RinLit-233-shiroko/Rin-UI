@@ -25,7 +25,9 @@ class Gallery(RinUIWindow):
 
         self.backend = Backend()
         self.backend.setBackendParent(self)
-        self.setProperty("title", f"RinUI Gallery {datetime.now().year}")  # 前后端交互示例
+        self.setProperty(
+            "title", f"RinUI Gallery {datetime.now().year}"
+        )  # 前后端交互示例
 
         self.engine.rootContext().setContextProperty("Backend", self.backend)  # 注入
 

@@ -11,7 +11,7 @@ Item {
             console.error("WindowManager is not defined.")
             return -1
         }
-        WinEventManager.dragWindowEvent(WinEventManager.getWindowId(window))
+        WinEventManager.drag_window_event(WinEventManager.getWindowId(window))
     }
 
     function maximizeWindow(window) {

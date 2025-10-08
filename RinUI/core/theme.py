@@ -1,12 +1,19 @@
 import ctypes
 import platform
+import sys
 import time
 
-from PySide6.QtCore import QObject, Signal, Slot, QThread
-
-from .config import DEFAULT_CONFIG, RinConfig, is_win10, is_windows, is_win11, BackdropEffect
-import sys
 import darkdetect
+from PySide6.QtCore import QObject, QThread, Signal, Slot
+
+from .config import (
+    DEFAULT_CONFIG,
+    BackdropEffect,
+    RinConfig,
+    is_win10,
+    is_win11,
+    is_windows,
+)
 
 
 def check_darkdetect_support():
@@ -16,24 +23,18 @@ def check_darkdetect_support():
         major, minor, *_ = map(int, mac_ver.split("."))
         return (major == 10 and minor >= 14) or major > 10
 
-    elif system == "Windows":
+    if system == "Windows":
         return platform.release() >= "10"
-    else:
-        return False
+    return False
 
 
-ACCENT_STATES = {
-    "acrylic": 3,
-    "mica": 2,
-    "tabbed": 4,
-    "none": 0
-}
+ACCENT_STATES = {"acrylic": 3, "mica": 2, "tabbed": 4, "none": 0}
 
 ACCENT_SUPPORT = {
     "acrylic": is_win10(),
     "mica": is_win11(),
     "tabbed": is_win10(),
-    "none": True
+    "none": True,
 }
 
 
@@ -58,6 +59,7 @@ class ThemeListener(QThread):
     """
     监听系统颜色模式
     """
+
     themeChanged = Signal(str)
 
     def run(self):
@@ -120,10 +122,7 @@ class ThemeManager(QObject):
             return
         self._initialized = True
         super().__init__()
-        self.theme_dict = {
-            "Light": 0,
-            "Dark": 1
-        }
+        self.theme_dict = {"Light": 0, "Dark": 1}
 
         self.listener = None  # 监听线程
         self.current_theme = DEFAULT_CONFIG["theme"]["current_theme"]  # 当前主题
@@ -165,13 +164,13 @@ class ThemeManager(QObject):
         """
         self._update_window_theme()
         if not is_windows() or not self.windows:
-            print(f"Cannot apply effect \"{effect_type}\" on this platform")
+            print(f'Cannot apply effect "{effect_type}" on this platform')
             return -2  # 非 windows或未绑定窗口
         self.backdropChanged.emit(effect_type)
 
         accent_state = ACCENT_STATES.get(effect_type, 0)
         if not ACCENT_SUPPORT.get(effect_type, False):
-            print(f"Effect \"{effect_type}\" not supported on this platform")
+            print(f'Effect "{effect_type}" not supported on this platform')
             return -1  # 效果不支持
 
         for hwnd in self.windows:
@@ -180,7 +179,7 @@ class ThemeManager(QObject):
                     hwnd,
                     self.DWMWA_SYSTEMBACKDROP_TYPE,
                     ctypes.byref(ctypes.c_int(accent_state)),
-                    ctypes.sizeof(ctypes.c_int)
+                    ctypes.sizeof(ctypes.c_int),
                 )
             elif is_win10() and effect_type == BackdropEffect.Acrylic.value:
                 self._apply_win10_effect(effect_type, hwnd)
@@ -197,7 +196,9 @@ class ThemeManager(QObject):
         应用 Windows 10 背景效果
         :param effect_type: str, 背景效果类型（acrylic, tabbed(actually blur)
         """
-        backdrop_color = RinConfig["win10_feat"]["backdrop_dark" if self.is_dark_theme() else "backdrop_light"]
+        backdrop_color = RinConfig["win10_feat"][
+            "backdrop_dark" if self.is_dark_theme() else "backdrop_light"
+        ]
 
         accent = ACCENT_POLICY()
         accent.AccentState = ACCENT_STATES[effect_type]
@@ -227,7 +228,7 @@ class ThemeManager(QObject):
                 hwnd,
                 self.DWMWA_NCRENDERING_POLICY,
                 ctypes.byref(ncrp),
-                ctypes.sizeof(ncrp)
+                ctypes.sizeof(ncrp),
             )
 
             # 启用圆角效果
@@ -236,7 +237,7 @@ class ThemeManager(QObject):
                 hwnd,
                 self.DWMWA_WINDOW_CORNER_PREFERENCE,
                 ctypes.byref(corner_preference),
-                ctypes.sizeof(corner_preference)
+                ctypes.sizeof(corner_preference),
             )
         # print("Enabled Rounded and Shadows")
 
@@ -250,9 +251,12 @@ class ThemeManager(QObject):
                     hwnd,
                     self.DWMWA_USE_IMMERSIVE_DARK_MODE,
                     ctypes.byref(ctypes.c_int(self.theme_dict[actual_theme])),
-                    ctypes.sizeof(ctypes.c_int)
+                    ctypes.sizeof(ctypes.c_int),
                 )
-            elif is_win10() and RinConfig["backdrop_effect"] == BackdropEffect.Acrylic.value:
+            elif (
+                is_win10()
+                and RinConfig["backdrop_effect"] == BackdropEffect.Acrylic.value
+            ):
                 self._apply_win10_effect(RinConfig["backdrop_effect"], hwnd)
             else:
                 print(f"Cannot apply backdrop on {platform.system()}")
@@ -266,7 +270,11 @@ class ThemeManager(QObject):
     def _actual_theme(self):
         """实际应用的主题"""
         if self.current_theme == "Auto":
-            return darkdetect.theme() or "Light" if self.is_darkdetect_supported else "Light"
+            return (
+                darkdetect.theme() or "Light"
+                if self.is_darkdetect_supported
+                else "Light"
+            )
         return self.current_theme
 
     @Slot(str)

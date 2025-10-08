@@ -31,12 +31,12 @@
 - [ ] SystemTrayMenu
 ## Label
 - [x] LabelBase
-- [x] CaptionLabel 
-- [x] BodyLabel 
-- [x] StrongBodyLabel 
-- [x] SubtitleLabel 
-- [x] TitleLabel 
-- [x] LargeTitleLabel 
+- [x] CaptionLabel
+- [x] BodyLabel
+- [x] StrongBodyLabel
+- [x] SubtitleLabel
+- [x] TitleLabel
+- [x] LargeTitleLabel
 - [x] DisplayLabel
 ## Widget&Layout
 
