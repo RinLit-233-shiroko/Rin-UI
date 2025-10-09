@@ -22,11 +22,11 @@ TextArea {
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.RightButton
-        propagateComposedEvents: true
+        propagateComposedEvents: false
         onPressed: (mouse) => {
             if (mouse.button === Qt.RightButton)
                 contextMenu.popup(mouse.scenePosition)
-            mouse.accepted = false
+            mouse.accepted = true
         }
 
         // 鼠标
