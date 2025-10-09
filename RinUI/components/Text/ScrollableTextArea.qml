@@ -88,6 +88,11 @@ Item {
 
             // 富文本支持：使用 TextArea 的 textFormat 直接切换
             textFormat: container.richText ? TextEdit.RichText : TextEdit.PlainText
+            
+            // 富文本链接点击处理
+            onLinkActivated: (link) => {
+                Qt.openUrlExternally(link)
+            }
 
             // 字体 / Font //
             font.pixelSize: Theme.currentTheme.typography.bodySize
@@ -111,11 +116,14 @@ Item {
                 anchors.fill: parent
                 hoverEnabled: true
                 acceptedButtons: Qt.RightButton
-                propagateComposedEvents: false
+                propagateComposedEvents: true
                 onPressed: (mouse) => {
-                    if (mouse.button === Qt.RightButton)
+                    if (mouse.button === Qt.RightButton) {
                         contextMenu.popup(mouse.scenePosition)
-                    mouse.accepted = true
+                        mouse.accepted = true
+                    } else {
+                        mouse.accepted = false  // 让左键点击事件传播给TextArea处理
+                    }
                 }
                 cursorShape: Qt.IBeamCursor
             }
