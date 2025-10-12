@@ -353,10 +353,11 @@ class WinEventFilter(QAbstractNativeEventFilter):
                                                     monitor_info.rcWork.right - monitor_info.rcWork.left)
                     max_h = get_window_int_property(window, "maximumHeight",
                                                     monitor_info.rcWork.bottom - monitor_info.rcWork.top)
-                    minmax_info.ptMinTrackSize.x = int(min_w)
-                    minmax_info.ptMinTrackSize.y = int(min_h)
-                    minmax_info.ptMaxTrackSize.x = int(max_w)
-                    minmax_info.ptMaxTrackSize.y = int(max_h)
+                    device_pixel_ratio = window.devicePixelRatio()
+                    minmax_info.ptMinTrackSize.x = int(min_w * device_pixel_ratio)
+                    minmax_info.ptMinTrackSize.y = int(min_h * device_pixel_ratio)
+                    minmax_info.ptMaxTrackSize.x = int(max_w * device_pixel_ratio)
+                    minmax_info.ptMaxTrackSize.y = int(max_h * device_pixel_ratio)
 
                     return True, 0
 
