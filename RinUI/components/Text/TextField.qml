@@ -112,6 +112,7 @@ TextField {
         name: "disabled"
             when: !enabled
             PropertyChanges {  // 禁用时禁止改变属性
+                target: background;
                 opacity: !editable ? 1 : 0.4
             }
         },
