@@ -8,31 +8,61 @@ import "../../components"
 Menu {
     id: contextMenu
     position: -1
+
+    property var target: parent
+
+    onAboutToShow: {
+        if (target) target.forceActiveFocus()
+    }
+
+    function canEdit() {
+        if (target === null || target === undefined) return false
+        if (target.editable !== undefined) return target.editable
+        if (target.readOnly !== undefined) return !target.readOnly
+        return true
+    }
+
     Action {
         icon.name: "ic_fluent_cut_20_regular"
         text: qsTr("Cut")
-        enabled: root.selectedText.length > 0 && root.editable  // 选中&可编辑
         shortcut: "Ctrl+X"
-        onTriggered: root.cut()
+        enabled: target && target.selectedText && target.selectedText.length > 0 && canEdit()
+        onTriggered: {
+            if (!target || !target.selectedText || target.selectedText.length === 0) return
+            target.forceActiveFocus()
+            target.cut()
+        }
     }
     Action {
         icon.name: "ic_fluent_copy_20_regular"
         text: qsTr("Copy")
-        enabled: root.selectedText.length > 0  // 选中内容
         shortcut: "Ctrl+C"
-        onTriggered: root.copy()
+        enabled: target && target.selectedText && target.selectedText.length > 0
+        onTriggered: {
+            if (!target || !target.selectedText || target.selectedText.length === 0) return
+            target.forceActiveFocus()
+            target.copy()
+        }
     }
     Action {
         icon.name: "ic_fluent_clipboard_paste_20_regular"
         text: qsTr("Paste")
-        enabled: root.editable
         shortcut: "Ctrl+V"
-        onTriggered: root.paste()
+        enabled: canEdit()
+        onTriggered: {
+            if (!target) return
+            target.forceActiveFocus()
+            target.paste()
+        }
     }
     Action {
         icon.name: " "
         text: qsTr("Select All")
         shortcut: "Ctrl+A"
-        onTriggered: root.selectAll()
+        onTriggered: {
+            if (!target) return
+            target.forceActiveFocus()
+            target.selectAll()
+        }
     }
 }
