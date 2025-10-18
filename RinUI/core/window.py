@@ -252,170 +252,172 @@ class WinEventFilter(QAbstractNativeEventFilter):
         # 遍历每个窗口，检查哪个窗口收到了消息
         for window in self.windows:
             hwnd_window = self.hwnds.get(window)
-            if hwnd_window == hwnd:
-                if message_id == WM_NCHITTEST:
-                    x = ctypes.c_short(l_param & 0xFFFF).value
-                    y = ctypes.c_short((l_param >> 16) & 0xFFFF).value
+            if hwnd_window != hwnd:
+                continue
 
-                    rect = wintypes.RECT()
-                    user32.GetWindowRect(hwnd_window, ctypes.byref(rect))
-                    left, top, right, bottom = (
-                        rect.left,
-                        rect.top,
-                        rect.right,
-                        rect.bottom,
-                    )
-                    border = self.resize_border
+            if message_id == WM_NCHITTEST:
+                x = ctypes.c_short(l_param & 0xFFFF).value
+                y = ctypes.c_short((l_param >> 16) & 0xFFFF).value
 
-                    if left <= x < left + border:
-                        if top <= y < top + border:
-                            return True, 13  # HTTOPLEFT
-                        if bottom - border <= y < bottom:
-                            return True, 16  # HTBOTTOMLEFT
-                        return True, 10  # HTLEFT
-                    if right - border <= x < right:
-                        if top <= y < top + border:
-                            return True, 14  # HTTOPRIGHT
-                        if bottom - border <= y < bottom:
-                            return True, 17  # HTBOTTOMRIGHT
-                        return True, 11  # HTRIGHT
+                rect = wintypes.RECT()
+                user32.GetWindowRect(hwnd_window, ctypes.byref(rect))
+                left, top, right, bottom = (
+                    rect.left,
+                    rect.top,
+                    rect.right,
+                    rect.bottom,
+                )
+                border = self.resize_border
+
+                if left <= x < left + border:
                     if top <= y < top + border:
-                        return True, 12  # HTTOP
+                        return True, 13  # HTTOPLEFT
                     if bottom - border <= y < bottom:
-                        return True, 15  # HTBOTTOM
+                        return True, 16  # HTBOTTOMLEFT
+                    return True, 10  # HTLEFT
+                if right - border <= x < right:
+                    if top <= y < top + border:
+                        return True, 14  # HTTOPRIGHT
+                    if bottom - border <= y < bottom:
+                        return True, 17  # HTBOTTOMRIGHT
+                    return True, 11  # HTRIGHT
+                if top <= y < top + border:
+                    return True, 12  # HTTOP
+                if bottom - border <= y < bottom:
+                    return True, 15  # HTBOTTOM
 
-                    # 其他区域不处理
-                    return False, 0
+                # 其他区域不处理
+                return False, 0
 
-                # 移除标题栏
-                if message_id == WM_NCCALCSIZE and w_param:
-                    client_rect = ctypes.cast(
-                        l_param, ctypes.POINTER(NCCALCSIZE_PARAMS)
-                    ).contents.rgrc[0]
-                    if is_maximized(hwnd):
-                        ty = get_resize_border_thickness(hwnd, False)
-                        client_rect.top += ty
-                        client_rect.bottom -= ty
-                        tx = get_resize_border_thickness(hwnd, True)
-                        client_rect.left += tx
-                        client_rect.right -= tx
-                        abd = APPBARDATA()
-                        ctypes.memset(ctypes.byref(abd), 0, ctypes.sizeof(abd))
-                        abd.cbSize = ctypes.sizeof(APPBARDATA)
-                        taskbar_state = ctypes.windll.shell32.SHAppBarMessage(
-                            ABM_GETSTATE, ctypes.byref(abd)
-                        )
-                        if taskbar_state & ABS_AUTOHIDE:
-                            edge = -1
-                            abd2 = APPBARDATA()
-                            ctypes.memset(ctypes.byref(abd2), 0, ctypes.sizeof(abd2))
-                            abd2.cbSize = ctypes.sizeof(APPBARDATA)
-                            abd2.hWnd = FindWindow("Shell_TrayWnd", None)
-                            if abd2.hWnd:
-                                window_monitor = MonitorFromWindow(
-                                    hwnd, MONITOR_DEFAULTTONEAREST
+            # 移除标题栏
+            if message_id == WM_NCCALCSIZE and w_param:
+                client_rect = ctypes.cast(
+                    l_param, ctypes.POINTER(NCCALCSIZE_PARAMS)
+                ).contents.rgrc[0]
+                if is_maximized(hwnd):
+                    ty = get_resize_border_thickness(hwnd, False)
+                    client_rect.top += ty
+                    client_rect.bottom -= ty
+                    tx = get_resize_border_thickness(hwnd, True)
+                    client_rect.left += tx
+                    client_rect.right -= tx
+                    abd = APPBARDATA()
+                    ctypes.memset(ctypes.byref(abd), 0, ctypes.sizeof(abd))
+                    abd.cbSize = ctypes.sizeof(APPBARDATA)
+                    taskbar_state = ctypes.windll.shell32.SHAppBarMessage(
+                        ABM_GETSTATE, ctypes.byref(abd)
+                    )
+                    if taskbar_state & ABS_AUTOHIDE:
+                        edge = -1
+                        abd2 = APPBARDATA()
+                        ctypes.memset(ctypes.byref(abd2), 0, ctypes.sizeof(abd2))
+                        abd2.cbSize = ctypes.sizeof(APPBARDATA)
+                        abd2.hWnd = FindWindow("Shell_TrayWnd", None)
+                        if abd2.hWnd:
+                            window_monitor = MonitorFromWindow(
+                                hwnd, MONITOR_DEFAULTTONEAREST
+                            )
+                            if window_monitor:
+                                taskbar_monitor = MonitorFromWindow(
+                                    abd2.hWnd, MONITOR_DEFAULTTOPRIMARY
                                 )
-                                if window_monitor:
-                                    taskbar_monitor = MonitorFromWindow(
-                                        abd2.hWnd, MONITOR_DEFAULTTOPRIMARY
+                                if (
+                                    taskbar_monitor
+                                    and taskbar_monitor == window_monitor
+                                ):
+                                    ctypes.windll.shell32.SHAppBarMessage(
+                                        ABM_GETTASKBARPOS, ctypes.byref(abd2)
                                     )
-                                    if (
-                                        taskbar_monitor
-                                        and taskbar_monitor == window_monitor
-                                    ):
-                                        ctypes.windll.shell32.SHAppBarMessage(
-                                            ABM_GETTASKBARPOS, ctypes.byref(abd2)
-                                        )
-                                        edge = abd2.uEdge
-                            top = edge == 1
-                            bottom = edge == 3
-                            left = edge == 0
-                            right = edge == 2
-                            if top:
-                                client_rect.top += 1
-                            elif bottom:
-                                client_rect.bottom -= 1
-                            elif left:
-                                client_rect.left += 1
-                            elif right:
-                                client_rect.right -= 1
-                            else:
-                                client_rect.bottom -= 1
-                    return True, 0
+                                    edge = abd2.uEdge
+                        top = edge == 1
+                        bottom = edge == 3
+                        left = edge == 0
+                        right = edge == 2
+                        if top:
+                            client_rect.top += 1
+                        elif bottom:
+                            client_rect.bottom -= 1
+                        elif left:
+                            client_rect.left += 1
+                        elif right:
+                            client_rect.right -= 1
+                        else:
+                            client_rect.bottom -= 1
+                return True, 0
 
-                # 支持动画
-                if message_id == WM_SYSCOMMAND:
-                    return False, 0
+            # 支持动画
+            if message_id == WM_SYSCOMMAND:
+                return False, 0
 
-                # 处理 WM_GETMINMAXINFO 消息以支持 Snap 功能
-                if message_id == WM_GETMINMAXINFO:
-                    # 获取屏幕工作区大小
-                    monitor = user32.MonitorFromWindow(
-                        hwnd_window, 2
-                    )  # MONITOR_DEFAULTTONEAREST
+            # 处理 WM_GETMINMAXINFO 消息以支持 Snap 功能
+            if message_id == WM_GETMINMAXINFO:
+                # 获取屏幕工作区大小
+                monitor = user32.MonitorFromWindow(
+                    hwnd_window, 2
+                )  # MONITOR_DEFAULTTONEAREST
 
-                    # 使用自定义的 MONITORINFO 结构
-                    monitor_info = MONITORINFO()
-                    monitor_info.cbSize = ctypes.sizeof(MONITORINFO)
-                    monitor_info.dwFlags = 0
-                    user32.GetMonitorInfoW(monitor, ctypes.byref(monitor_info))
+                # 使用自定义的 MONITORINFO 结构
+                monitor_info = MONITORINFO()
+                monitor_info.cbSize = ctypes.sizeof(MONITORINFO)
+                monitor_info.dwFlags = 0
+                user32.GetMonitorInfoW(monitor, ctypes.byref(monitor_info))
 
-                    # 获取 MINMAXINFO 结构
-                    minmax_info = MINMAXINFO.from_address(l_param)
+                # 获取 MINMAXINFO 结构
+                minmax_info = MINMAXINFO.from_address(l_param)
 
-                    # 最大化位置和大小
-                    minmax_info.ptMaxPosition.x = (
-                        monitor_info.rcWork.left - monitor_info.rcMonitor.left
+                # 最大化位置和大小
+                minmax_info.ptMaxPosition.x = (
+                    monitor_info.rcWork.left - monitor_info.rcMonitor.left
+                )
+                minmax_info.ptMaxPosition.y = (
+                    monitor_info.rcWork.top - monitor_info.rcMonitor.top
+                )
+                minmax_info.ptMaxSize.x = (
+                    monitor_info.rcWork.right - monitor_info.rcMonitor.left
+                )
+                minmax_info.ptMaxSize.y = (
+                    monitor_info.rcWork.bottom - monitor_info.rcMonitor.top
+                )
+
+                def get_window_int_property(window, name, default):
+                    val = getattr(window, name, default)
+                    if callable(val):
+                        val = val()  # 如果是方法就调用
+                    if val is None:
+                        val = default
+                    return int(val)
+
+                screen = window.screen()
+                dp_ratio = screen.devicePixelRatio() if screen else 1.0
+
+                min_w = int(
+                    get_window_int_property(window, "minimumWidth", 0) * dp_ratio
+                )
+                min_h = int(
+                    get_window_int_property(window, "minimumHeight", 0) * dp_ratio
+                )
+                max_w = int(
+                    get_window_int_property(
+                        window,
+                        "maximumWidth",
+                        monitor_info.rcWork.right - monitor_info.rcWork.left,
                     )
-                    minmax_info.ptMaxPosition.y = (
-                        monitor_info.rcWork.top - monitor_info.rcMonitor.top
+                    * dp_ratio
+                )
+                max_h = int(
+                    get_window_int_property(
+                        window,
+                        "maximumHeight",
+                        monitor_info.rcWork.bottom - monitor_info.rcWork.top,
                     )
-                    minmax_info.ptMaxSize.x = (
-                        monitor_info.rcWork.right - monitor_info.rcMonitor.left
-                    )
-                    minmax_info.ptMaxSize.y = (
-                        monitor_info.rcWork.bottom - monitor_info.rcMonitor.top
-                    )
+                    * dp_ratio
+                )
 
-                    def get_window_int_property(window, name, default):
-                        val = getattr(window, name, default)
-                        if callable(val):
-                            val = val()  # 如果是方法就调用
-                        if val is None:
-                            val = default
-                        return int(val)
+                minmax_info.ptMinTrackSize.x = min_w
+                minmax_info.ptMinTrackSize.y = min_h
+                minmax_info.ptMaxTrackSize.x = max_w
+                minmax_info.ptMaxTrackSize.y = max_h
 
-                    screen = window.screen()
-                    dp_ratio = screen.devicePixelRatio() if screen else 1.0
-
-                    min_w = int(
-                        get_window_int_property(window, "minimumWidth", 0) * dp_ratio
-                    )
-                    min_h = int(
-                        get_window_int_property(window, "minimumHeight", 0) * dp_ratio
-                    )
-                    max_w = int(
-                        get_window_int_property(
-                            window,
-                            "maximumWidth",
-                            monitor_info.rcWork.right - monitor_info.rcWork.left,
-                        )
-                        * dp_ratio
-                    )
-                    max_h = int(
-                        get_window_int_property(
-                            window,
-                            "maximumHeight",
-                            monitor_info.rcWork.bottom - monitor_info.rcWork.top,
-                        )
-                        * dp_ratio
-                    )
-
-                    minmax_info.ptMinTrackSize.x = min_w
-                    minmax_info.ptMinTrackSize.y = min_h
-                    minmax_info.ptMaxTrackSize.x = max_w
-                    minmax_info.ptMaxTrackSize.y = max_h
-
-                    return True, 0
+                return True, 0
 
         return False, 0
