@@ -48,12 +48,12 @@ Button {
         if (y < startYear || y > endYear) {
             return false
         }
-        
+
         // 验证月份
         if (m < 1 || m > 12) {
             return false
         }
-        
+
         // 验证日期（考虑具体月份的天数）
         let maxDays = calculateMaxDays(y, m - 1)
         if (d < 1 || d > maxDays) {

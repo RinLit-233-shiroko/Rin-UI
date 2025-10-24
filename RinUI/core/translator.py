@@ -1,6 +1,8 @@
-from PySide6.QtCore import QTranslator, QLocale
+from pathlib import Path
+
+from PySide6.QtCore import QLocale, QTranslator
+
 from .config import RINUI_PATH
-import os
 
 
 class RinUITranslator(QTranslator):
@@ -8,7 +10,10 @@ class RinUITranslator(QTranslator):
     RinUI i18n translator.
     :param locale: QLocale, optional, default is system locale
     """
-    def __init__(self, locale: QLocale = QLocale.system().name(), parent=None):  # follow system
+
+    def __init__(
+        self, locale: QLocale = QLocale.system().name(), parent=None
+    ):  # follow system
         super().__init__(parent)
         self.load(locale or QLocale())
 
@@ -19,8 +24,8 @@ class RinUITranslator(QTranslator):
         :return: bool
         """
         print(f"🌏 Current locale: {locale.name()}")
-        path = os.path.join(RINUI_PATH, "RinUI", "languages", f"{locale.name()}.qm")
-        if not os.path.exists(path):
-            print(f"Language file \"{path}\" not found. Fallback to default (en_US)")
-            path = os.path.join(RINUI_PATH, "RinUI", "languages", "en_US.qm")
-        return super().load(path)
+        path = Path(RINUI_PATH) / "RinUI" / "languages" / f"{locale.name()}.qm"
+        if not path.exists():
+            print(f'Language file "{path}" not found. Fallback to default (en_US)')
+            path = Path(RINUI_PATH) / "RinUI" / "languages" / "en_US.qm"
+        return super().load(str(path))

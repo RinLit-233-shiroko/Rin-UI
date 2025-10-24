@@ -9,7 +9,7 @@ Frame {
     property string title: ""
     property string text: ""
     property int severity: Severity.Info
-    property alias customContent: custom.data
+    default property alias customContent: custom.data
     property int timeout: -1
     property int position: 0
     property bool isDynamic: false  // 动态创建

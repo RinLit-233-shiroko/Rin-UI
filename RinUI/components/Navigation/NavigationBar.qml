@@ -25,7 +25,6 @@ Item {
     property var stackView: parent.stackView
 
     property string currentPage: ""  // 当前页面的URL
-    property var lastPages: []  // 历史页面的URL栈
 
     function isNotOverMinimumWidth() {  // 判断窗口是否小于最小宽度
         return windowWidth < minimumExpandWidth;
@@ -89,7 +88,7 @@ Item {
             width: 40
             height: 40
             size: 16
-            enabled: lastPages.length > 1
+            enabled: navigationView.lastPages.length > 0
 
             ToolTip {
                 parent: parent

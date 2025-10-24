@@ -121,7 +121,7 @@
                 easing.type: Easing.InOutQuad
             }
         }
-        
+
         // 动画
         Behavior on _ringColor {
             ColorAnimation {

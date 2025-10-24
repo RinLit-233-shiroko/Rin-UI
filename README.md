@@ -9,12 +9,12 @@
 
 > [!TIP]
 > This project is still in development and not ready for production use!
-> 
+>
 > Of course, you are welcome to contribute to this project.
 
 ## 📄 Introduction
 
-RinUI is a UI library similar to Fluent Design for Qt Quick (QML), RinUI will provide high-quality components and practical functions. 
+RinUI is a UI library similar to Fluent Design for Qt Quick (QML), RinUI will provide high-quality components and practical functions.
 With simple configuration, you can quickly develop elegant UI interfaces in the Fluent style.
 
 ### Features

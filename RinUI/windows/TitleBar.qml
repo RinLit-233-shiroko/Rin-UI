@@ -39,6 +39,9 @@ Item {
 
     property var window: null
     function toggleMaximized() {
+        if (!maximizeEnabled) {
+            return
+        }
         WindowManager.maximizeWindow(window)
     }
 

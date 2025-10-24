@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 from config import cfg
-from PySide6.QtCore import QLocale, QObject, QTranslator, Slot
+from PySide6.QtCore import QLocale, QObject, Qt, QTranslator, Slot
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QApplication
 
@@ -25,7 +25,9 @@ class Gallery(RinUIWindow):
 
         self.backend = Backend()
         self.backend.setBackendParent(self)
-        self.setProperty("title", f"RinUI Gallery {datetime.now().year}")  # 前后端交互示例
+        self.setProperty(
+            "title", f"RinUI Gallery {datetime.now().year}"
+        )  # 前后端交互示例
 
         self.engine.rootContext().setContextProperty("Backend", self.backend)  # 注入
 
@@ -76,6 +78,9 @@ class Backend(QObject):
 
 if __name__ == "__main__":
     print(RinUI.__file__)
+    QGuiApplication.setHighDpiScaleFactorRoundingPolicy(
+        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+    )
     app = QApplication(sys.argv)
 
     # i18n

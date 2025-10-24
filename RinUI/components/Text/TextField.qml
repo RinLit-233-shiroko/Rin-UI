@@ -87,7 +87,7 @@ TextField {
     topPadding: 5
     bottomPadding: 7
 
-    // 清空按钮 
+    // 清空按钮
     Button {
         id: clearBtn
         anchors.right: parent.right
@@ -112,6 +112,7 @@ TextField {
         name: "disabled"
             when: !enabled
             PropertyChanges {  // 禁用时禁止改变属性
+                target: background;
                 opacity: !editable ? 1 : 0.4
             }
         },
