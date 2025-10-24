@@ -130,19 +130,21 @@ ControlPage {
             width: parent.width
             padding: 18
 
-            Row {
+            RowLayout {
                 spacing: 8
-                Text { text: qsTr("Date Field") }
+                Text {
+                    text: qsTr("Date Field")
+                    Layout.alignment: Qt.AlignVCenter
+                }
                 Item {
                     id: dateFieldPanel
+                    Layout.alignment: Qt.AlignVCenter
                     width: dateInput.implicitWidth
                     height: dateInput.implicitHeight
 
-                    RUI.TextField {
+                    RUI.DateField {
                         id: dateInput
                         anchors.fill: parent
-                        readOnly: true
-                        clearEnabled: false
                         placeholderText: qsTr("YYYY-MM-DD")
                     }
                     MouseArea {
