@@ -18,15 +18,17 @@ RinUI is a UI library similar to Fluent Design for Qt Quick (QML), RinUI will pr
 With simple configuration, you can quickly develop elegant UI interfaces in the Fluent style.
 
 ### Features
-* Elegant Fluent Design controls (WIP)
-* Dark and light mode, automatic switching
-* Compatible with original QML control names
-* i18n Internationalization
-* Multi-programming language support (WIP)
-* Theme system (WIP)
-* Development documentation, [preview](https://ui.rinlit.cn/) now. (WIP)
+
+- Elegant Fluent Design controls (WIP)
+- Dark and light mode, automatic switching
+- Compatible with original QML control names
+- i18n Internationalization
+- Multi-programming language support (WIP)
+- Theme system (WIP)
+- Development documentation, [preview](https://ui.rinlit.cn/) now. (WIP)
 
 ### Screenshots
+
 ![Screenshot 1](/docs/img/shot_1.png)
 
 <details style="text-align: center">
@@ -36,6 +38,7 @@ With simple configuration, you can quickly develop elegant UI interfaces in the 
 ![img_1.png](/docs/img/img_1.png)
 ![img_2.png](/docs/img/img_2.png)
 ![img_3.png](/docs/img/img_3.png)
+
 </details>
 
 > The image in the banner comes from Pixiv, PID: [125975786](https://www.pixiv.net/artworks/125975786)
@@ -43,15 +46,19 @@ With simple configuration, you can quickly develop elegant UI interfaces in the 
 ## 🪄 Usage
 
 You can install RinUI via pip:
+
 ```bash
 pip install RinUI
 ```
 
 Import RinUI in your QML file:
+
 ```qmllang
 import RinUI
 ```
+
 Then you can run the QML file in your project.
+
 ```python
 import sys
 from RinUI import *
@@ -64,6 +71,7 @@ if __name__ == '__main__':
 ```
 
 You also can view the demo in the source code, like this:
+
 ```bash
 cd examples
 python gallery.py
@@ -78,19 +86,23 @@ You also can move the RinUI folder to anywhere in your project's directory.
 Now you can learn more about RinUI components and themes in [the online documentation](https://ui.rinlit.cn/).
 
 ## 🙌 Acknowledgements
+
 ### Resources
+
 - [PySide6 & Qt Quick](https://www.qt.io/)
 - [Fluent Design System](https://fluent2.microsoft.design/)
 - [Fluent UI System Icons](https://github.com/microsoft/fluentui-system-icons/)
 - [WinUI 3 Gallery](https://github.com/microsoft/WinUI-Gallery)
 
 ### Contributors
+
 Contributions are welcome! Please read the [contribution guidelines](./CONTRIBUTING.md) before submitting a pull request.
 
 Thanks to the great people who contributed to this project.
 [![Contributors](http://contrib.nn.ci/api?repo=rinlit-233-shiroko/Rin-UI)](https://github.com/RinLit-233-shiroko/Rin-UI/graphs/contributors)
 
 ## 📜 License
+
 This project is licensed under the **MIT** License, you can learn more about it in the [license file](./LICENSE).
 
 Copyright © 2025 RinLit
