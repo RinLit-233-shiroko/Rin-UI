@@ -76,7 +76,7 @@ QtObject {
         },
         {
             icon: Qt.resolvedUrl("controls/CalendarView.png"),
-            title: qsTr("CalendarView"),
+            title: qsTr("Calendar"),
             type: "date&time",
             desc: qsTr("A month view with ISO week numbers and range selection."),
             page: Qt.resolvedUrl("../pages/controls/CalendarView.qml"),

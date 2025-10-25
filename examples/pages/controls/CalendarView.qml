@@ -1,12 +1,13 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 2.15
+import QtQml 2.15
 import RinUI
-import RinUI as RUI
 import "../../components"
 
 ControlPage {
-    title: qsTr("CalendarView")
+    title: qsTr("Calendar")
     badgeText: qsTr("New")
     badgeSeverity: Severity.Success
 
@@ -23,31 +24,30 @@ ControlPage {
     Text {
         Layout.fillWidth: true
         text: qsTr(
-            "CalendarView shows a month grid with Mon-first toggle. " +
+            "Calendar shows a month grid with Mon-first toggle. " +
             "Supports selecting a single date, and clicking twice to select a range, " +
             "and marking dates as highlighted or disabled."
         )
     }
 
-    // Simple CalendarView demo
+    // Simple Calendar demo
     Column {
         Layout.fillWidth: true
         spacing: 4
 
         Text {
             typography: Typography.BodyStrong
-            text: qsTr("A simple CalendarView with Mon-first toggle.")
+            text: qsTr("A simple Calendar with Mon-first toggle.")
         }
         ControlShowcase {
             width: parent.width
             padding: 18
 
-            RUI.CalendarView {
+            Calendar {
                 id: cal1
                 useISOWeek: isoSwitch.checked
                 selectionMode: modeSwitch.checked ? "range" : "single"
-                onDateSelected: (d) => { selText.text = qsTr("Selected: ") + d.toDateString(); dateInput.text = fmtDate(d) }
-                onRangeSelected: (s, e) => selText.text = qsTr("Range: ") + s.toDateString() + " ~ " + e.toDateString()
+                onDateSelected: (d) => { selText.text = qsTr("Selected: ") + d.toDateString() }
             }
 
             // 日期选择弹出层
@@ -59,12 +59,11 @@ ControlPage {
                 padding: 0
                 closePolicy: Popup.CloseOnPressOutside
 
-                RUI.CalendarView {
+                Calendar {
                     id: pickerCal
                     anchors.fill: parent
                     selectionMode: "single"
                     onDateSelected: (d) => {
-                        dateInput.text = fmtDate(d)
                         cal1.selectedDate = d
                         cal1.displayYear = d.getFullYear()
                         cal1.displayMonth = d.getMonth() + 1
@@ -76,7 +75,7 @@ ControlPage {
             showcase: [
                 CheckBox {
                     id: isoSwitch
-                    text: qsTr("Use ISO Week (Mon-first)")
+                    text: qsTr("Use ISO Week")
                     checked: true
                 },
                 Switch {
@@ -95,8 +94,6 @@ ControlPage {
                     text: qsTr("Today")
                     onClicked: cal1.resetToToday()
                 },
-                // Date Field example moved to a dedicated panel below
-
                 Button {
                     text: qsTr("Highlight Today")
                     onClicked: cal1.highlightedDates = [new Date()]
@@ -112,6 +109,16 @@ ControlPage {
                     id: selText
                     typography: Typography.Body
                     text: qsTr("Selected: none")
+                },
+
+             
+                Text { text: qsTr("Minimum Date") },
+                CalendarDatePicker {
+                    onDateSelected: function(d) { cal1.minimumDate = d }
+                },
+                Text { text: qsTr("Maximum Date") },
+                CalendarDatePicker {
+                    onDateSelected: function(d) { cal1.maximumDate = d }
                 }
             ]
         }
@@ -124,7 +131,7 @@ ControlPage {
 
         Text {
             typography: Typography.BodyStrong
-            text: qsTr("Date Field with calendar popup")
+            text: qsTr("CalendarDatePicker (Button popup)")
         }
         Frame {
             width: parent.width
@@ -132,46 +139,21 @@ ControlPage {
 
             RowLayout {
                 spacing: 8
-                Text {
-                    text: qsTr("Date Field")
-                    Layout.alignment: Qt.AlignVCenter
+                Text { text: qsTr("CalendarDatePicker") }
+                CalendarDatePicker {
+                    id: datePicker
+                    useISOWeek: isoSwitch.checked
+                    weekNumbersVisible: true
+                    onDateSelected: (d) => selText.text = qsTr("Selected: ") + d.toDateString()
                 }
-                Item {
-                    id: dateFieldPanel
-                    Layout.alignment: Qt.AlignVCenter
-                    width: dateInput.implicitWidth
-                    height: dateInput.implicitHeight
-
-                    RUI.DateField {
-                        id: dateInput
-                        anchors.fill: parent
-                        placeholderText: qsTr("YYYY-MM-DD")
-                    }
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: datePicker.open()
-                    }
-
-                    // 在字段上弹出
-                    Popup {
-                        id: datePicker
-                        implicitWidth: 300
-                        implicitHeight: inlineCal.implicitHeight
-                        padding: 0
-                        closePolicy: Popup.CloseOnPressOutside
-                        position: Position.Top
-
-                        RUI.CalendarView {
-                            id: inlineCal
-                            anchors.fill: parent
-                            selectionMode: "single"
-                            onDateSelected: (d) => {
-                                dateInput.text = fmtDate(d)
-                                datePicker.close()
-                            }
-                        }
-                    }
+                CheckBox {
+                    text: qsTr("Show week numbers")
+                    checked: datePicker.weekNumbersVisible
+                    onToggled: datePicker.weekNumbersVisible = checked
+                }
+                Button {
+                    text: qsTr("Today")
+                    onClicked: datePicker.resetToToday()
                 }
             }
         }

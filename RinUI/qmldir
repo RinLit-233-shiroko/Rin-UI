@@ -27,7 +27,7 @@ TimePicker 1.0 components/DateAndTime/TimePicker.qml
 DatePicker 1.0 components/DateAndTime/DatePicker.qml
 DateField 1.0 components/DateAndTime/DateField.qml
 PickerView 1.0 components/DateAndTime/PickerView.qml
-CalendarView 1.0 components/DateAndTime/CalendarView.qml
+Calendar 1.0 components/DateAndTime/Calendar.qml
 
 # Dialogs & Flyouts
 Dialog 1.0 components/DialogsAndFlyouts/Dialog.qml
@@ -113,3 +113,6 @@ singleton Severity 1.0 utils/Severity.qml
 singleton Position 1.0 utils/Position.qml
 
 FloatLayer 1.0 utils/FloatLayer.qml
+
+# Date & Time (extended)
+CalendarDatePicker 1.0 components/DateAndTime/CalendarDatePicker.qml
