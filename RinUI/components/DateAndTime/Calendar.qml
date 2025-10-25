@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls.Basic 2.15
 import QtQuick.Layouts 2.15
+import QtQml 2.15
 import "../../themes"
 import "../../components"
 import "../../utils"
@@ -14,7 +15,7 @@ Item {
     property int displayYear: new Date().getFullYear()
     property int displayMonth: new Date().getMonth() + 1
 
-    property var selectedDate: null
+    property var selectedDate: new Date()
     property var rangeStart: null
     property var rangeEnd: null
 
@@ -23,6 +24,17 @@ Item {
     // 缓存加速：避免每个格子反复映射数组
     property var _disabledMap: ({})
     property var _highlightedMap: ({})
+
+    // 与 QML 官方 Calendar 属性保持一致
+    property int dayOfWeekFormat: Locale.ShortFormat
+    property bool frameVisible: true
+    property var locale: Qt.locale()
+    property var minimumDate: undefined
+    property var maximumDate: undefined
+    property bool navigationBarVisible: true
+    property int visibleMonth: displayMonth - 1
+    property int visibleYear: displayYear
+    property bool weekNumbersVisible: false
 
     property bool useISOWeek: true
     property bool fastMode: true
@@ -45,6 +57,20 @@ Item {
     signal rangeSelected(var startDate, var endDate)
     signal dateStatusChanged(var date, string status)
 
+    // 官方 Calendar 信号
+    signal clicked(date date)
+    signal doubleClicked(date date)
+    signal hovered(date date)
+    signal pressAndHold(date date)
+    signal pressed(date date)
+    signal released(date date)
+
+    // 官方 Calendar 方法
+    function showNextMonth() { navigateMonth(1) }
+    function showPreviousMonth() { navigateMonth(-1) }
+    function showNextYear() { displayYear += 1 }
+    function showPreviousYear() { displayYear -= 1 }
+
     // 工具函数
     function toKey(d) {
         if (!d) return "";
@@ -61,8 +87,21 @@ Item {
             return "";
         })
     }
+    function stripTime(d) { var x = new Date(d); x.setHours(0,0,0,0); return x }
+    function clampDate(d) {
+        var x = stripTime(d)
+        if (minimumDate && x.getTime() < stripTime(minimumDate).getTime()) x = stripTime(minimumDate)
+        if (maximumDate && x.getTime() > stripTime(maximumDate).getTime()) x = stripTime(maximumDate)
+        return x
+    }
+    function outOfRange(d) {
+        var x = stripTime(d)
+        if (minimumDate && x.getTime() < stripTime(minimumDate).getTime()) return true
+        if (maximumDate && x.getTime() > stripTime(maximumDate).getTime()) return true
+        return false
+    }
     function isToday(d) {
-        let t = new Date();
+        let t = new Date(); t.setHours(0,0,0,0)
         return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
     }
     function isDisabled(d) {
@@ -89,6 +128,14 @@ Item {
         d.setDate(d.getDate() + diff);
         d.setHours(0,0,0,0);
         return d;
+    }
+    function dayNumberForIndex(index) { return useISOWeek ? (index + 1) : (index === 0 ? 7 : index) }
+    function isoWeek(date) {
+        var d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+        var dayNum = d.getUTCDay() || 7
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+        var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1))
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7)
     }
 
     function getMonthGrid(y, m) {
@@ -136,7 +183,7 @@ Item {
         displayYear = t.getFullYear();
         displayMonth = t.getMonth() + 1;
         // 重置选择与范围，并清除点击范围等待状态
-        selectedDate = new Date(t);
+        selectedDate = clampDate(t);
         rangeStart = null;
         rangeEnd = null;
         awaitingRangeEnd = false;
@@ -172,6 +219,7 @@ Item {
     Frame {
         id: container
         anchors.fill: parent
+        visible: frameVisible
         color: Theme.currentTheme.colors.cardColor
         borderColor: Theme.currentTheme.colors.cardBorderColor
         radius: Theme.currentTheme.appearance.windowRadius
@@ -184,7 +232,7 @@ Item {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.margins: 0
-        height: 44
+        height: navigationBarVisible ? 44 : 0
         color: Theme.currentTheme.colors.cardSecondaryColor
 
         // 底部分隔线
@@ -200,6 +248,7 @@ Item {
     RowLayout {
         id: header
         anchors.fill: headerBackground
+        visible: navigationBarVisible
         // 增加左右边距
         anchors.leftMargin: 16
         anchors.rightMargin: 8
@@ -216,8 +265,7 @@ Item {
                 typography: Typography.Body
                 color: Theme.currentTheme.colors.textColor
                 text: {
-                    const locale = Qt.locale()
-                    const monthName = locale.monthName(displayMonth - 1)
+                    const monthName = calendar.locale.monthName(displayMonth - 1)
                     return calendar.viewMode === "day" ? (monthName + " " + displayYear)
                          : calendar.viewMode === "months" ? ("" + displayYear)
                          : (calendar.yearRangeStart + " - " + (calendar.yearRangeStart + 15))
@@ -227,7 +275,6 @@ Item {
             Rectangle {
                 id: titleHoverBg
                 anchors.verticalCenter: headerTitle.verticalCenter
-                anchors.horizontalCenter: headerTitle.horizontalCenter
                 width: headerTitle.paintedWidth + 8
                 height: 28
                 radius: Theme.currentTheme.appearance.buttonRadius
@@ -264,7 +311,6 @@ Item {
             Layout.alignment: Qt.AlignVCenter
             checkedText: qsTr("多选")
             uncheckedText: qsTr("单选")
-            checked: calendar.selectionMode === "range"
             onToggled: {
                 calendar.selectionMode = checked ? "range" : "single"
                 if (!checked) {
@@ -304,14 +350,15 @@ Item {
     }
 
     Row {
-            id: weekdayHeader
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: header.bottom
-            anchors.margins: 8
-            spacing: 4
-            height: calendar.viewMode === "day" ? 40 : 0
-            visible: calendar.viewMode === "day"
+        id: weekdayHeader
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: headerBackground.bottom
+        anchors.margins: 8
+        anchors.leftMargin: calendar.weekNumbersVisible ? (weekNumbers.width + gridArea.spacing + 8) : 8
+        spacing: gridArea.spacing
+        height: calendar.viewMode === "day" ? 40 : 0
+        visible: calendar.viewMode === "day"
 
         Repeater {
             model: 7
@@ -323,9 +370,15 @@ Item {
                     typography: Typography.BodyStrong
                     color: Theme.currentTheme.colors.textColor
                     text: {
-                        const isoNames = [qsTr("Mo"), qsTr("Tu"), qsTr("We"), qsTr("Th"), qsTr("Fr"), qsTr("Sa"), qsTr("Su")]
-                        const sunFirstNames = [qsTr("Su"), qsTr("Mo"), qsTr("Tu"), qsTr("We"), qsTr("Th"), qsTr("Fr"), qsTr("Sa")]
-                        return calendar.useISOWeek ? isoNames[index] : sunFirstNames[index]
+                        var dayNum = dayNumberForIndex(index)
+                        var loc = calendar.locale && calendar.locale.name ? calendar.locale.name : ""
+                        var fmt = (loc.startsWith("zh")) ? Locale.NarrowFormat : calendar.dayOfWeekFormat
+                        try {
+                            return calendar.locale.dayName(dayNum, fmt)
+                        } catch (e) {
+                            const sunFirstNames = [qsTr("Su"), qsTr("Mo"), qsTr("Tu"), qsTr("We"), qsTr("Th"), qsTr("Fr"), qsTr("Sa")]
+                            return calendar.useISOWeek ? sunFirstNames[(index + 1) % 7] : sunFirstNames[index]
+                        }
                     }
                 }
             }
@@ -341,12 +394,40 @@ Item {
         anchors.margins: 8
 
         property int spacing: 2
-        property real cellSize: Math.floor((width - spacing*(7-1)) / 7)
+        property real cellSize: Math.floor((width - (calendar.weekNumbersVisible ? weekNumbers.width + spacing : 0) - spacing*(7-1)) / 7)
+
+        // 周数列
+        Item {
+            id: weekNumbers
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: calendar.weekNumbersVisible ? 32 : 0
+            visible: calendar.weekNumbersVisible
+            Column {
+                anchors.fill: parent
+                spacing: gridArea.spacing
+                Repeater {
+                    model: 6
+                    delegate: Item {
+                        width: weekNumbers.width
+                        height: gridArea.cellSize
+                        Text {
+                            anchors.centerIn: parent
+                            typography: Typography.Body
+                            color: Theme.currentTheme.colors.textSecondaryColor
+                            text: isoWeek(new Date(calendar.firstCellDate.getFullYear(), calendar.firstCellDate.getMonth(), calendar.firstCellDate.getDate() + index * 7))
+                        }
+                    }
+                }
+            }
+        }
 
         // 容纳可动画的内容
         Item {
             id: gridContent
             anchors.fill: parent
+            anchors.leftMargin: calendar.weekNumbersVisible ? (weekNumbers.width + gridArea.spacing) : 0
             x: calendar.gridOffsetX
 
             Grid {
@@ -405,7 +486,7 @@ Item {
                                 color: isSelected ? Theme.currentTheme.colors.textOnAccentColor
                                       : (tileYear !== calendar.displayYear ? Theme.currentTheme.colors.textSecondaryColor
                                                                            : Theme.currentTheme.colors.textColor)
-                                text: Qt.locale().monthName(monthNumber - 1)
+                                text: calendar.locale.monthName(monthNumber - 1)
                             }
                             MouseArea {
                                 id: mMa
@@ -416,6 +497,7 @@ Item {
                                     calendar.displayMonth = monthNumber
                                     calendar.selectedDate = new Date(tileYear, monthNumber - 1, 1)
                                     calendar.viewMode = "day"
+                                    calendar.clicked(calendar.selectedDate)
                                 }
                             }
                         }
@@ -470,6 +552,7 @@ Item {
                                 onClicked: {
                                     calendar.displayYear = year
                                     calendar.viewMode = "months"
+                                    calendar.clicked(new Date(year, calendar.displayMonth - 1, 1))
                                 }
                             }
                         }
@@ -485,7 +568,7 @@ Item {
             property var date: (function() { var d = new Date(calendar.firstCellDate); d.setDate(calendar.firstCellDate.getDate() + index); return d; })()
             property bool inMonth: date.getMonth() === (calendar.displayMonth - 1)
             property bool isSelected: calendar.selectedDate && calendar.toKey(calendar.selectedDate) === calendar.toKey(date)
-            property bool disabled: calendar._disabledMap[calendar.toKey(date)] === true
+            property bool disabled: calendar._disabledMap[calendar.toKey(date)] === true || calendar.outOfRange(date)
             property bool highlighted: calendar._highlightedMap[calendar.toKey(date)] === true
             width: gridArea.cellSize
             height: gridArea.cellSize
@@ -516,21 +599,25 @@ Item {
                 anchors.fill: parent
                 hoverEnabled: calendar.hoverEffectEnabled
                 acceptedButtons: Qt.LeftButton
+                onPressed: calendar.pressed(date)
+                onReleased: calendar.released(date)
+                onDoubleClicked: calendar.doubleClicked(date)
+                onPressAndHold: calendar.pressAndHold(date)
                 onClicked: {
                     if (disabled) return;
                     if (calendar.selectionMode === "single") {
-                        calendar.selectedDate = date
+                        calendar.selectedDate = clampDate(date)
                         calendar.rangeStart = null
                         calendar.rangeEnd = null
                         calendar.awaitingRangeEnd = false
-                        calendar.dateSelected(date)
-                        calendar.dateStatusChanged(date, "selected")
+                        calendar.dateSelected(calendar.selectedDate)
+                        calendar.dateStatusChanged(calendar.selectedDate, "selected")
                     } else { // range
                         if (!calendar.awaitingRangeEnd) {
                             calendar.rangeStart = date
                             calendar.rangeEnd = date
                             calendar.awaitingRangeEnd = true
-                            calendar.selectedDate = date
+                            calendar.selectedDate = clampDate(date)
                             calendar.dateStatusChanged(date, "range_start")
                         } else {
                             var start = calendar.rangeStart ? calendar.rangeStart : date
@@ -542,13 +629,15 @@ Item {
                                 calendar.rangeEnd = end
                             }
                             calendar.awaitingRangeEnd = false
-                            calendar.selectedDate = calendar.rangeEnd
+                            calendar.selectedDate = clampDate(calendar.rangeEnd)
                             calendar.rangeSelected(calendar.rangeStart, calendar.rangeEnd)
                             calendar.dateStatusChanged(date, "range_end")
                         }
                     }
+                    calendar.clicked(date)
                 }
                 onEntered: {
+                    calendar.hovered(date)
                     if (calendar.isDraggingRange && !disabled) {
                         calendar.rangeEnd = date
                         calendar.dateStatusChanged(date, "range_update")
@@ -599,10 +688,12 @@ Item {
         _highlightedMap = hm
         // 初始化首格日期
         firstCellDate = computeFirstCellDate()
+        selectedDate = clampDate(selectedDate)
     }
 
     onSelectedDateChanged: {
-        if (selectedDate) dateStatusChanged(selectedDate, "selected")
+        if (!(selectedDate instanceof Date)) return
+        dateStatusChanged(selectedDate, "selected")
     }
     onRangeStartChanged: {
         if (rangeStart) dateStatusChanged(rangeStart, "range_start")
@@ -618,8 +709,15 @@ Item {
         dateStatusChanged(new Date(displayYear, displayMonth-1, 1), "month_changed")
         firstCellDate = computeFirstCellDate()
     }
+    onVisibleMonthChanged: {
+        var m = visibleMonth
+        if (typeof m === "number" && displayMonth !== (m + 1)) displayMonth = m + 1
+    }
+    onVisibleYearChanged: {
+        var y = visibleYear
+        if (typeof y === "number" && displayYear !== y) displayYear = y
+    }
     onUseISOWeekChanged: {
         firstCellDate = computeFirstCellDate()
     }
-
 }

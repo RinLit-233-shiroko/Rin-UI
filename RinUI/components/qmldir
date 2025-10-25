@@ -81,3 +81,6 @@ singleton Severity 1.0 ../utils/Severity.qml
 singleton Position 1.0 ../utils/Position.qml
 
 FloatLayer 1.0 ../utils/FloatLayer.qml
+
+# Date & Time (extended)
+CalendarDatePicker 1.0 DateAndTime/CalendarDatePicker.qml
