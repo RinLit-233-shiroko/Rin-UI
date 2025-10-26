@@ -3,41 +3,24 @@ build-backend = "setuptools.build_meta"
 requires = ["setuptools", "wheel"]
 
 [project]
-name = "RinUI"
-version = "0.1.8.1.post1"
 authors = [
   {email = "lintu233_qwq@icloud.com", name = "RinLit"}
-]
-description = "A Fluent Design-like UI library for Qt Quick (QML) based on PySide6"
-readme = "README.md"
-requires-python = ">=3.9"
-dependencies = [
-  "PySide6>=6.9.3",
-  "darkdetect~=0.8.0",
-  "pywin32 ; sys_platform == 'win32'"
 ]
 classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3"
 ]
-[tool.setuptools]
-packages = ["RinUI"]
-include-package-data = true
-
-[tool.setuptools.package-data]
-RinUI = [
-  "*", # 根目录下所有文件
-  "assets/**/*",
-  "components/**/*",
-  "hooks/**/*",
-  "themes/**/*",
-  "utils/**/*",
-  "windows/**/*"
+dependencies = [
+  "PySide6>=6.9.3",
+  "darkdetect~=0.8.0",
+  "pywin32 ; sys_platform == 'win32'"
 ]
-
-[tool.setuptools.data-files]
-"" = ["LICENSE", "README.md"]
+description = "A Fluent Design-like UI library for Qt Quick (QML) based on PySide6"
+name = "RinUI"
+readme = "README.md"
+requires-python = ">=3.9"
+version = "0.1.8.1.post1"
 
 [project.entry-points."pyinstaller40"]
 hook-dirs = "RinUI.hooks:get_hook_dirs"
@@ -92,3 +75,21 @@ select = [
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401", "F403"]
 "tests/*" = ["B011"]
+
+[tool.setuptools]
+include-package-data = true
+packages = ["RinUI"]
+
+[tool.setuptools.data-files]
+"" = ["LICENSE", "README.md"]
+
+[tool.setuptools.package-data]
+RinUI = [
+  "*", # 根目录下所有文件
+  "assets/**/*",
+  "components/**/*",
+  "hooks/**/*",
+  "themes/**/*",
+  "utils/**/*",
+  "windows/**/*"
+]
