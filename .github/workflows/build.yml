@@ -124,8 +124,11 @@ jobs:
         uses: kenji-miyake/setup-git-cliff@v2
 
       - name: 📜 Generate CHANGELOG.md
+        env:
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git cliff --latest --tag "${{ github.ref_name }}" --config .git-cliff.toml > CHANGELOG.md
+          git cliff --latest --tag "${{ github.ref_name }}" --config .git-cliff.toml --github-repo "${{ github.repository }}" > CHANGELOG.md
 
       - name: 🚀 Create GitHub Release
         uses: softprops/action-gh-release@v2
