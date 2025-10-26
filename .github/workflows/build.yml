@@ -5,43 +5,54 @@ on:
     tags:
       - "*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v1.2.3)"
+        required: false
 
 permissions:
   contents: write
+
+concurrency:
+  group: build-${{ github.ref_name || github.event.inputs.tag || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        include:
+          - os: windows-latest
+            icon: "examples/assets/gallery.ico"
+          - os: macos-latest
+            icon: "examples/assets/gallery.icns"
 
     steps:
       - name: ⬇️ Checkout code
         uses: actions/checkout@v5
 
       - name: 📦 Set up Python & Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
 
       - name: 📦 Cache dependencies
         uses: actions/cache@v4
         with:
           path: ~/.cache/uv
-          key: uv-${{ runner.os }}-${{ github.workflow }}-${{ hashFiles('uv.lock') }}
+          key: uv-${{ runner.os }}-build-${{ hashFiles('uv.lock') }}
           restore-keys: |
-            uv-${{ runner.os }}-${{ github.workflow }}-
+            uv-${{ runner.os }}-build-
 
       - name: 📦 Install dependencies
         run: |
           uv sync
           uv pip install pyinstaller
 
-      - name: 🔨 Build Gallery (Windows)
-        if: runner.os == 'Windows'
+      - name: 🔨 Build RinUI Gallery
         shell: bash
         run: |
           uv run pyinstaller --noconsole \
-            --icon "examples/assets/gallery.ico" \
+            --icon "${{ matrix.icon }}" \
             --add-data "RinUI:RinUI" \
             --add-data "examples/assets:assets" \
             --add-data "examples/components:components" \
@@ -53,53 +64,27 @@ jobs:
             --name=RinUIGallery \
             examples/gallery.py
 
-      - name: 🔨 Build Gallery (macOS)
-        if: runner.os == 'macOS'
+      - name: 📦 Create archive
         shell: bash
         run: |
-          uv run pyinstaller --noconsole \
-            --icon "examples/assets/gallery.icns" \
-            --add-data "RinUI:RinUI" \
-            --add-data "examples/assets:assets" \
-            --add-data "examples/components:components" \
-            --add-data "examples/languages:languages" \
-            --add-data "examples/pages:pages" \
-            --add-data "examples/gallery.qml:." \
-            --paths=. \
-            --contents-directory . \
-            --name=RinUIGallery \
-            examples/gallery.py
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            curl -OLk# https://www.stahlworks.com/dev/zip.exe
+            ./zip.exe -r -q "dist/RinUIGallery-Windows.zip" dist/RinUIGallery/*
+          else
+            cd dist && ditto -c -k --sequesterRsrc --keepParent RinUIGallery.app RinUIGallery-macOS.zip && cd ..
+          fi
+          ls -lh dist/
 
-      - name: 📦 Zip build (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Compress-Archive -Path dist/RinUIGallery/* -DestinationPath dist/RinUIGallery-Windows.zip
-
-      - name: 📦 Zip build (macOS)
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          cd dist
-          ditto -c -k --sequesterRsrc --keepParent RinUIGallery.app RinUIGallery-macOS.zip
-
-      - name: ☁️ Upload artifact (Windows)
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
+      - name: ☁️ Upload artifact
+        uses: actions/upload-artifact@v5
         with:
-          name: RinUIGallery-Windows
-          path: dist/RinUIGallery-Windows.zip
-
-      - name: ☁️ Upload artifact (macOS)
-        if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v4
-        with:
-          name: RinUIGallery-macOS
-          path: dist/RinUIGallery-macOS.zip
+          name: RinUIGallery-${{ runner.os }}
+          path: dist/RinUIGallery-${{ runner.os }}.zip
 
   release:
     needs: [build]
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: ⬇️ Checkout code
@@ -112,32 +97,28 @@ jobs:
         with:
           path: dist/
 
-      - name: 🗃 Move release files to root dist/
-        run: |
-          echo "::group::Show downloaded structure"
-          ls -R dist/
-          echo "::endgroup::"
-          mv dist/RinUIGallery-Windows/*.zip dist/
-          mv dist/RinUIGallery-macOS/*.zip dist/
-
       - name: 🧱 Set up git-cliff
         uses: kenji-miyake/setup-git-cliff@v2
 
-      - name: 📜 Generate CHANGELOG.md
+      - name: 📜 Generate CHANGELOG
+        id: changelog
         env:
           GITHUB_REPO: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git cliff --latest --tag "${{ github.ref_name }}" --config .git-cliff.toml --github-repo "${{ github.repository }}" > CHANGELOG.md
+          TAG_NAME="${{ github.ref_name }}"
+          if [ -z "$TAG_NAME" ]; then
+            TAG_NAME="${{ github.event.inputs.tag }}"
+          fi
+          git cliff --latest --tag "$TAG_NAME" --config .git-cliff.toml --github-repo "${{ github.repository }}" --output changelog.md
+          # cat changelog.md >> $GITHUB_STEP_SUMMARY >> $GITHUB_OUTPUT
 
       - name: 🚀 Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: RinUI Gallery ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
-          body_path: CHANGELOG.md
-          files: |
-            dist/RinUIGallery-Windows.zip
-            dist/RinUIGallery-macOS.zip
+          name: RinUI Gallery ${{ github.ref_name || github.event.inputs.tag }}
+          tag_name: ${{ github.ref_name || github.event.inputs.tag }}
+          body_path: changelog.md
+          files: dist/*/RinUIGallery-*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
