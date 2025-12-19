@@ -134,6 +134,7 @@ Frame {
                     parent.width : implicitWidth
                 typography: Typography.Body
                 text: infoBar.text
+                onLinkActivated: Qt.openUrlExternally(link)
                 topPadding: wrap? 0 : 6
             }
 
