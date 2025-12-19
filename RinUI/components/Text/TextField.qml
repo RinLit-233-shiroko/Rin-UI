@@ -94,9 +94,10 @@ TextField {
         anchors.verticalCenter: parent.verticalCenter
         implicitWidth: 24
         implicitHeight: 24
+        focusPolicy: Qt.NoFocus
         flat: true
         highlighted: true
-        visible: clearEnabled && root.text && root.text.length > 0
+        visible: clearEnabled && root.text && root.text.length > 0 && root.activeFocus
         onClicked: parent.text = ""
         contentItem: Icon {
             name: "ic_fluent_dismiss_20_regular"

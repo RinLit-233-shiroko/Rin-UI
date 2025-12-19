@@ -1,10 +1,11 @@
 [build-system]
-build-backend = "setuptools.build_meta"
-requires = ["setuptools", "wheel"]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "RinUI"
-version = "0.1.9"
+license = { file = "LICENSE" }
+dynamic = ["version"]
 authors = [
   {email = "lintu233_qwq@icloud.com", name = "RinLit"}
 ]
@@ -17,27 +18,26 @@ dependencies = [
   "pywin32 ; sys_platform == 'win32'"
 ]
 classifiers = [
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3"
 ]
-[tool.setuptools]
+
+[tool.hatch.build.targets.wheel]
 packages = ["RinUI"]
-include-package-data = true
 
-[tool.setuptools.package-data]
-RinUI = [
-  "*", # 根目录下所有文件
-  "assets/**/*",
-  "components/**/*",
-  "hooks/**/*",
-  "themes/**/*",
-  "utils/**/*",
-  "windows/**/*"
+[tool.hatch.build.targets.wheel.force-include]
+"LICENSE" = "LICENSE"
+"README.md" = "README.md"
+
+[tool.hatch.version]
+path = "RinUI/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "RinUI/**/*",
+  "LICENSE",
+  "README.md"
 ]
-
-[tool.setuptools.data-files]
-"" = ["LICENSE", "README.md"]
 
 [project.entry-points."pyinstaller40"]
 hook-dirs = "RinUI.hooks:get_hook_dirs"
