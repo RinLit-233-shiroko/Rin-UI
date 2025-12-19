@@ -38,6 +38,10 @@ RowLayout {
         }
     }
 
+    Component.onCompleted: {
+        navigationBar.collapsed = navigationBar.isNotOverMinimumWidth()  // 判断窗口是否小于最小宽度
+    }
+
     NavigationBar {
         id: navigationBar
         windowTitle: window.title

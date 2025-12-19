@@ -36,13 +36,13 @@ Item {
 
     Behavior on width {
         NumberAnimation {
-            duration: Utils.animationSpeedFasterer
+            duration: Utils.animationSpeed
             easing.type: Easing.OutQuint
         }
     }
     Behavior on implicitWidth {
         NumberAnimation {
-            duration: Utils.animationSpeedFaster
+            duration: Utils.animationSpeed
             easing.type: Easing.OutQuint
         }
     }
@@ -56,7 +56,7 @@ Item {
         color: Theme.currentTheme.colors.backgroundAcrylicColor
         border.color: Theme.currentTheme.colors.flyoutBorderColor
         z: -1
-        visible: isNotOverMinimumWidth() && !collapsed ? 1 : 0
+        visible: isNotOverMinimumWidth() && !collapsed
 
         Behavior on visible {
             NumberAnimation {
