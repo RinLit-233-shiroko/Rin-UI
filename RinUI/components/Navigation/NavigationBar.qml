@@ -25,6 +25,7 @@ Item {
     property var stackView: parent.stackView
 
     property string currentPage: ""  // 当前页面的URL
+    property bool collapsedByAutoResize: false
 
     function isNotOverMinimumWidth() {  // 判断窗口是否小于最小宽度
         return windowWidth < minimumExpandWidth;
@@ -127,6 +128,7 @@ Item {
 
         onClicked: {
             collapsed = !collapsed
+            collapsedByAutoResize = false
         }
 
         ToolTip {
