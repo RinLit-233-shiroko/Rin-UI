@@ -302,17 +302,22 @@ Item {
         }
     }
 
-    // Top Separator
-    Rectangle {
-        id: topSeparator
+    // Top Separator Container
+    Item {
+        id: topSeparatorContainer
         anchors.top: topFlickable.bottom
-        anchors.topMargin: 2
         anchors.left: parent.left
         anchors.right: parent.right
-        height: 2
-        z: 10
-        color: Theme.currentTheme.colors.dividerBorderColor
+        height: visible ? 6 : 0
         visible: navigationBar.topNavigationItems.length > 0
+        z: 10
+
+        Rectangle {
+            anchors.centerIn: parent
+            width: parent.width
+            height: 2
+            color: Theme.currentTheme.colors.dividerBorderColor
+        }
     }
 
     // 中间可滚动导航区域
@@ -320,10 +325,8 @@ Item {
         id: flickable
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.top: topSeparator.visible ? topSeparator.bottom : topFlickable.bottom
-        anchors.topMargin: topSeparator.visible ? 2 : 0
-        anchors.bottom: bottomSeparator.visible ? bottomSeparator.top : bottomFlickable.top
-        anchors.bottomMargin: bottomSeparator.visible ? 2 : 0
+        anchors.top: topSeparatorContainer.bottom
+        anchors.bottom: bottomSeparatorContainer.top
         contentWidth: parent.width
         contentHeight: navigationColumn.implicitHeight
         clip: true
@@ -348,17 +351,22 @@ Item {
         }
     }
 
-    // Bottom Separator
-    Rectangle {
-        id: bottomSeparator
+    // Bottom Separator Container
+    Item {
+        id: bottomSeparatorContainer
         anchors.bottom: bottomFlickable.top
-        anchors.bottomMargin: 2
         anchors.left: parent.left
         anchors.right: parent.right
-        height: 2
-        z: 10
-        color: Theme.currentTheme.colors.dividerBorderColor
+        height: visible ? 6 : 0
         visible: navigationBar.bottomNavigationItems.length > 0
+        z: 10
+
+        Rectangle {
+            anchors.centerIn: parent
+            width: parent.width
+            height: 2
+            color: Theme.currentTheme.colors.dividerBorderColor
+        }
     }
 
     // 底部导航项（固定在底部，支持滚动）
