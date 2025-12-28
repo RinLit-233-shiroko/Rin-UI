@@ -10,9 +10,11 @@ Item {
     height: parent.height
 
     property bool collapsed: false
+    property var topNavigationItems: []  // 置顶导航项
     property var navigationItems: [
         // {title: "Title", page: "path/to/page.qml", icon: undefined}
     ]
+    property var bottomNavigationItems: []  // 底部导航项
 
     // property int currentSubIndex: -1
     property bool titleBarEnabled: true
@@ -140,10 +142,72 @@ Item {
       }
     }
 
+    // 置顶导航项（固定在顶部，支持滚动）
+    Flickable {
+        id: topFlickable
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.topMargin: 40 + collapseButton.y
+        // 置顶区域最大高度：导航栏可用高度的 20%
+        height: Math.min(topNavigationColumn.implicitHeight, (parent.height - 40) * 0.2)
+        contentWidth: parent.width
+        contentHeight: topNavigationColumn.implicitHeight
+        clip: true
+
+        Column {
+            id: topNavigationColumn
+            width: topFlickable.width
+            spacing: 2
+
+            Repeater {
+                model: navigationBar.topNavigationItems
+                delegate: NavigationItem {
+                    id: topItem
+                    itemData: modelData
+                    currentPage: navigationBar.stackView
+
+                    // 子菜单重置
+                    Connections {
+                        target: navigationBar
+                        function onCollapsedChanged() {
+                            if (!navigationBar.collapsed) {
+                                return
+                            }
+                            topItem.collapsed = navigationBar.collapsed
+                        }
+                    }
+                }
+            }
+        }
+
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+        }
+    }
+
+    // Top Separator
+    Rectangle {
+        id: topSeparator
+        anchors.top: topFlickable.bottom
+        anchors.topMargin: 2
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: 2
+        z: 10
+        color: Theme.currentTheme.colors.dividerBorderColor
+        visible: navigationBar.topNavigationItems.length > 0
+    }
+
+    // 中间可滚动导航区域
     Flickable {
         id: flickable
-        anchors.fill: parent
-        anchors.topMargin: 40 + collapseButton.y
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: topSeparator.visible ? topSeparator.bottom : topFlickable.bottom
+        anchors.topMargin: topSeparator.visible ? 2 : 0
+        anchors.bottom: bottomSeparator.visible ? bottomSeparator.top : bottomFlickable.top
+        anchors.bottomMargin: bottomSeparator.visible ? 2 : 0
         contentWidth: parent.width
         contentHeight: navigationColumn.implicitHeight
         clip: true
@@ -168,6 +232,76 @@ Item {
                                 return
                             }
                             item.collapsed = navigationBar.collapsed
+                        }
+                    }
+                }
+            }
+        }
+
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+        }
+    }
+
+    // Bottom Separator
+    Rectangle {
+        id: bottomSeparator
+        anchors.bottom: bottomFlickable.top
+        anchors.bottomMargin: 2
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: 2
+        z: 10
+        color: Theme.currentTheme.colors.dividerBorderColor
+        visible: navigationBar.bottomNavigationItems.length > 0
+    }
+
+    // 底部导航项（固定在底部，支持滚动）
+    Flickable {
+        id: bottomFlickable
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        // 底部区域最大高度：导航栏可用高度的 20%
+        height: Math.min(bottomNavigationColumn.implicitHeight, (parent.height - 40) * 0.2)
+        contentWidth: parent.width
+        contentHeight: bottomNavigationColumn.implicitHeight
+        clip: true
+
+        // 默认滚动到底部
+        Component.onCompleted: {
+            if (contentHeight > height) {
+                contentY = contentHeight - height;
+            }
+        }
+
+        // 内容高度变化时保持在底部
+        onContentHeightChanged: {
+            if (contentHeight > height) {
+                contentY = contentHeight - height;
+            }
+        }
+
+        Column {
+            id: bottomNavigationColumn
+            width: bottomFlickable.width
+            spacing: 2
+
+            Repeater {
+                model: navigationBar.bottomNavigationItems
+                delegate: NavigationItem {
+                    id: bottomItem
+                    itemData: modelData
+                    currentPage: navigationBar.stackView
+
+                    // 子菜单重置
+                    Connections {
+                        target: navigationBar
+                        function onCollapsedChanged() {
+                            if (!navigationBar.collapsed) {
+                                return
+                            }
+                            bottomItem.collapsed = navigationBar.collapsed
                         }
                     }
                 }
