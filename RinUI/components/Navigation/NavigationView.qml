@@ -10,7 +10,7 @@ RowLayout {
     // 外观 / Appearance //
     property bool appLayerEnabled: true  // 应用层背景
     property alias navExpandWidth: navigationBar.expandWidth  // 导航栏宽度
-    property alias navMinimumExpandWidth: navigationBar.minimumExpandWidth  // 导航栏保持展开时窗口的最小宽度
+    property alias navMinimumExpandWidth: navigationBar.minimumWindowWidth  // 导航栏保持展开时窗口的最小宽度
 
     property alias navigationBar: navigationBar  // 导航栏
     property alias topNavigationItems: navigationBar.topNavigationItems  // 置顶导航栏item
@@ -36,27 +36,12 @@ RowLayout {
     Connections {
         target: window
         function onWidthChanged() {
-            if (navigationBar.isNotOverMinimumWidth()) {
-                if (!navigationBar.collapsed) {
-                    navigationBar.collapsed = true
-                    navigationBar.collapsedByAutoResize = true
-                }
-            } else {
-                if (navigationBar.collapsed && navigationBar.collapsedByAutoResize) {
-                    navigationBar.collapsed = false
-                    navigationBar.collapsedByAutoResize = false
-                }
-            }
+            navigationBar.collapsed = navigationBar.isNotOverMinimumWidth()  // 判断窗口是否小于最小宽度
         }
     }
 
     Component.onCompleted: {
-        if (navigationBar.isNotOverMinimumWidth()) {
-            if (!navigationBar.collapsed) {
-                navigationBar.collapsed = true
-                navigationBar.collapsedByAutoResize = true
-            }
-        }
+        navigationBar.collapsed = navigationBar.isNotOverMinimumWidth()  // 判断窗口是否小于最小宽度
     }
 
     NavigationBar {

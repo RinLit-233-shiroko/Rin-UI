@@ -18,19 +18,148 @@ Item {
 
     // property int currentSubIndex: -1
     property bool titleBarEnabled: true
-    property int expandWidth: 280
-    property int minimumExpandWidth: 900
+    property int expandWidth: windowWidth * expandRatio
+    property real expandRatio: 0.15 // Default ratio
+    
+    // Window width threshold for auto-collapse
+    property int minimumWindowWidth: 900 
+    
+    // Dynamic Navbar Width Constraints
+    property int minNavbarWidth: Math.max(150, windowWidth * 0.10)
+    property int maxNavbarWidth: windowWidth * 0.20
+
+    // 使用延迟执行确保所有属性绑定都更新完成后再调整
+    onMinNavbarWidthChanged: {
+        Qt.callLater(function() {
+            if (expandWidth < minNavbarWidth) {
+                expandRatio = minNavbarWidth / windowWidth;
+            }
+        });
+    }
+
+    onMaxNavbarWidthChanged: {
+        Qt.callLater(function() {
+            if (expandWidth > maxNavbarWidth) {
+                expandRatio = maxNavbarWidth / windowWidth;
+            }
+        });
+    }
+
+    onWindowWidthChanged: {
+        Qt.callLater(requestLayoutUpdate)
+    }
+
+    TextMetrics {
+        id: titleMetrics
+        font.family: "Microsoft YaHei"
+        font.pixelSize: (typeof Theme !== "undefined" && Theme.currentTheme && Theme.currentTheme.typography) ? Theme.currentTheme.typography.bodySize : 14
+    }
+
+    function requestLayoutUpdate() {
+        if (!collapsed) {
+             expandRatio = calculateDynamicWidth();
+        }
+    }
+
+    function calculateDynamicWidth() {
+        var maxWidth = 0;
+
+        // Traverse visual items to check expansion state
+        function checkVisualItems(column) {
+            if (!column) return;
+            var children = column.children;
+            for (var i = 0; i < children.length; i++) {
+                var item = children[i];
+                // Check if it's a NavigationItem (has itemData and collapsed property)
+                if (item && item.itemData && item.itemData.title) {
+                    titleMetrics.text = item.itemData.title;
+                    // Base overhead: 50 (icon) + 16 (spacing) + 22 (left) + 20 (right) + ~20 (safe) = 128
+                    var itemWidth = titleMetrics.width + 128;
+                    if (itemWidth > maxWidth) maxWidth = itemWidth;
+
+                    // Check sub-items ONLY if expanded (!collapsed)
+                    if (!item.collapsed && item.itemData.subItems) {
+                        var subItems = item.itemData.subItems;
+                        for (var j = 0; j < subItems.length; j++) {
+                             var sub = subItems[j];
+                             if (sub && sub.title) {
+                                 titleMetrics.text = sub.title;
+                                 // Indentation: 1 level * 16 (assumed)
+                                 var subWidth = titleMetrics.width + 128 + 16;
+                                 if (subWidth > maxWidth) maxWidth = subWidth;
+                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        checkVisualItems(topNavigationColumn);
+        checkVisualItems(navigationColumn);
+        checkVisualItems(bottomNavigationColumn);
+        
+        // Ensure within bounds (in pixels)
+        if (maxWidth < minNavbarWidth) maxWidth = minNavbarWidth;
+        if (maxWidth > maxNavbarWidth) maxWidth = maxNavbarWidth;
+
+        // Convert to ratio
+        var initialRatio = maxWidth / windowWidth;
+        
+        return initialRatio;
+    }
+
+    Component.onCompleted: {
+        if (windowWidth > 0) {
+             expandRatio = calculateDynamicWidth()
+        }
+    }
+
+    MouseArea {
+        id: resizeHandle
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 10
+        cursorShape: Qt.SizeHorCursor
+        enabled: !collapsed
+        visible: !collapsed
+        z: 1000
+
+        property int startX: 0
+        property real startRatio: 0
+
+        onPressed: {
+            startX = mouseX
+            startRatio = navigationBar.expandRatio
+        }
+
+        onPositionChanged: {
+            if (pressed) {
+                var delta = mouseX - startX
+                var newRatio = startRatio + (delta / windowWidth)
+                
+                // Clamp ratio based on min/max width in pixels
+                var minRatio = minNavbarWidth / windowWidth
+                var maxRatio = maxNavbarWidth / windowWidth
+                
+                if (newRatio < minRatio) newRatio = minRatio
+                if (newRatio > maxRatio) newRatio = maxRatio
+                
+                navigationBar.expandRatio = newRatio
+            }
+        }
+    }
 
     property alias windowTitle: titleLabel.text
     property alias windowIcon: iconLabel.source
-    property int windowWidth: minimumExpandWidth
+    property int windowWidth: 1000
     property var stackView: parent.stackView
 
     property string currentPage: ""  // 当前页面的URL
-    property bool collapsedByAutoResize: false
+
 
     function isNotOverMinimumWidth() {  // 判断窗口是否小于最小宽度
-        return windowWidth < minimumExpandWidth;
+        return windowWidth < minimumWindowWidth;
     }
 
     // 展开收缩动画 //
@@ -54,7 +183,7 @@ Item {
         id: background
         anchors.fill: parent
         anchors.margins: -5
-        anchors.topMargin: 0
+        anchors.topMargin: -title.height
         radius: Theme.currentTheme.appearance.windowRadius
         color: Theme.currentTheme.colors.backgroundAcrylicColor
         border.color: Theme.currentTheme.colors.flyoutBorderColor
@@ -127,11 +256,9 @@ Item {
         // icon.name: collapsed ? "ic_fluent_chevron_right_20_regular" : "ic_fluent_chevron_left_20_regular"
         icon.name: "ic_fluent_navigation_20_regular"
         size: 19
-        y: 5
 
         onClicked: {
             collapsed = !collapsed
-            collapsedByAutoResize = false
         }
 
         ToolTip {

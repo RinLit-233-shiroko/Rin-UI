@@ -68,6 +68,8 @@ Item {
                 opacity: navigationBar.collapsed ? 0 : 1
                 wrapMode: Text.NoWrap
                 horizontalAlignment: Text.AlignLeft
+                elide: Text.ElideRight
+                width: itemBtn.width - parent.anchors.leftMargin - x - (expandBtn.visible ? expandBtn.width : 0) - 10
 
                 Behavior on x {
                     NumberAnimation {
@@ -126,13 +128,22 @@ Item {
             visible: subItem && !navigationBar.collapsed
             opacity: 0.7
 
-            onClicked: { collapsed = !collapsed }
+            onClicked: { 
+                collapsed = !collapsed
+                // Notify NavigationBar to recalculate width
+                if (navigationBar && typeof navigationBar.requestLayoutUpdate === "function") {
+                    Qt.callLater(navigationBar.requestLayoutUpdate)
+                }
+            }
         }
 
         onClicked: {
             if (subItem) {
                 if (!navigationBar.collapsed) {
                     collapsed = !collapsed
+                    if (navigationBar && typeof navigationBar.requestLayoutUpdate === "function") {
+                        Qt.callLater(navigationBar.requestLayoutUpdate)
+                    }
                 } else {
                     subMenu.open()
                 }
