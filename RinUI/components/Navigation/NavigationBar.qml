@@ -64,24 +64,30 @@ Item {
     function calculateDynamicWidth() {
         var maxWidth = 0;
 
-        // Traverse visual items to check expansion state
-        function checkVisualItems(column) {
-            if (!column) return;
-            var children = column.children;
-            for (var i = 0; i < children.length; i++) {
-                var item = children[i];
-                // Check if it's a NavigationItem (has itemData and collapsed property)
-                if (item && item.itemData && item.itemData.title) {
-                    titleMetrics.text = item.itemData.title;
+        // Traverse model items to check expansion state
+        function checkModelItems(model, repeater) {
+            if (!model || !repeater) return;
+            // Iterate over the model (array or ListModel)
+            var count = Array.isArray(model) ? model.length : model.count;
+            
+            for (var i = 0; i < count; i++) {
+                var data = Array.isArray(model) ? model[i] : model.get(i);
+                var item = repeater.itemAt(i);
+                
+                if (data && data.title) {
+                    titleMetrics.text = data.title;
                     // Base overhead: 50 (icon) + 16 (spacing) + 22 (left) + 20 (right) + ~20 (safe) = 128
                     var itemWidth = titleMetrics.width + 128;
                     if (itemWidth > maxWidth) maxWidth = itemWidth;
 
                     // Check sub-items ONLY if expanded (!collapsed)
-                    if (!item.collapsed && item.itemData.subItems) {
-                        var subItems = item.itemData.subItems;
-                        for (var j = 0; j < subItems.length; j++) {
-                             var sub = subItems[j];
+                    // We check the visual item 'collapsed' property to see if sub-menu is open
+                    // Note: 'item' might be null if not loaded yet, though unlikely in this context if visible
+                    if (item && !item.collapsed && data.subItems) {
+                        var subItems = data.subItems;
+                        var subCount = Array.isArray(subItems) ? subItems.length : subItems.count;
+                        for (var j = 0; j < subCount; j++) {
+                             var sub = Array.isArray(subItems) ? subItems[j] : subItems.get(j);
                              if (sub && sub.title) {
                                  titleMetrics.text = sub.title;
                                  // Indentation: 1 level * 16 (assumed)
@@ -94,9 +100,9 @@ Item {
             }
         }
 
-        checkVisualItems(topNavigationColumn);
-        checkVisualItems(navigationColumn);
-        checkVisualItems(bottomNavigationColumn);
+        checkModelItems(navigationBar.topNavigationItems, topRepeater);
+        checkModelItems(navigationBar.navigationItems, mainRepeater);
+        checkModelItems(navigationBar.bottomNavigationItems, bottomRepeater);
         
         // Ensure within bounds (in pixels)
         if (maxWidth < minNavbarWidth) maxWidth = minNavbarWidth;
@@ -288,6 +294,7 @@ Item {
             spacing: 2
 
             Repeater {
+                id: topRepeater
                 model: navigationBar.topNavigationItems
                 delegate: NavigationItem {
                     id: topItem
@@ -337,6 +344,7 @@ Item {
             spacing: 2
 
             Repeater {
+                id: mainRepeater
                 model: navigationBar.navigationItems
                 delegate: NavigationItem {
                     id: item
@@ -401,6 +409,7 @@ Item {
             spacing: 2
 
             Repeater {
+                id: bottomRepeater
                 model: navigationBar.bottomNavigationItems
                 delegate: NavigationItem {
                     id: bottomItem
