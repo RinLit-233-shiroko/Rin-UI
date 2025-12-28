@@ -156,7 +156,7 @@ Item {
     property var stackView: parent.stackView
 
     property string currentPage: ""  // 当前页面的URL
-
+    property bool collapsedByAutoResize: false
 
     function isNotOverMinimumWidth() {  // 判断窗口是否小于最小宽度
         return windowWidth < minimumWindowWidth;
@@ -275,9 +275,9 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.topMargin: 40 + collapseButton.y
+        anchors.topMargin: title.height + collapseButton.y
         // 置顶区域最大高度：导航栏可用高度的 20%
-        height: Math.min(topNavigationColumn.implicitHeight, (parent.height - 40) * 0.2)
+        height: Math.min(topNavigationColumn.implicitHeight, (parent.height - title.height) * 0.2)
         contentWidth: parent.width
         contentHeight: topNavigationColumn.implicitHeight
         clip: true
@@ -390,7 +390,7 @@ Item {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         // 底部区域最大高度：导航栏可用高度的 20%
-        height: Math.min(bottomNavigationColumn.implicitHeight, (parent.height - 40) * 0.2)
+        height: Math.min(bottomNavigationColumn.implicitHeight, (parent.height - title.height) * 0.2)
         contentWidth: parent.width
         contentHeight: bottomNavigationColumn.implicitHeight
         clip: true
