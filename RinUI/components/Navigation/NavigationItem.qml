@@ -21,6 +21,18 @@ Item {
     }
     property bool collapsed: true  // 是否折叠
 
+    // 子菜单重置
+    Connections {
+        target: navigationBar
+        function onCollapsedChanged() {
+            if (!navigationBar.collapsed) {
+                return
+            }
+            // 当导航栏折叠时，子菜单也应折叠
+            collapsed = true
+        }
+    }
+
     height: 40 + (!collapsed && subItem ? subItemsColumn.height : 0)
     width: parent ? parent.width : 200
 

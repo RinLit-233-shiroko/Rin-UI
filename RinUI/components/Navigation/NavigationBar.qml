@@ -293,17 +293,6 @@ Item {
                     id: topItem
                     itemData: modelData
                     currentPage: navigationBar.stackView
-
-                    // 子菜单重置
-                    Connections {
-                        target: navigationBar
-                        function onCollapsedChanged() {
-                            if (!navigationBar.collapsed) {
-                                return
-                            }
-                            topItem.collapsed = navigationBar.collapsed
-                        }
-                    }
                 }
             }
         }
@@ -350,17 +339,6 @@ Item {
                     id: item
                     itemData: modelData
                     currentPage: navigationBar.stackView
-
-                    // 子菜单重置
-                    Connections {
-                        target: navigationBar
-                        function onCollapsedChanged() {
-                            if (!navigationBar.collapsed) {
-                                return
-                            }
-                            item.collapsed = navigationBar.collapsed
-                        }
-                    }
                 }
             }
         }
@@ -420,17 +398,6 @@ Item {
                     id: bottomItem
                     itemData: modelData
                     currentPage: navigationBar.stackView
-
-                    // 子菜单重置
-                    Connections {
-                        target: navigationBar
-                        function onCollapsedChanged() {
-                            if (!navigationBar.collapsed) {
-                                return
-                            }
-                            bottomItem.collapsed = navigationBar.collapsed
-                        }
-                    }
                 }
             }
         }
