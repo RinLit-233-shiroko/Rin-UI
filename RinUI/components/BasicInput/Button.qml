@@ -126,11 +126,18 @@ Button {
             PropertyChanges {
                 target: root
                 opacity: 0.65
-                backgroundColor: highlighted ? Theme.currentTheme.colors.disabledColor : Theme.currentTheme.colors.controlColor
+                backgroundColor: highlighted 
+                    ? Theme.currentTheme.colors.disabledColor 
+                    : Theme.currentTheme.colors.controlColor
             }
             PropertyChanges {
                 target: text
-                color: flat ? Theme.currentTheme.colors.disabledColor : text.color
+                color: flat 
+                    ? Theme.currentTheme.colors.disabledColor 
+                    : (highlighted 
+                        ? (flat ? Theme.currentTheme.colors.textAccentColor 
+                                : Theme.currentTheme.colors.textOnAccentColor)
+                        : Theme.currentTheme.colors.textColor)
             }
         },
         State {
