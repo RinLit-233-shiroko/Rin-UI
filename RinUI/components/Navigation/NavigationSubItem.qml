@@ -62,6 +62,8 @@ ItemDelegate {
                 opacity: navigationBar.collapsed ? 0 : 1
                 wrapMode: Text.NoWrap
                 horizontalAlignment: Text.AlignLeft
+                elide: Text.ElideRight
+                width: itemBg.width - parent.anchors.leftMargin - x - 10
 
                 Behavior on x {
                     NumberAnimation {

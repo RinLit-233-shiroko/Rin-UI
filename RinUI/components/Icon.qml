@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import Qt5Compat.GraphicalEffects
 import "../components"
 import "../themes"
 import "../utils"
@@ -41,13 +42,23 @@ Item {
         font.pixelSize: size
     }
 
+    property bool isSvg: root.source.toString().toLowerCase().endsWith(".svg")
+
     Image {
         id: iconImage
         anchors.centerIn: parent
         source: root.source  // 仅当 `icon` 不是字体图标时加载图片
-        width: size
-        height: size
+        width: isSvg ? size * 0.77 : size
+        height: isSvg ? size * 0.77 : size
         mipmap: true
         fillMode: Image.PreserveAspectFit  // 适配图片大小
+        visible: !isSvg
+    }
+
+    ColorOverlay {
+        anchors.fill: iconImage
+        source: iconImage
+        color: root.color
+        visible: isSvg
     }
 }
