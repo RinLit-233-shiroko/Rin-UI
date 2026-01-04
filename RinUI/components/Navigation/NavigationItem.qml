@@ -69,6 +69,7 @@ Item {
                 size: itemData.icon || itemData.source ? 19 : 0
                 icon: itemData.icon || ""
                 source: itemData.source || ""
+                navigation: itemData.navigation || false
             }
 
             Text {
