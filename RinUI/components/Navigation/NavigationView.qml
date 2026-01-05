@@ -10,12 +10,10 @@ RowLayout {
     // 外观 / Appearance //
     property bool appLayerEnabled: true  // 应用层背景
     property alias navExpandWidth: navigationBar.expandWidth  // 导航栏宽度
-    property alias navMinimumExpandWidth: navigationBar.minimumWindowWidth  // 导航栏保持展开时窗口的最小宽度
+    property alias navMinimumExpandWidth: navigationBar.minimumExpandWidth  // 导航栏保持展开时窗口的最小宽度
 
     property alias navigationBar: navigationBar  // 导航栏
-    property alias topNavigationItems: navigationBar.topNavigationItems  // 置顶导航栏item
     property alias navigationItems: navigationBar.navigationItems  // 导航栏item
-    property alias bottomNavigationItems: navigationBar.bottomNavigationItems  // 底部导航栏item
     property alias currentPage: navigationBar.currentPage  // 当前页面索引
     property var lastPages: []  // 历史页面栈, 最多保存两个页面
     property string defaultPage: ""  // 默认索引项
@@ -179,19 +177,12 @@ RowLayout {
         }
 
         Component.onCompleted: {
-            if (defaultPage !== "") {
-                safePush(defaultPage, false, true)
-                return
-            }
-
-            if (topNavigationItems.length > 0) {
-                safePush(topNavigationItems[0].page, false, true)
-                return
-            }
-
             if (navigationItems.length > 0) {
-                safePush(navigationItems[0].page, false, true)
-                return
+                if (defaultPage !== "") {
+                    safePush(defaultPage, false, true)
+                } else {
+                    safePush(navigationItems[0].page, false, true)  // 推送默认页面
+                }
             }
         }
     }

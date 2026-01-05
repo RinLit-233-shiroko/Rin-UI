@@ -70,15 +70,13 @@ FluentWindow {
         }
     }
 
-    topNavigationItems: [
+    navigationItems: [
         {
             title: qsTr("Home"),
             page: Qt.resolvedUrl("pages/Home.qml"),
             icon: "ic_fluent_home_20_regular",
-        }
-    ]
-
-    navigationItems: [
+            position: "top"  // 置顶导航项
+        },
         {
             title: qsTr("Design guidance"),
             icon: "ic_fluent_design_ideas_20_regular",  // 找了半天没找到和WinUIGallery一样的图标(?)
@@ -162,14 +160,12 @@ FluentWindow {
             title: qsTr("Error Interface Test"),
             page: Qt.resolvedUrl("unexist/page"),
             icon: "ic_fluent_document_error_20_regular"
-        }
-    ]
-
-    bottomNavigationItems: [
+        },
         {
             title: qsTr("Settings"),
             page: Qt.resolvedUrl("pages/Settings.qml"),
-            icon: "ic_fluent_settings_20_regular"
+            icon: "ic_fluent_settings_20_regular",
+            position: "bottom"  // 置底导航项
         }
     ]
 

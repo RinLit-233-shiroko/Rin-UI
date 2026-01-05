@@ -10,162 +10,25 @@ Item {
     height: parent.height
 
     property bool collapsed: false
-    property var topNavigationItems: []  // 置顶导航项
     property var navigationItems: [
         // {title: "Title", page: "path/to/page.qml", icon: undefined}
     ]
-    property var bottomNavigationItems: []  // 底部导航项
 
     // property int currentSubIndex: -1
     property bool titleBarEnabled: true
-    property int expandWidth: windowWidth * expandRatio
-    property real expandRatio: 0.15 // Default ratio
-    
-    // Window width threshold for auto-collapse
-    property int minimumWindowWidth: 900 
-    
-    // Dynamic Navbar Width Constraints
-    property int minNavbarWidth: Math.max(150, windowWidth * 0.10)
-    property int maxNavbarWidth: windowWidth * 0.20
-
-    // 使用延迟执行确保所有属性绑定都更新完成后再调整
-    onMinNavbarWidthChanged: {
-        Qt.callLater(function() {
-            if (expandWidth < minNavbarWidth) {
-                expandRatio = minNavbarWidth / windowWidth;
-            }
-        });
-    }
-
-    onMaxNavbarWidthChanged: {
-        Qt.callLater(function() {
-            if (expandWidth > maxNavbarWidth) {
-                expandRatio = maxNavbarWidth / windowWidth;
-            }
-        });
-    }
-
-    onWindowWidthChanged: {
-        Qt.callLater(requestLayoutUpdate)
-    }
-
-    TextMetrics {
-        id: titleMetrics
-        font.family: "Microsoft YaHei"
-        font.pixelSize: (typeof Theme !== "undefined" && Theme.currentTheme && Theme.currentTheme.typography) ? Theme.currentTheme.typography.bodySize : 14
-    }
-
-    function requestLayoutUpdate() {
-        if (!collapsed) {
-             expandRatio = calculateDynamicWidth();
-        }
-    }
-
-    function calculateDynamicWidth() {
-        var maxWidth = 0;
-
-        // Traverse model items to check expansion state
-        function checkModelItems(model, repeater) {
-            if (!model || !repeater) return;
-            // Iterate over the model (array or ListModel)
-            var count = Array.isArray(model) ? model.length : model.count;
-            
-            for (var i = 0; i < count; i++) {
-                var data = Array.isArray(model) ? model[i] : model.get(i);
-                var item = repeater.itemAt(i);
-                
-                if (data && data.title) {
-                    titleMetrics.text = data.title;
-                    // Base overhead: 50 (icon) + 16 (spacing) + 22 (left) + 20 (right) + ~20 (safe) = 128
-                    var itemWidth = titleMetrics.width + 128;
-                    if (itemWidth > maxWidth) maxWidth = itemWidth;
-
-                    // Check sub-items ONLY if expanded (!collapsed)
-                    // We check the visual item 'collapsed' property to see if sub-menu is open
-                    // Note: 'item' might be null if not loaded yet, though unlikely in this context if visible
-                    if (item && !item.collapsed && data.subItems) {
-                        var subItems = data.subItems;
-                        var subCount = Array.isArray(subItems) ? subItems.length : subItems.count;
-                        for (var j = 0; j < subCount; j++) {
-                             var sub = Array.isArray(subItems) ? subItems[j] : subItems.get(j);
-                             if (sub && sub.title) {
-                                 titleMetrics.text = sub.title;
-                                 // Indentation: 1 level * 16 (assumed)
-                                 var subWidth = titleMetrics.width + 128 + 16;
-                                 if (subWidth > maxWidth) maxWidth = subWidth;
-                             }
-                        }
-                    }
-                }
-            }
-        }
-
-        checkModelItems(navigationBar.topNavigationItems, topRepeater);
-        checkModelItems(navigationBar.navigationItems, mainRepeater);
-        checkModelItems(navigationBar.bottomNavigationItems, bottomRepeater);
-        
-        // Ensure within bounds (in pixels)
-        if (maxWidth < minNavbarWidth) maxWidth = minNavbarWidth;
-        if (maxWidth > maxNavbarWidth) maxWidth = maxNavbarWidth;
-
-        // Convert to ratio
-        var initialRatio = maxWidth / windowWidth;
-        
-        return initialRatio;
-    }
-
-    Component.onCompleted: {
-        if (windowWidth > 0) {
-             expandRatio = calculateDynamicWidth()
-        }
-    }
-
-    MouseArea {
-        id: resizeHandle
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        width: 10
-        cursorShape: Qt.SizeHorCursor
-        enabled: !collapsed
-        visible: !collapsed
-        z: 1000
-
-        property int startX: 0
-        property real startRatio: 0
-
-        onPressed: {
-            startX = mouseX
-            startRatio = navigationBar.expandRatio
-        }
-
-        onPositionChanged: {
-            if (pressed) {
-                var delta = mouseX - startX
-                var newRatio = startRatio + (delta / windowWidth)
-                
-                // Clamp ratio based on min/max width in pixels
-                var minRatio = minNavbarWidth / windowWidth
-                var maxRatio = maxNavbarWidth / windowWidth
-                
-                if (newRatio < minRatio) newRatio = minRatio
-                if (newRatio > maxRatio) newRatio = maxRatio
-                
-                navigationBar.expandRatio = newRatio
-            }
-        }
-    }
+    property int expandWidth: 280
+    property int minimumExpandWidth: 900
 
     property alias windowTitle: titleLabel.text
     property alias windowIcon: iconLabel.source
-    property int windowWidth: 1000
+    property int windowWidth: minimumExpandWidth
     property var stackView: parent.stackView
 
     property string currentPage: ""  // 当前页面的URL
     property bool collapsedByAutoResize: false
 
     function isNotOverMinimumWidth() {  // 判断窗口是否小于最小宽度
-        return windowWidth < minimumWindowWidth;
+        return windowWidth < minimumExpandWidth;
     }
 
     // 展开收缩动画 //
@@ -189,7 +52,7 @@ Item {
         id: background
         anchors.fill: parent
         anchors.margins: -5
-        anchors.topMargin: -title.height
+        anchors.topMargin: 0
         radius: Theme.currentTheme.appearance.windowRadius
         color: Theme.currentTheme.colors.backgroundAcrylicColor
         border.color: Theme.currentTheme.colors.flyoutBorderColor
@@ -262,9 +125,11 @@ Item {
         // icon.name: collapsed ? "ic_fluent_chevron_right_20_regular" : "ic_fluent_chevron_left_20_regular"
         icon.name: "ic_fluent_navigation_20_regular"
         size: 19
+        y: 5
 
         onClicked: {
             collapsed = !collapsed
+            collapsedByAutoResize = false
         }
 
         ToolTip {
@@ -275,31 +140,62 @@ Item {
       }
     }
 
+    // 数据过滤逻辑
+    function getTopItems() {
+        return navigationItems.filter(function(item) {
+            return item.position === "top";
+        });
+    }
+    
+    function getMiddleItems() {
+        return navigationItems.filter(function(item) {
+            return !item.position || item.position === "normal" || item.position === "";
+        });
+    }
+    
+    function getBottomItems() {
+        return navigationItems.filter(function(item) {
+            return item.position === "bottom";
+        });
+    }
+
+
     // 置顶导航项（固定在顶部，支持滚动）
     Flickable {
         id: topFlickable
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.topMargin: title.height + collapseButton.y
+        anchors.topMargin: 40 + collapseButton.y
         // 置顶区域最大高度：导航栏可用高度的 20%
-        height: Math.min(topNavigationColumn.implicitHeight, (parent.height - title.height) * 0.2)
+        height: getTopItems().length > 0 ? Math.min(topNavigationColumn.implicitHeight, (parent.height - 40) * 0.2) : 0
         contentWidth: parent.width
         contentHeight: topNavigationColumn.implicitHeight
         clip: true
+        visible: getTopItems().length > 0
 
         Column {
             id: topNavigationColumn
             width: topFlickable.width
-            spacing: 2
+            spacing: 4
 
             Repeater {
-                id: topRepeater
-                model: navigationBar.topNavigationItems
+                model: navigationBar.getTopItems()
                 delegate: NavigationItem {
                     id: topItem
                     itemData: modelData
                     currentPage: navigationBar.stackView
+
+                    // 子菜单重置
+                    Connections {
+                        target: navigationBar
+                        function onCollapsedChanged() {
+                            if (!navigationBar.collapsed) {
+                                return
+                            }
+                            topItem.collapsed = navigationBar.collapsed
+                        }
+                    }
                 }
             }
         }
@@ -309,22 +205,17 @@ Item {
         }
     }
 
-    // Top Separator Container
-    Item {
-        id: topSeparatorContainer
+    // Top Separator
+    Rectangle {
+        id: topSeparator
         anchors.top: topFlickable.bottom
+        anchors.topMargin: 4
         anchors.left: parent.left
         anchors.right: parent.right
-        height: visible ? 6 : 0
-        visible: navigationBar.topNavigationItems.length > 0
+        height: 1
         z: 10
-
-        Rectangle {
-            anchors.centerIn: parent
-            width: parent.width
-            height: 2
-            color: Theme.currentTheme.colors.dividerBorderColor
-        }
+        color: Theme.currentTheme.colors.dividerBorderColor
+        visible: navigationBar.getTopItems().length > 0
     }
 
     // 中间可滚动导航区域
@@ -332,8 +223,10 @@ Item {
         id: flickable
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.top: topSeparatorContainer.bottom
-        anchors.bottom: bottomSeparatorContainer.top
+        anchors.top: topSeparator.visible ? topSeparator.bottom : topFlickable.bottom
+        anchors.topMargin: topSeparator.visible ? 4 : 0
+        anchors.bottom: bottomSeparator.visible ? bottomSeparator.top : bottomFlickable.top
+        anchors.bottomMargin: bottomSeparator.visible ? 4 : 0
         contentWidth: parent.width
         contentHeight: navigationColumn.implicitHeight
         clip: true
@@ -341,15 +234,25 @@ Item {
         Column {
             id: navigationColumn
             width: flickable.width
-            spacing: 2
+            spacing: 4
 
             Repeater {
-                id: mainRepeater
-                model: navigationBar.navigationItems
+                model: navigationBar.getMiddleItems()
                 delegate: NavigationItem {
                     id: item
                     itemData: modelData
                     currentPage: navigationBar.stackView
+
+                    // 子菜单重置
+                    Connections {
+                        target: navigationBar
+                        function onCollapsedChanged() {
+                            if (!navigationBar.collapsed) {
+                                return
+                            }
+                            item.collapsed = navigationBar.collapsed
+                        }
+                    }
                 }
             }
         }
@@ -359,22 +262,17 @@ Item {
         }
     }
 
-    // Bottom Separator Container
-    Item {
-        id: bottomSeparatorContainer
+    // Bottom Separator
+    Rectangle {
+        id: bottomSeparator
         anchors.bottom: bottomFlickable.top
+        anchors.bottomMargin: 4
         anchors.left: parent.left
         anchors.right: parent.right
-        height: visible ? 6 : 0
-        visible: navigationBar.bottomNavigationItems.length > 0
+        height: 1
         z: 10
-
-        Rectangle {
-            anchors.centerIn: parent
-            width: parent.width
-            height: 2
-            color: Theme.currentTheme.colors.dividerBorderColor
-        }
+        color: Theme.currentTheme.colors.dividerBorderColor
+        visible: navigationBar.getBottomItems().length > 0
     }
 
     // 底部导航项（固定在底部，支持滚动）
@@ -384,10 +282,11 @@ Item {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         // 底部区域最大高度：导航栏可用高度的 20%
-        height: Math.min(bottomNavigationColumn.implicitHeight, (parent.height - title.height) * 0.2)
+        height: getBottomItems().length > 0 ? Math.min(bottomNavigationColumn.implicitHeight, (parent.height - 40) * 0.2) : 0
         contentWidth: parent.width
         contentHeight: bottomNavigationColumn.implicitHeight
         clip: true
+        visible: getBottomItems().length > 0
 
         // 默认滚动到底部
         Component.onCompleted: {
@@ -406,15 +305,25 @@ Item {
         Column {
             id: bottomNavigationColumn
             width: bottomFlickable.width
-            spacing: 2
+            spacing: 4
 
             Repeater {
-                id: bottomRepeater
-                model: navigationBar.bottomNavigationItems
+                model: navigationBar.getBottomItems()
                 delegate: NavigationItem {
                     id: bottomItem
                     itemData: modelData
                     currentPage: navigationBar.stackView
+
+                    // 子菜单重置
+                    Connections {
+                        target: navigationBar
+                        function onCollapsedChanged() {
+                            if (!navigationBar.collapsed) {
+                                return
+                            }
+                            bottomItem.collapsed = navigationBar.collapsed
+                        }
+                    }
                 }
             }
         }
