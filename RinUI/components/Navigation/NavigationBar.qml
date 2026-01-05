@@ -18,6 +18,13 @@ Item {
     property bool titleBarEnabled: true
     property int expandWidth: 280
     property int minimumExpandWidth: 900
+    
+    // 动态宽度系统 (默认禁用以保持向后兼容)
+    property real expandRatio: 0.2  // 占窗口宽度的比例
+    property int minNavbarWidth: 200  // 最小导航栏宽度
+    property int maxNavbarWidth: 400  // 最大导航栏宽度
+    property bool enableDynamicWidth: false  // 是否启用动态宽度（启用后覆盖拖拽调整）
+    property bool enableDragResize: false  // 是否启用拖拽调整
 
     property alias windowTitle: titleLabel.text
     property alias windowIcon: iconLabel.source
@@ -26,14 +33,117 @@ Item {
 
     property string currentPage: ""  // 当前页面的URL
     property bool collapsedByAutoResize: false
+    property int cachedOptimalWidth: 280  // 缓存的最优宽度
 
     function isNotOverMinimumWidth() {  // 判断窗口是否小于最小宽度
         return windowWidth < minimumExpandWidth;
     }
+    
+    // 计算动态宽度
+    function calculateDynamicWidth() {
+        if (!enableDynamicWidth) {
+            return expandWidth  // 使用固定宽度
+        }
+        
+        let dynamicWidth = Math.floor(windowWidth * expandRatio)
+        let clampedWidth = Math.max(minNavbarWidth, Math.min(maxNavbarWidth, dynamicWidth))
+        
+        // 确保是 4px 的倍数（符合 Fluent Design 4px 基准单位）
+        return Math.round(clampedWidth / 4) * 4
+    }
+    
+    // 计算所有导航项的最优宽度
+    function calculateOptimalWidth() {
+        let maxWidth = minNavbarWidth
+        
+        // 遍历顶部导航项
+        for (let i = 0; i < topRepeater.count; i++) {
+            let item = topRepeater.itemAt(i)
+            if (item && item.itemData) {
+                navigationTextMetrics.text = item.itemData.title || ""
+                let requiredWidth = navigationTextMetrics.width + 66  // icon(19) + spacing(16) + leftMargin(11) + padding(20)
+                maxWidth = Math.max(maxWidth, requiredWidth)
+                
+                // 如果有子项且当前项未折叠，计算子项宽度
+                if (item.itemData.subItems && !item.collapsed) {
+                    for (let j = 0; j < item.itemData.subItems.length; j++) {
+                        navigationTextMetrics.text = item.itemData.subItems[j].title || ""
+                        let subWidth = navigationTextMetrics.width + 82  // 66 + 16 (额外缩进)
+                        maxWidth = Math.max(maxWidth, subWidth)
+                    }
+                }
+            }
+        }
+        
+        // 遍历中间导航项
+        for (let i = 0; i < mainRepeater.count; i++) {
+            let item = mainRepeater.itemAt(i)
+            if (item && item.itemData) {
+                navigationTextMetrics.text = item.itemData.title || ""
+                let requiredWidth = navigationTextMetrics.width + 66
+                maxWidth = Math.max(maxWidth, requiredWidth)
+                
+                if (item.itemData.subItems && !item.collapsed) {
+                    for (let j = 0; j < item.itemData.subItems.length; j++) {
+                        navigationTextMetrics.text = item.itemData.subItems[j].title || ""
+                        let subWidth = navigationTextMetrics.width + 82
+                        maxWidth = Math.max(maxWidth, subWidth)
+                    }
+                }
+            }
+        }
+        
+        // 遍历底部导航项
+        for (let i = 0; i < bottomRepeater.count; i++) {
+            let item = bottomRepeater.itemAt(i)
+            if (item && item.itemData) {
+                navigationTextMetrics.text = item.itemData.title || ""
+                let requiredWidth = navigationTextMetrics.width + 66
+                maxWidth = Math.max(maxWidth, requiredWidth)
+                
+                if (item.itemData.subItems && !item.collapsed) {
+                    for (let j = 0; j < item.itemData.subItems.length; j++) {
+                        navigationTextMetrics.text = item.itemData.subItems[j].title || ""
+                        let subWidth = navigationTextMetrics.width + 82
+                        maxWidth = Math.max(maxWidth, subWidth)
+                    }
+                }
+            }
+        }
+        
+        // 限制在最小/最大宽度之间，并对齐到 4px
+        return Math.min(Math.ceil(Math.max(maxWidth, minNavbarWidth) / 4) * 4, maxNavbarWidth)
+    }
+    
+    // 请求重新计算布局
+    function requestLayoutUpdate() {
+        if (enableDynamicWidth && !collapsed) {
+            Qt.callLater(function() {
+                // 异步计算并更新缓存的最优宽度
+                cachedOptimalWidth = calculateOptimalWidth()
+            })
+        }
+    }
+    
+    // 组件完成时初始化缓存宽度
+    Component.onCompleted: {
+        if (enableDynamicWidth) {
+            Qt.callLater(function() {
+                cachedOptimalWidth = calculateOptimalWidth()
+            })
+        }
+    }
+    
+    // TextMetrics 用于计算文本宽度
+    TextMetrics {
+        id: navigationTextMetrics
+        font.pixelSize: 14  // Typography.Body
+        font.family: "Microsoft YaHei"
+    }
 
     // 展开收缩动画 //
-    width: collapsed ? 40 : expandWidth
-    implicitWidth: isNotOverMinimumWidth() ? 40 : collapsed ? 40 : expandWidth
+    width: collapsed ? 40 : (enableDynamicWidth ? cachedOptimalWidth : expandWidth)
+    implicitWidth: isNotOverMinimumWidth() ? 40 : collapsed ? 40 : (enableDynamicWidth ? cachedOptimalWidth : expandWidth)
 
     Behavior on width {
         NumberAnimation {
@@ -180,6 +290,7 @@ Item {
             spacing: 4
 
             Repeater {
+                id: topRepeater
                 model: navigationBar.getTopItems()
                 delegate: NavigationItem {
                     id: topItem
@@ -237,6 +348,7 @@ Item {
             spacing: 4
 
             Repeater {
+                id: mainRepeater
                 model: navigationBar.getMiddleItems()
                 delegate: NavigationItem {
                     id: item
@@ -308,6 +420,7 @@ Item {
             spacing: 4
 
             Repeater {
+                id: bottomRepeater
                 model: navigationBar.getBottomItems()
                 delegate: NavigationItem {
                     id: bottomItem
@@ -330,6 +443,42 @@ Item {
 
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AsNeeded
+        }
+    }
+    
+    // 拖拽调整区域
+    MouseArea {
+        id: resizeHandle
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 4
+        cursorShape: Qt.SizeHorCursor
+        enabled: enableDragResize && !collapsed
+        visible: enabled
+        z: 1000
+        
+        property int startX: 0
+        property int startWidth: 0
+        
+        onPressed: function(mouse) {
+            startX = mouse.x
+            startWidth = navigationBar.expandWidth
+        }
+        
+        onPositionChanged: function(mouse) {
+            if (pressed) {
+                let delta = mouse.x - startX
+                let newWidth = startWidth + delta
+                
+                // 限制在最小/最大宽度之间
+                newWidth = Math.max(minNavbarWidth, Math.min(maxNavbarWidth, newWidth))
+                
+                // 确保是 4 的倍数
+                newWidth = Math.round(newWidth / 4) * 4
+                
+                navigationBar.expandWidth = newWidth
+            }
         }
     }
 }

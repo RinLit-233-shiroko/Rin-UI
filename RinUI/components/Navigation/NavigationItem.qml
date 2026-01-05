@@ -193,7 +193,7 @@ Item {
     Column {
         id: subItemsColumn
         opacity: !collapsed && subItem
-        spacing: 2
+        spacing: 4
         anchors.top: itemBtn.bottom
         width: parent.width
         anchors.topMargin: 1
