@@ -93,9 +93,22 @@ Button {
                 icon: root.icon.name
                 source: root.icon.source
                 y: 0.25
-                color: icon.color ? icon.color : highlighted ? flat ?
-                    enabled ? Theme.currentTheme.colors.textAccentColor : Theme.currentTheme.colors.textColor :
-                    Theme.currentTheme.colors.textOnAccentColor : Theme.currentTheme.colors.textColor
+                color: {
+                    if (icon.color) return icon.color
+                    if (!enabled) {
+                        return flat 
+                            ? Theme.currentTheme.colors.disabledColor 
+                            : (highlighted 
+                                ? Theme.currentTheme.colors.textOnAccentColor 
+                                : Theme.currentTheme.colors.textColor)
+                    }
+                    if (highlighted) {
+                        return flat 
+                            ? Theme.currentTheme.colors.textAccentColor 
+                            : Theme.currentTheme.colors.textOnAccentColor
+                    }
+                    return Theme.currentTheme.colors.textColor
+                }
             }
             Text {
                 id: text
@@ -126,11 +139,17 @@ Button {
             PropertyChanges {
                 target: root
                 opacity: 0.65
-                backgroundColor: highlighted ? Theme.currentTheme.colors.disabledColor : Theme.currentTheme.colors.controlColor
+                backgroundColor: highlighted 
+                    ? Theme.currentTheme.colors.disabledColor 
+                    : Theme.currentTheme.colors.controlColor
             }
             PropertyChanges {
                 target: text
-                color: flat ? Theme.currentTheme.colors.disabledColor : text.color
+                color: flat 
+                    ? Theme.currentTheme.colors.disabledColor 
+                    : (highlighted 
+                        ? Theme.currentTheme.colors.textOnAccentColor
+                        : Theme.currentTheme.colors.textColor)
             }
         },
         State {
