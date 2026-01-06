@@ -144,10 +144,6 @@ ControlPage {
                     spacing: 4
 
                     Frame {
-                        id: demoFrame
-                        property string title: qsTr("NavigationView Demo")
-                        property string icon: ""
-                        property bool appLayerEnabled: true
                         width: parent.width
                         height: parent.height
                         topPadding: 50
@@ -155,7 +151,7 @@ ControlPage {
 
                         NavigationView {
                             id: navView
-                            window: demoFrame
+                            window: parent
 
                             property var baseItems: [
                                 {
@@ -182,32 +178,37 @@ ControlPage {
 
                             property var topItem: ({
                                 icon: "ic_fluent_star_20_regular",
-                                title: qsTr("Pinned Top"),
-                                page: page5,
-                                position: Position.Top
+                                title: qsTr("Star Item"),
+                                page: page5
                             })
 
                             property var bottomItem: ({
                                 icon: "ic_fluent_settings_20_regular",
-                                title: qsTr("Pinned Bottom"),
-                                page: page6,
-                                position: Position.Bottom
+                                title: qsTr("Settings"),
+                                page: page6
                             })
 
                             function updateNavigationItems() {
                                 var items = []
                                 
-                                if (showTopCheckbox.checked) {
-                                    items.push(topItem)
+                                // Add top item with or without position
+                                var top = Object.assign({}, topItem)
+                                if (pinTopCheckbox.checked) {
+                                    top.position = Position.Top
                                 }
+                                items.push(top)
                                 
+                                // Add base items
                                 for (var i = 0; i < baseItems.length; i++) {
                                     items.push(baseItems[i])
                                 }
                                 
-                                if (showBottomCheckbox.checked) {
-                                    items.push(bottomItem)
+                                // Add bottom item with or without position
+                                var bottom = Object.assign({}, bottomItem)
+                                if (pinBottomCheckbox.checked) {
+                                    bottom.position = Position.Bottom
                                 }
+                                items.push(bottom)
                                 
                                 navigationItems = items
                             }
@@ -234,15 +235,15 @@ ControlPage {
                         spacing: 8
 
                         CheckBox {
-                            id: showTopCheckbox
-                            text: qsTr("Show Pinned Top Item")
+                            id: pinTopCheckbox
+                            text: qsTr("Pin to Top")
                             checked: true
                             onCheckedChanged: navView.updateNavigationItems()
                         }
                         
                         CheckBox {
-                            id: showBottomCheckbox
-                            text: qsTr("Show Pinned Bottom Item")
+                            id: pinBottomCheckbox
+                            text: qsTr("Pin to Bottom")
                             checked: true
                             onCheckedChanged: navView.updateNavigationItems()
                         }
