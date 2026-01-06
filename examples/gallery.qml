@@ -75,6 +75,7 @@ FluentWindow {
             title: qsTr("Home"),
             page: Qt.resolvedUrl("pages/Home.qml"),
             icon: "ic_fluent_home_20_regular",
+            position: "top"  // 置顶导航项
         },
         {
             title: qsTr("Design guidance"),
@@ -163,7 +164,8 @@ FluentWindow {
         {
             title: qsTr("Settings"),
             page: Qt.resolvedUrl("pages/Settings.qml"),
-            icon: "ic_fluent_settings_20_regular"
+            icon: "ic_fluent_settings_20_regular",
+            position: "bottom"  // 置底导航项
         }
     ]
 
