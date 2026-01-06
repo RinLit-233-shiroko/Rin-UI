@@ -47,179 +47,250 @@ ControlPage {
         Layout.fillWidth: true
         spacing: 8
 
-        Text {
-            typography: Typography.BodyStrong
-            text: qsTr("Fluent Icon Library")
-        }
-
-        TextField {
-            width: 300
-            id: searchField
-            placeholderText: qsTr("Search")
-            onTextChanged: searchText = text
-        }
-
-        // 图标 / Icon //
-        Frame {
+        Segmented {
+            id: viewSegmented
             width: parent.width
-            color: Theme.currentTheme.colors.backgroundColor
-            hoverable: false
-            height: 600
-            padding: 0
+            SegmentedItem {
+                text: qsTr("Fluent Icon")
+            }
+            SegmentedItem {
+                text: qsTr("SVG Icon")
+            }
+        }
 
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: 8
+        // Iconography View
+        Column {
+            width: parent.width
+            visible: viewSegmented.currentIndex === 0
+            spacing: 8
+
+            Text {
+                typography: Typography.BodyStrong
+                text: qsTr("Fluent Icon Library")
+            }
+
+            TextField {
+                width: 300
+                id: searchField
+                placeholderText: qsTr("Search")
+                onTextChanged: searchText = text
+            }
+
+            // 图标 / Icon //
+            Frame {
+                width: parent.width
+                color: Theme.currentTheme.colors.backgroundColor
+                hoverable: false
+                height: 600
+                padding: 0
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 8
 
 
-                // 图标列表  / Icon Grid //
-                GridView {
-                    id: iconGrid
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    // 图标列表  / Icon Grid //
+                    GridView {
+                        id: iconGrid
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
 
-                    model: filteredIcons  // 过滤后的图标
-                    cellWidth: iconFrame.width + 8
-                    cellHeight: iconFrame.height + 8
+                        model: filteredIcons  // 过滤后的图标
+                        cellWidth: 100
+                        cellHeight: 100
 
-                    ScrollBar.vertical: ScrollBar {  // 滚动条
-                        policy: ScrollBar.AsNeeded
+                        ScrollBar.vertical: ScrollBar {  // 滚动条
+                            policy: ScrollBar.AsNeeded
+                        }
+
+                        currentIndex: 0
+
+                        delegate: Clip {
+                            id: iconFrame
+                            property bool isSelected: index === iconGrid.currentIndex
+
+                            radius: Theme.currentTheme.appearance.windowRadius
+                            borderColor: isSelected ? Theme.currentTheme.colors.primaryColor : "transparent"
+                            borderWidth: isSelected ? 3 : 0
+                            width: 92
+                            height: 92
+
+                            onClicked: iconGrid.currentIndex = index
+
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: 8
+                                spacing: 8
+
+                                IconWidget {
+                                    Layout.fillHeight: true
+                                    Layout.alignment: Text.AlignHCenter
+                                    size: 36
+                                    opacity: 0.9
+                                    icon: modelData
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    typography: Typography.Caption
+                                    horizontalAlignment: Text.AlignHCenter
+                                    color: Theme.currentTheme.colors.textSecondaryColor
+                                    text: modelData.replace("ic_fluent_", "");
+                                    elide: Text.ElideRight
+                                }
+                            }
+                        }
                     }
 
-                    currentIndex: 0
-
-                    delegate: Clip {
-                        id: iconFrame
-                        property bool isSelected: index === iconGrid.currentIndex
-
-                        radius: Theme.currentTheme.appearance.windowRadius
-                        borderColor: isSelected ? Theme.currentTheme.colors.primaryColor : "transparent"
-                        borderWidth: isSelected ? 3 : 0
-                        width: 92
-                        height: 92
-
-                        onClicked: iconGrid.currentIndex = index
+                    // icon信息
+                    Rectangle {
+                        width: 300
+                        Layout.fillHeight: true
+                        radius: Theme.currentTheme.appearance.smallRadius
+                        color: Theme.currentTheme.colors.systemAttentionBackgroundColor
+                        border.width: Theme.currentTheme.appearance.borderWidth
+                        border.color: Theme.currentTheme.colors.cardBorderColor
 
                         ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: 8
-                            spacing: 8
+                            anchors.top: parent.top
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.margins: 16
+                            spacing: 16
 
-                            IconWidget {
-                                Layout.fillHeight: true
-                                Layout.alignment: Text.AlignHCenter
-                                size: 36
-                                opacity: 0.9
-                                icon: modelData
-                            }
-
-                            Text {
+                            Column {
                                 Layout.fillWidth: true
-                                typography: Typography.Caption
-                                horizontalAlignment: Text.AlignHCenter
-                                color: Theme.currentTheme.colors.textSecondaryColor
-                                text: modelData.replace("ic_fluent_", "");
-                                elide: Text.ElideRight
-                            }
-                        }
-                    }
-                }
-
-                // icon信息
-                Rectangle {
-                    width: 300
-                    Layout.fillHeight: true
-                    radius: Theme.currentTheme.appearance.smallRadius
-                    color: Theme.currentTheme.colors.systemAttentionBackgroundColor
-                    border.width: Theme.currentTheme.appearance.borderWidth
-                    border.color: Theme.currentTheme.colors.cardBorderColor
-
-                    ColumnLayout {
-                        anchors.top: parent.top
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.margins: 16
-                        spacing: 16
-
-                        Column {
-                            Layout.fillWidth: true
-                            Text {
-                                id: iconTitle
-                                width: parent.width
-                                text: filteredIcons.length > 0 ?
-                                    filteredIcons[iconGrid.currentIndex].replace("ic_fluent_", "")
-                                    : qsTr("No icon selected")
-                                typography: Typography.BodyLarge
-                            }
-                            IconWidget {
-                                icon: filteredIcons.length > 0 ? filteredIcons[iconGrid.currentIndex] : ""
-                                size: 64
-                            }
-                        }
-
-                        Item {
-                            height: 16
-                        }
-
-                        Column {
-                            Layout.fillWidth: true
-                            spacing: 8
-                            Text {
-                                text: qsTr("Icon name")
-                            }
-                            RowLayout {
-                                width: parent.width
-
                                 Text {
-                                    id: iconName
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    color: Theme.currentTheme.colors.textSecondaryColor
-                                    font.family: "Cascadia Mono"
+                                    id: iconTitle
+                                    width: parent.width
                                     text: filteredIcons.length > 0 ?
-                                        filteredIcons[iconGrid.currentIndex]
+                                        filteredIcons[iconGrid.currentIndex].replace("ic_fluent_", "")
                                         : qsTr("No icon selected")
+                                    typography: Typography.BodyLarge
                                 }
-
-                                // 复制按钮
-                                ToolButton {
-                                    icon.name: "ic_fluent_copy_20_regular"
-                                    onClicked: copyToClipboard(iconName.text)
+                                IconWidget {
+                                    icon: filteredIcons.length > 0 ? filteredIcons[iconGrid.currentIndex] : ""
+                                    size: 64
                                 }
                             }
-                        }
 
-                        // qml
-                        Column {
-                            Layout.fillWidth: true
-                            spacing: 8
-                            Text {
-                                text: qsTr("QML code")
+                            Item {
+                                height: 16
                             }
-                            RowLayout {
-                                width: parent.width
 
+                            Column {
+                                Layout.fillWidth: true
+                                spacing: 8
                                 Text {
-                                    id: qmlCode
-                                    Layout.fillWidth: true
-                                    wrapMode: Text.Wrap
-                                    color: Theme.currentTheme.colors.textSecondaryColor
-                                    font.family: "Cascadia Mono"
-
-                                    text: filteredIcons.length > 0 ?
-                                        "icon.name: \""+filteredIcons[iconGrid.currentIndex]+"\""
-                                        : qsTr("No icon selected")
+                                    text: qsTr("Icon name")
                                 }
+                                RowLayout {
+                                    width: parent.width
 
-                                // 复制按钮
-                                ToolButton {
-                                    icon.name: "ic_fluent_copy_20_regular"
-                                    onClicked: copyToClipboard(qmlCode.text)
+                                    Text {
+                                        id: iconName
+                                        Layout.fillWidth: true
+                                        elide: Text.ElideRight
+                                        color: Theme.currentTheme.colors.textSecondaryColor
+                                        font.family: "Cascadia Mono"
+                                        text: filteredIcons.length > 0 ?
+                                            filteredIcons[iconGrid.currentIndex]
+                                            : qsTr("No icon selected")
+                                    }
+
+                                    // 复制按钮
+                                    ToolButton {
+                                        icon.name: "ic_fluent_copy_20_regular"
+                                        onClicked: copyToClipboard(iconName.text)
+                                    }
+                                }
+                            }
+
+                            // qml
+                            Column {
+                                Layout.fillWidth: true
+                                spacing: 8
+                                Text {
+                                    text: qsTr("QML code")
+                                }
+                                RowLayout {
+                                    width: parent.width
+
+                                    Text {
+                                        id: qmlCode
+                                        Layout.fillWidth: true
+                                        wrapMode: Text.Wrap
+                                        color: Theme.currentTheme.colors.textSecondaryColor
+                                        font.family: "Cascadia Mono"
+
+                                        text: filteredIcons.length > 0 ?
+                                            "icon.name: \""+filteredIcons[iconGrid.currentIndex]+"\""
+                                            : qsTr("No icon selected")
+                                    }
+
+                                    // 复制按钮
+                                    ToolButton {
+                                        icon.name: "ic_fluent_copy_20_regular"
+                                        onClicked: copyToClipboard(qmlCode.text)
+                                    }
                                 }
                             }
                         }
                     }
                 }
+            }
+        }
+
+        // SVG Icon View
+        Column {
+            width: parent.width
+            visible: viewSegmented.currentIndex === 1
+            spacing: 8
+
+            Text {
+                width: parent.width
+                text: qsTr("Toggle the checkbox and switch the theme to see how the SVG icons adapt to the text color.")
+                wrapMode: Text.Wrap
+                color: Theme.currentTheme.colors.textSecondaryColor
+            }
+
+            ControlShowcase {
+                width: parent.width
+
+                RowLayout {
+                    width: parent.width
+                    spacing: 30
+
+                    Icon {
+                        Layout.fillWidth: true
+                        source: Qt.resolvedUrl("../assets/山海经 B.svg")
+                        size: width
+                        navigation: svgNavSwitch.checked
+                        color: Theme.currentTheme.colors.textColor
+                    }
+                    Icon {
+                        source: Qt.resolvedUrl("../assets/SCHALELogo_B.svg")
+                        Layout.fillWidth: true
+                        size: width
+                        navigation: svgNavSwitch.checked
+                        color: Theme.currentTheme.colors.textColor
+                    }
+                    Icon {
+                        source: Qt.resolvedUrl("../assets/SRT B.svg")
+                        Layout.fillWidth: true
+                        size: width
+                        navigation: svgNavSwitch.checked
+                        color: Theme.currentTheme.colors.textColor
+                    }
+                }
+
+                showcase: [
+                    CheckBox {
+                        id: svgNavSwitch
+                        text: qsTr("Navigation Mode")
+                        checked: true
+                    }
+                ]
             }
         }
     }
