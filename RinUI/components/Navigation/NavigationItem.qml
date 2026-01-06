@@ -66,10 +66,10 @@ Item {
             IconWidget {
                 id: icon
                 anchors.verticalCenter: parent.verticalCenter
-                size: itemData.icon || itemData.source ? 19 : 0
+                size: itemData.size !== undefined ? itemData.size : (itemData.icon || itemData.source ? 19 : 0)
                 icon: itemData.icon || ""
                 source: itemData.source || ""
-                navigation: itemData.navigation || false
+                enableColorOverlay: itemData.enableColorOverlay || false
             }
 
             Text {
