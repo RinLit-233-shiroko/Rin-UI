@@ -51,6 +51,7 @@ ItemDelegate {
                 size: itemData.icon || itemData.source ? 19 : 0
                 icon: itemData.icon || ""
                 source: itemData.source || ""
+                navigation: itemData.navigation || false
             }
 
             Text {
@@ -62,6 +63,8 @@ ItemDelegate {
                 opacity: navigationBar.collapsed ? 0 : 1
                 wrapMode: Text.NoWrap
                 horizontalAlignment: Text.AlignLeft
+                elide: Text.ElideRight
+                width: itemBg.width - parent.anchors.leftMargin - x - 10
 
                 Behavior on x {
                     NumberAnimation {
