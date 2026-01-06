@@ -265,21 +265,21 @@ ControlPage {
                         Layout.fillWidth: true
                         source: Qt.resolvedUrl("../assets/山海经 B.svg")
                         size: width
-                        navigation: svgNavSwitch.checked
+                        enableColorOverlay: svgNavSwitch.checked
                         color: Theme.currentTheme.colors.textColor
                     }
                     Icon {
                         source: Qt.resolvedUrl("../assets/SCHALELogo_B.svg")
                         Layout.fillWidth: true
                         size: width
-                        navigation: svgNavSwitch.checked
+                        enableColorOverlay: svgNavSwitch.checked
                         color: Theme.currentTheme.colors.textColor
                     }
                     Icon {
                         source: Qt.resolvedUrl("../assets/SRT B.svg")
                         Layout.fillWidth: true
                         size: width
-                        navigation: svgNavSwitch.checked
+                        enableColorOverlay: svgNavSwitch.checked
                         color: Theme.currentTheme.colors.textColor
                     }
                 }
@@ -287,7 +287,7 @@ ControlPage {
                 showcase: [
                     CheckBox {
                         id: svgNavSwitch
-                        text: qsTr("Navigation Mode")
+                        text: qsTr("Color Overlay")
                         checked: true
                     }
                 ]
