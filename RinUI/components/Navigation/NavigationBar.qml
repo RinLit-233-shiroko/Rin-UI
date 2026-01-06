@@ -16,15 +16,15 @@ Item {
 
     // property int currentSubIndex: -1
     property bool titleBarEnabled: true
-    property int expandWidth: 280
+    property int expandWidth: 0  // 0 或负值=动态宽度，正值=固定宽度
     property int minimumExpandWidth: 900
     
-    // 动态宽度系统 (默认禁用以保持向后兼容)
-    property real expandRatio: 0.2  // 占窗口宽度的比例
+    // 动态宽度系统配置
     property int minNavbarWidth: 200  // 最小导航栏宽度
     property int maxNavbarWidth: 400  // 最大导航栏宽度
-    property bool enableDynamicWidth: true  // 是否启用动态宽度（启用后覆盖拖拽调整）
-    property bool enableDragResize: false  // 是否启用拖拽调整
+    property bool enableDragResize: false  // 是否启用拖拽调整(可与动态/固定模式共存)
+    
+    property int userResizedWidth: 0  // 用户拖拽后的宽度(内部使用，拖拽后自动设置)
 
     property alias windowTitle: titleLabel.text
     property alias windowIcon: iconLabel.source
@@ -39,17 +39,20 @@ Item {
         return windowWidth < minimumExpandWidth;
     }
     
-    // 计算动态宽度
-    function calculateDynamicWidth() {
-        if (!enableDynamicWidth) {
-            return expandWidth  // 使用固定宽度
+    // 获取有效宽度(综合考虑拖拽、固定、动态三种模式)
+    function getEffectiveWidth() {
+        // 优先级 1: 用户拖拽的宽度(如果启用拖拽调整且用户已拖拽)
+        if (enableDragResize && userResizedWidth > 0) {
+            return userResizedWidth
         }
         
-        let dynamicWidth = Math.floor(windowWidth * expandRatio)
-        let clampedWidth = Math.max(minNavbarWidth, Math.min(maxNavbarWidth, dynamicWidth))
+        // 优先级 2: 固定宽度(如果 expandWidth > 0)
+        if (expandWidth > 0) {
+            return expandWidth
+        }
         
-        // 确保是 4px 的倍数（符合 Fluent Design 4px 基准单位）
-        return Math.round(clampedWidth / 4) * 4
+        // 优先级 3: 动态宽度(基于内容智能计算)
+        return cachedOptimalWidth
     }
     
     // 计算所有导航项的最优宽度
@@ -61,7 +64,10 @@ Item {
             let item = topRepeater.itemAt(i)
             if (item && item.itemData) {
                 navigationTextMetrics.text = item.itemData.title || ""
-                let requiredWidth = navigationTextMetrics.width + 66  // icon(19) + spacing(16) + leftMargin(11) + padding(20)
+                // icon(19) + spacing(16) + leftMargin(11) + padding(20) = 66
+                // 如果有子项，额外加上展开按钮宽度
+                let expandBtnWidth = (item.itemData.subItems && item.itemData.subItems.length > 0) ? 28 : 0
+                let requiredWidth = navigationTextMetrics.width + 66 + expandBtnWidth
                 maxWidth = Math.max(maxWidth, requiredWidth)
                 
                 // 如果有子项且当前项未折叠，计算子项宽度
@@ -80,7 +86,8 @@ Item {
             let item = mainRepeater.itemAt(i)
             if (item && item.itemData) {
                 navigationTextMetrics.text = item.itemData.title || ""
-                let requiredWidth = navigationTextMetrics.width + 66
+                let expandBtnWidth = (item.itemData.subItems && item.itemData.subItems.length > 0) ? 28 : 0
+                let requiredWidth = navigationTextMetrics.width + 66 + expandBtnWidth
                 maxWidth = Math.max(maxWidth, requiredWidth)
                 
                 if (item.itemData.subItems && !item.collapsed) {
@@ -98,7 +105,8 @@ Item {
             let item = bottomRepeater.itemAt(i)
             if (item && item.itemData) {
                 navigationTextMetrics.text = item.itemData.title || ""
-                let requiredWidth = navigationTextMetrics.width + 66
+                let expandBtnWidth = (item.itemData.subItems && item.itemData.subItems.length > 0) ? 28 : 0
+                let requiredWidth = navigationTextMetrics.width + 66 + expandBtnWidth
                 maxWidth = Math.max(maxWidth, requiredWidth)
                 
                 if (item.itemData.subItems && !item.collapsed) {
@@ -117,7 +125,7 @@ Item {
     
     // 请求重新计算布局
     function requestLayoutUpdate() {
-        if (enableDynamicWidth && !collapsed) {
+        if (expandWidth <= 0 && !collapsed) {  // 仅在动态宽度模式下计算
             Qt.callLater(function() {
                 // 异步计算并更新缓存的最优宽度
                 cachedOptimalWidth = calculateOptimalWidth()
@@ -127,7 +135,7 @@ Item {
     
     // 组件完成时初始化缓存宽度
     Component.onCompleted: {
-        if (enableDynamicWidth) {
+        if (expandWidth <= 0) {  // 仅在动态宽度模式下初始化
             Qt.callLater(function() {
                 cachedOptimalWidth = calculateOptimalWidth()
             })
@@ -142,8 +150,8 @@ Item {
     }
 
     // 展开收缩动画 //
-    width: collapsed ? 40 : (enableDynamicWidth ? cachedOptimalWidth : expandWidth)
-    implicitWidth: isNotOverMinimumWidth() ? 40 : collapsed ? 40 : (enableDynamicWidth ? cachedOptimalWidth : expandWidth)
+    width: collapsed ? 40 : getEffectiveWidth()
+    implicitWidth: isNotOverMinimumWidth() ? 40 : collapsed ? 40 : getEffectiveWidth()
 
     Behavior on width {
         NumberAnimation {
@@ -463,7 +471,7 @@ Item {
         
         onPressed: function(mouse) {
             startX = mouse.x
-            startWidth = navigationBar.expandWidth
+            startWidth = getEffectiveWidth()  // 从当前有效宽度开始拖拽
         }
         
         onPositionChanged: function(mouse) {
@@ -477,7 +485,7 @@ Item {
                 // 确保是 4 的倍数
                 newWidth = Math.round(newWidth / 4) * 4
                 
-                navigationBar.expandWidth = newWidth
+                navigationBar.userResizedWidth = newWidth  // 存储到拖拽宽度
             }
         }
     }
