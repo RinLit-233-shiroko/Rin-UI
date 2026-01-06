@@ -261,19 +261,19 @@ Item {
     // 数据过滤逻辑
     function getTopItems() {
         return navigationItems.filter(function(item) {
-            return item.position === "top";
+            return item.position === Position.Top;
         });
     }
     
     function getMiddleItems() {
         return navigationItems.filter(function(item) {
-            return !item.position || item.position === "normal" || item.position === "";
+            return item.position === undefined || item.position === null || item.position === Position.None || item.position === Position.Center;
         });
     }
     
     function getBottomItems() {
         return navigationItems.filter(function(item) {
-            return item.position === "bottom";
+            return item.position === Position.Bottom;
         });
     }
 

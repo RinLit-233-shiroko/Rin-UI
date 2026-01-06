@@ -184,14 +184,14 @@ ControlPage {
                                 icon: "ic_fluent_star_20_regular",
                                 title: qsTr("Pinned Top"),
                                 page: page5,
-                                position: "top"
+                                position: Position.Top
                             })
 
                             property var bottomItem: ({
                                 icon: "ic_fluent_settings_20_regular",
                                 title: qsTr("Pinned Bottom"),
                                 page: page6,
-                                position: "bottom"
+                                position: Position.Bottom
                             })
 
                             function updateNavigationItems() {
