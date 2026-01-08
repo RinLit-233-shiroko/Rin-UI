@@ -295,7 +295,7 @@ Item {
         Column {
             id: topNavigationColumn
             width: topFlickable.width
-            spacing: 4
+            spacing: 2
 
             Repeater {
                 id: topRepeater
@@ -353,7 +353,7 @@ Item {
         Column {
             id: navigationColumn
             width: flickable.width
-            spacing: 4
+            spacing: 2
 
             Repeater {
                 id: mainRepeater
@@ -425,7 +425,7 @@ Item {
         Column {
             id: bottomNavigationColumn
             width: bottomFlickable.width
-            spacing: 4
+            spacing: 2
 
             Repeater {
                 id: bottomRepeater
