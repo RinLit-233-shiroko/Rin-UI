@@ -13,6 +13,8 @@ FluentWindow {
     minimumWidth: 550
     minimumHeight: 400
 
+    navigationView.navExpandWidth: 280
+
     // 从 ItemData 获取控件数据
     // navigationView.navigationBar.collapsed: true
     function generateSubItems(type) {

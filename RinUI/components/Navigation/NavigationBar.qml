@@ -243,7 +243,7 @@ Item {
         // icon.name: collapsed ? "ic_fluent_chevron_right_20_regular" : "ic_fluent_chevron_left_20_regular"
         icon.name: "ic_fluent_navigation_20_regular"
         size: 19
-        y: 5
+        y: -2
 
         onClicked: {
             collapsed = !collapsed
@@ -284,7 +284,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.topMargin: 40 + collapseButton.y
+        anchors.topMargin: 38
         // 置顶区域最大高度：导航栏可用高度的 20%
         height: getTopItems().length > 0 ? Math.min(topNavigationColumn.implicitHeight, (parent.height - 40) * 0.2) : 0
         contentWidth: parent.width
@@ -295,6 +295,7 @@ Item {
         Column {
             id: topNavigationColumn
             width: topFlickable.width
+            topPadding: 2
             spacing: 2
 
             Repeater {
@@ -328,7 +329,7 @@ Item {
     Rectangle {
         id: topSeparator
         anchors.top: topFlickable.bottom
-        anchors.topMargin: 4
+        anchors.topMargin: 2
         anchors.left: parent.left
         anchors.right: parent.right
         height: 1
@@ -401,6 +402,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+        anchors.bottomMargin: -2
         // 底部区域最大高度：导航栏可用高度的 20%
         height: getBottomItems().length > 0 ? Math.min(bottomNavigationColumn.implicitHeight, (parent.height - 40) * 0.2) : 0
         contentWidth: parent.width

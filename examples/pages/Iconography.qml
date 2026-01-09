@@ -47,13 +47,14 @@ ControlPage {
         Layout.fillWidth: true
         spacing: 8
 
-        Segmented {
+        SelectorBar {
             id: viewSegmented
-            width: parent.width
-            SegmentedItem {
+            SelectorBarItem {
+                icon.name: "ic_fluent_symbols_20_regular"
                 text: qsTr("Fluent Icon")
             }
-            SegmentedItem {
+            SelectorBarItem {
+                icon.name: "ic_fluent_image_20_regular"
                 text: qsTr("SVG Icon")
             }
         }
