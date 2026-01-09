@@ -21,6 +21,18 @@ Item {
     }
     property bool collapsed: true  // 是否折叠
 
+    // 子菜单重置
+    Connections {
+        target: navigationBar
+        function onCollapsedChanged() {
+            if (!navigationBar.collapsed) {
+                return
+            }
+            // 当导航栏折叠时，子菜单也应折叠
+            collapsed = true
+        }
+    }
+
     height: 40 + (!collapsed && subItem ? subItemsColumn.height : 0)
     width: parent ? parent.width : 200
 
@@ -54,9 +66,10 @@ Item {
             IconWidget {
                 id: icon
                 anchors.verticalCenter: parent.verticalCenter
-                size: itemData.icon || itemData.source ? 19 : 0
+                size: itemData.size !== undefined ? itemData.size : (itemData.icon || itemData.source ? 19 : 0)
                 icon: itemData.icon || ""
                 source: itemData.source || ""
+                enableColorOverlay: itemData.enableColorOverlay || false
             }
 
             Text {
@@ -68,6 +81,8 @@ Item {
                 opacity: navigationBar.collapsed ? 0 : 1
                 wrapMode: Text.NoWrap
                 horizontalAlignment: Text.AlignLeft
+                elide: Text.ElideRight
+                width: itemBtn.width - parent.anchors.leftMargin - x - (expandBtn.visible ? expandBtn.width : 0) - 10
 
                 Behavior on x {
                     NumberAnimation {
@@ -126,13 +141,22 @@ Item {
             visible: subItem && !navigationBar.collapsed
             opacity: 0.7
 
-            onClicked: { collapsed = !collapsed }
+            onClicked: { 
+                collapsed = !collapsed
+                // Notify NavigationBar to recalculate width
+                if (navigationBar && typeof navigationBar.requestLayoutUpdate === "function") {
+                    Qt.callLater(navigationBar.requestLayoutUpdate)
+                }
+            }
         }
 
         onClicked: {
             if (subItem) {
                 if (!navigationBar.collapsed) {
                     collapsed = !collapsed
+                    if (navigationBar && typeof navigationBar.requestLayoutUpdate === "function") {
+                        Qt.callLater(navigationBar.requestLayoutUpdate)
+                    }
                 } else {
                     subMenu.open()
                 }

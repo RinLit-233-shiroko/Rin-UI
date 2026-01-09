@@ -10,27 +10,14 @@ ControlPage {
     badgeText: qsTr("Extra")
     badgeSeverity: Severity.Success
 
-    // intro
-    Text {
-        Layout.fillWidth: true
-        text: qsTr(
-            "The navigation view control provides a common vertical layout for top-level areas of your app "+
-            "via a collapsible navigation menu."
-        )
-    }
-
-    // 展示页面
+    // Page components
     Component {
         id: page1
-
-        SamplePage {
-            title: qsTr("Sample Page 1")
-        }
+        SamplePage { title: qsTr("Sample Page 1") }
     }
 
     Component {
         id: page2
-
         FluentPage {
             title: qsTr("Sample Page 2")
             GridLayout {
@@ -50,13 +37,13 @@ ControlPage {
                 Text {
                     typography: Typography.Title
                     Layout.fillWidth: true
-                    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+                    text: "Lorem ipsum dolor sit amet"
                 }
                 Text {
                     typography: Typography.Body
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    text: "Abydos High School, the longest running school in Kivotos, formerly thriving and boasting incredible financial and military power, before the unnatural and unfortunate desertification struck. Nowadays, most of its buildings have been covered in sand and ruins, leaving behind only an annex which seems to be the very last remains of the school."
+                    text: "Abydos High School, the longest running school in Kivotos."
                 }
             }
         }
@@ -64,7 +51,6 @@ ControlPage {
 
     Component {
         id: page3
-
         SamplePage {
             title: qsTr("Sample Page 3")
             primaryColor: "#e9967a"
@@ -75,52 +61,315 @@ ControlPage {
 
     Component {
         id: page4
-
         FluentPage {
             title: qsTr("Settings")
+            Text {
+                Layout.fillWidth: true
+                typography: Typography.Body
+                text: qsTr("Settings page")
+            }
         }
     }
 
+    Component {
+        id: page5
+        FluentPage {
+            title: qsTr("Pinned Top")
+            Text {
+                Layout.fillWidth: true
+                typography: Typography.Body
+                text: qsTr("This page is pinned to the top of the navigation bar")
+            }
+        }
+    }
+
+    Component {
+        id: page6
+        FluentPage {
+            title: qsTr("Pinned Bottom")
+            Text {
+                Layout.fillWidth: true
+                typography: Typography.Body
+                text: qsTr("This page is pinned to the bottom of the navigation bar")
+            }
+        }
+    }
+
+    // Intro
+    Text {
+        Layout.fillWidth: true
+        text: qsTr(
+            "The NavigationView control provides a collapsible navigation menu for top-level navigation. " +
+            "It implements the navigation pane pattern and automatically adapts to different window sizes."
+        )
+    }
+
+    // Main Example
     Column {
         Layout.fillWidth: true
         spacing: 4
 
         Text {
             typography: Typography.BodyStrong
-            text: qsTr("NavigationView with default PaneDisplayMode")
+            text: qsTr("NavigationView with configurable width")
         }
+
+        Text {
+            typography: Typography.Caption
+            opacity: 0.7
+            wrapMode: Text.WordWrap
+            text: qsTr(
+                "Configure navigation bar width using expandWidth (0 = dynamic, >0 = fixed). " +
+                "Enable drag resize to manually adjust width by dragging the right edge."
+            )
+        }
+
         Frame {
             width: parent.width
-            topPadding: 50
-            padding: 12
             height: 500
+            leftPadding: 0
+            rightPadding: 0
+            topPadding: 0
+            bottomPadding: 0
 
-            NavigationView {
-                id: navView
-                window: parent
+            RowLayout {
+                anchors.fill: parent
+                spacing: 0
 
-                navigationItems: [
-                    {
-                        icon: "ic_fluent_play_20_regular",
-                        title: qsTr("Menu Item 1"),
-                        page: page1
-                    },
-                    {
-                        icon: "ic_fluent_save_20_regular",
-                        title: qsTr("Menu Item 2"),
-                        page: page2
-                    },
-                    {
-                        icon: "ic_fluent_arrow_sync_20_regular",
-                        title: qsTr("Menu Item 3"),
-                        page: page3
-                    },
-                    {
-                        icon: "ic_fluent_settings_20_regular",
-                        title: qsTr("Settings"),
-                        page: page4
-                    },
-                ]
+                // Left: Demo content
+                Column {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.margins: 20
+                    spacing: 4
+
+                    Frame {
+                        width: parent.width
+                        height: parent.height
+                        topPadding: 50
+                        padding: 12
+
+                        NavigationView {
+                            id: navView
+                            window: parent
+
+                            property var baseItems: [
+                                {
+                                    icon: "ic_fluent_play_20_regular",
+                                    title: qsTr("Menu Item 1"),
+                                    page: page1
+                                },
+                                {
+                                    icon: "ic_fluent_save_20_regular",
+                                    title: qsTr("Menu Item 2"),
+                                    page: page2
+                                },
+                                {
+                                    icon: "ic_fluent_folder_20_regular",
+                                    title: qsTr("Long Title for Testing"),
+                                    page: page3,
+                                    subItems: [
+                                        {
+                                            title: qsTr("Click to expand and see this extra long text")
+                                        }
+                                    ]
+                                }
+                            ]
+
+                            property var topItem: ({
+                                icon: "ic_fluent_star_20_regular",
+                                title: qsTr("Star Item"),
+                                page: page5
+                            })
+
+                            property var bottomItem: ({
+                                icon: "ic_fluent_settings_20_regular",
+                                title: qsTr("Settings"),
+                                page: page6
+                            })
+
+                            function updateNavigationItems() {
+                                var items = []
+                                
+                                // Add top item with or without position
+                                var top = Object.assign({}, topItem)
+                                if (pinTopCheckbox.checked) {
+                                    top.position = Position.Top
+                                }
+                                items.push(top)
+                                
+                                // Add base items
+                                for (var i = 0; i < baseItems.length; i++) {
+                                    items.push(baseItems[i])
+                                }
+                                
+                                // Add bottom item with or without position
+                                var bottom = Object.assign({}, bottomItem)
+                                if (pinBottomCheckbox.checked) {
+                                    bottom.position = Position.Bottom
+                                }
+                                items.push(bottom)
+                                
+                                navigationItems = items
+                            }
+
+                            Component.onCompleted: {
+                                updateNavigationItems()
+                            }
+                        }
+                    }
+                }
+
+                // Right: Control panel
+                Rectangle {
+                    width: 280
+                    Layout.fillHeight: true
+                    radius: Theme.currentTheme.appearance.smallRadius
+                    color: Theme.currentTheme.colors.backgroundAcrylicColor
+                    border.width: Theme.currentTheme.appearance.borderWidth
+                    border.color: Theme.currentTheme.colors.cardBorderColor
+
+                    Column {
+                        anchors.fill: parent
+                        anchors.margins: 16
+                        spacing: 8
+
+                        CheckBox {
+                            id: pinTopCheckbox
+                            text: qsTr("Pin to Top")
+                            checked: true
+                            onCheckedChanged: navView.updateNavigationItems()
+                        }
+                        
+                        CheckBox {
+                            id: pinBottomCheckbox
+                            text: qsTr("Pin to Bottom")
+                            checked: true
+                            onCheckedChanged: navView.updateNavigationItems()
+                        }
+                        
+                        CheckBox {
+                            id: dragResizeCheckbox
+                            text: qsTr("Enable Drag Resize")
+                            checked: false
+                            onCheckedChanged: {
+                                navView.navigationBar.enableDragResize = checked
+                                navView.navigationBar.userResizedWidth = 0
+                            }
+                        }
+                        
+                        Rectangle {
+                            width: parent.width
+                            height: 1
+                            color: Theme.currentTheme.colors.dividerBorderColor
+                        }
+                        
+                        Column {
+                            spacing: 4
+                            width: parent.width
+                            
+                            Text {
+                                typography: Typography.Caption
+                                text: qsTr("Width (px):")
+                            }
+                            
+                            TextField {
+                                id: expandWidthInput
+                                width: parent.width
+                                placeholderText: "0 = dynamic"
+                                text: "0"
+                                validator: IntValidator {
+                                    bottom: 0
+                                    top: 800
+                                }
+                                onTextChanged: {
+                                    var value = parseInt(text) || 0
+                                    navView.navigationBar.expandWidth = value
+                                    navView.navigationBar.userResizedWidth = 0
+                                    
+                                    widthModeSwitch.checked = (value <= 0)
+                                }
+                            }
+                            
+                            Text {
+                                width: parent.width
+                                typography: Typography.Caption
+                                opacity: 0.7
+                                wrapMode: Text.WordWrap
+                                text: {
+                                    var width = parseInt(expandWidthInput.text) || 0
+                                    if (width <= 0) {
+                                        return qsTr("Dynamic width mode")
+                                    } else {
+                                        return qsTr("Fixed: %1px").arg(width)
+                                    }
+                                }
+                            }
+                            
+                            Switch {
+                                id: widthModeSwitch
+                                text: checked ? qsTr("Dynamic Width") : qsTr("Fixed Width")
+                                checked: true
+                                
+                                onCheckedChanged: {
+                                    if (checked) {
+                                        // 动态宽度
+                                        expandWidthInput.text = "0"
+                                    } else {
+                                        // 固定宽度
+                                        expandWidthInput.text = "200"
+                                    }
+                                }
+                            }
+                            
+                            Rectangle {
+                                width: parent.width
+                                height: 1
+                                color: Theme.currentTheme.colors.dividerBorderColor
+                            }
+                            
+                            Text {
+                                typography: Typography.Caption
+                                text: qsTr("Min Width (px):")
+                            }
+                            
+                            TextField {
+                                id: minWidthInput
+                                width: parent.width
+                                placeholderText: "200"
+                                text: "200"
+                                validator: IntValidator {
+                                    bottom: 100
+                                    top: 500
+                                }
+                                onTextChanged: {
+                                    var value = parseInt(text) || 200
+                                    navView.navigationBar.minNavbarWidth = value
+                                }
+                            }
+                            
+                            Text {
+                                typography: Typography.Caption
+                                text: qsTr("Max Width (px):")
+                            }
+                            
+                            TextField {
+                                id: maxWidthInput
+                                width: parent.width
+                                placeholderText: "400"
+                                text: "400"
+                                validator: IntValidator {
+                                    bottom: 200
+                                    top: 800
+                                }
+                                onTextChanged: {
+                                    var value = parseInt(text) || 400
+                                    navView.navigationBar.maxNavbarWidth = value
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

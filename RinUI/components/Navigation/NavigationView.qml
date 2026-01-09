@@ -95,7 +95,7 @@ RowLayout {
             color: Theme.currentTheme.colors.layerColor
             border.color: Theme.currentTheme.colors.cardBorderColor
             border.width: 1
-            opacity: window.appLayerEnabled
+            opacity: (window && window.appLayerEnabled !== undefined) ? window.appLayerEnabled : navigationView.appLayerEnabled
             radius: Theme.currentTheme.appearance.windowRadius
         }
 
