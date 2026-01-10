@@ -73,6 +73,10 @@ Button {
 
         onVisibleChanged: {
             if (visible) {
+                if (root.selectedDate) {
+                    cal.displayYear = root.selectedDate.getFullYear()
+                    cal.displayMonth = root.selectedDate.getMonth() + 1
+                }
                 autoPosition()
             }
         }
