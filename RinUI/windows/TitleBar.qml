@@ -98,7 +98,7 @@ Item {
             Layout.fillWidth: true
             Layout.leftMargin: 16
             spacing: 16
-            opacity: root.titleEnabled
+            visible: root.titleEnabled
 
             //图标
             IconWidget {
