@@ -22,6 +22,8 @@ RowLayout {
 
     // 页面组件缓存(Component)
     property var componentCache: ({})
+    property var pageInstanceCache: ({})
+    property string currentTopLevelKey: ""
     property bool pushInProgress: false
     property var loadingPages: ({})
     property var itemsToRestoreAfterReload: []
@@ -97,6 +99,11 @@ RowLayout {
             border.width: 1
             opacity: (window && window.appLayerEnabled !== undefined) ? window.appLayerEnabled : navigationView.appLayerEnabled
             radius: Theme.currentTheme.appearance.windowRadius
+        }
+
+        Item {
+            id: cachedPagesHost
+            visible: false
         }
 
         StackView {
@@ -195,6 +202,10 @@ RowLayout {
             } else {
                 lastPages = lastPages.slice(0, -1)  // 移除最后一个元素
             }
+            if (isTopLevelPageKey(previousPage)) {
+                switchTopLevelPage(previousPage, previousPage, true, {})
+                return
+            }
             if (stackView.depth > 1) {
                 currentPage = previousPage
                 stackView.pop()
@@ -237,6 +248,50 @@ RowLayout {
             if (navigationBar.currentPage === pageKey && !reload) return
             if (loadingPages[pageKey] && !reload) return
         }
+
+        if (!reload && isTopLevelPageKey(pageKey)) {
+            switchTopLevelPage(page, pageKey, fromNavigation, properties)
+            return
+        }
+
+        // 如果目标页面已存在于栈中，直接弹出到该页面，避免重复创建
+        if (!reload) {
+            let targetObjectName = pageKey.includes("/") ? pageKey.split("/").pop().replace(".qml", "") : pageKey
+            let targetIndex = -1
+            for (let i = stackView.depth - 1; i >= 0; i--) {
+                let item = stackView.get(i)
+                if (item && item.objectName === targetObjectName) {
+                    targetIndex = i
+                    break
+                }
+            }
+            if (targetIndex >= 0) {
+                // 记录历史页（与 asyncPush 中逻辑保持一致）
+                if (currentPage !== "" && !fromNavigation) {
+                    if (lastPages.length === 0) lastPages = [currentPage]
+                    else if (lastPages.length === 1) lastPages = [lastPages[0], currentPage]
+                    else lastPages = [lastPages[1], currentPage]
+                }
+
+                while (stackView.depth > targetIndex + 1) stackView.pop()
+
+                currentPage = pageKey
+                pageChanged()
+
+                // 如果传入了属性，尽量应用到现有页面实例
+                if (properties && typeof properties === "object") {
+                    let existingItem = stackView.get(targetIndex)
+                    if (existingItem) {
+                        for (let key in properties) {
+                            try { existingItem[key] = properties[key] } catch (e) {}
+                        }
+                    }
+                }
+                setPushInProgress(false)
+                return
+            }
+        }
+
         setPushInProgress(true)
 
         if (page instanceof Component) {
@@ -480,6 +535,148 @@ RowLayout {
             return page
         } else {
             return page.toString()
+        }
+    }
+
+    function isTopLevelPageKey(pageKey) {
+        if (!pageKey || !navigationItems || navigationItems.length === undefined) return false
+        for (let i = 0; i < navigationItems.length; i++) {
+            let item = navigationItems[i]
+            if (!item) continue
+            if (item.page && String(item.page) === String(pageKey)) return true
+            if (item.subItems && item.subItems.length !== undefined) {
+                for (let j = 0; j < item.subItems.length; j++) {
+                    let sub = item.subItems[j]
+                    if (sub && sub.page && String(sub.page) === String(pageKey)) return true
+                }
+            }
+        }
+        return false
+    }
+
+    function cachePageInstance(pageKey, pageInstance) {
+        if (!pageKey || !pageInstance) return
+        pageInstanceCache[pageKey] = pageInstance
+        pageInstance.visible = false
+        pageInstance.parent = cachedPagesHost
+    }
+
+    function takeCachedPageInstance(pageKey) {
+        let cached = pageInstanceCache[pageKey]
+        if (!cached) return null
+        delete pageInstanceCache[pageKey]
+        cached.visible = true
+        cached.parent = stackView
+        return cached
+    }
+
+    function finishTopLevelSwitchIfNeeded(pageInstance) {
+        Qt.callLater(function() {
+            if (stackView.busy && stackView.currentItem === pageInstance) {
+                let animationHandler = function() {
+                    if (stackView.currentItem === pageInstance && !stackView.busy) {
+                        setPushInProgress(false)
+                        stackView.busyChanged.disconnect(animationHandler)
+                    }
+                }
+                if (!stackView.busy) setPushInProgress(false)
+                else stackView.busyChanged.connect(animationHandler)
+            } else setPushInProgress(false)
+        })
+    }
+
+    function switchTopLevelPage(page, pageKey, fromNavigation, properties) {
+        setPushInProgress(true)
+
+        let previousTopLevelKey = currentTopLevelKey
+        if (previousTopLevelKey !== "" && isTopLevelPageKey(previousTopLevelKey) && !fromNavigation) {
+            if (lastPages.length === 0) lastPages = [previousTopLevelKey]
+            else if (lastPages.length === 1) lastPages = [lastPages[0], previousTopLevelKey]
+            else lastPages = [lastPages[1], previousTopLevelKey]
+        }
+
+        while (stackView.depth > 1) {
+            let popped = stackView.pop(null, StackView.Immediate)
+            if (!popped) continue
+            if (stackView.depth === 1 && previousTopLevelKey !== "" && isTopLevelPageKey(previousTopLevelKey)) {
+                cachePageInstance(previousTopLevelKey, popped)
+            } else {
+                popped.destroy()
+            }
+        }
+
+        let cached = takeCachedPageInstance(pageKey)
+        if (cached) {
+            if (properties && typeof properties === "object") {
+                for (let key in properties) {
+                    try { cached[key] = properties[key] } catch (e) {}
+                }
+            }
+            currentPage = pageKey
+            pageChanged()
+            currentTopLevelKey = pageKey
+            stackView.push(cached)
+            finishTopLevelSwitchIfNeeded(cached)
+            return
+        }
+
+        currentTopLevelKey = pageKey
+        if (page instanceof Component) {
+            asyncPush(page, pageKey, false, fromNavigation, properties)
+        } else if (typeof page === "object" || typeof page === "string") {
+            if (!componentCache[pageKey]) {
+                loadingPages[pageKey] = true
+                let component = Qt.createComponent(page)
+                if (component.status === Component.Ready) {
+                    componentCache[pageKey] = component
+                    loadingPages[pageKey] = false
+                    asyncPush(component, pageKey, false, fromNavigation, properties)
+                } else if (component.status === Component.Error) {
+                    console.error("Failed to load:", page, component.errorString())
+                    cleanupLoading(pageKey, true)
+                    if (currentPage !== "") lastPages.push(currentPage)
+                    currentPage = pageKey
+                    pageChanged()
+                    stackView.push("ErrorPage.qml", {
+                        errorMessage: component.errorString(),
+                        page: page,
+                    })
+                    return
+                } else {
+                    let handler = function() {
+                        component.statusChanged.disconnect(handler)
+                        if (component.status === Component.Ready) {
+                            componentCache[pageKey] = component
+                            loadingPages[pageKey] = false
+                            asyncPush(component, pageKey, false, fromNavigation, properties)
+                        } else if (component.status === Component.Error) {
+                            console.error("Failed to async load:", page, component.errorString())
+                            cleanupLoading(pageKey, true)
+                            if (currentPage !== "") lastPages.push(currentPage)
+                            currentPage = pageKey
+                            pageChanged()
+                            stackView.push("ErrorPage.qml", {
+                                errorMessage: component.errorString(),
+                                page: page,
+                            })
+                        }
+                    }
+                    try {
+                        component.statusChanged.connect(handler)
+                    } catch (e) {
+                        if (component.status === Component.Ready) {
+                            componentCache[pageKey] = component
+                            loadingPages[pageKey] = false
+                            asyncPush(component, pageKey, false, fromNavigation, properties)
+                        } else if (component.status === Component.Error) {
+                            cleanupLoading(pageKey, true)
+                        }
+                    }
+                    return
+                }
+            } else {
+                asyncPush(componentCache[pageKey], pageKey, false, fromNavigation, properties)
+            }
         }
     }
 
