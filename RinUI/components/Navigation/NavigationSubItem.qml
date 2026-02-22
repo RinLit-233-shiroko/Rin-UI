@@ -101,7 +101,7 @@ ItemDelegate {
     onClicked: {
         if (itemData.page && currentPage && !root.highlighted && !collapsed) {
             // 记录上一次的索引
-            navigationView.safePush(itemData.page, false, false)
+            navigationView.safePush(itemData.page, false, false, itemData.properties || {})
         }
     }
 }

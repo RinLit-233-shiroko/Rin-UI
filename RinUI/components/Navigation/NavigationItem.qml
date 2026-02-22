@@ -163,7 +163,7 @@ Item {
             }
             if (itemData.page && currentPage && String(navigationBar.currentPage) !== String(itemData.page)) {
                 // 记录上一次的索引
-                navigationView.safePush(itemData.page, false, false)
+                navigationView.safePush(itemData.page, false, false, itemData.properties || {})
             }
         }
     }
@@ -182,7 +182,7 @@ Item {
                 text: modelData.title
                 onClicked: {
                     if (modelData.page && navigationItems.currentPage) {
-                        navigationView.safePush(modelData.page)
+                        navigationView.safePush(modelData.page, false, false, modelData.properties || {})
                     }
                 }
             }
