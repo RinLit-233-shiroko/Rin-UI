@@ -7,19 +7,20 @@ import "../components"
 
 Base {
     id: root
-    interactive: true
+    // Use only the local handlers in this control to avoid duplicated hover regions.
+    interactive: false
     property int mode: 0  //0:max 1:min 2:close
     property alias icon: icon.icon
     // Keep macOS detection resilient across Qt variants.
     property bool macStyle: Qt.platform.os === "osx" || Qt.platform.os === "macos" || Qt.platform.os === "darwin"
-    property bool macGlyphVisible: macStyle && root.enabled && mouseArea.containsMouse
+    property bool macGlyphVisible: macStyle && root.enabled && (hoverHandler.hovered || mouseArea.pressed)
     property color macGlyphColor: "#1f1f1f"
 
     // tooltip
     ToolTip {
         parent: parent
         delay: 500
-        visible: !macStyle && mouseArea.containsMouse
+        visible: !macStyle && hoverHandler.hovered
         text: mode === 0 ? qsTr("Maximize") : mode === 1 ? qsTr("Minimize") : mode === 2 ? qsTr("Close") : qsTr("Unknown")
     }
 
@@ -153,12 +154,19 @@ Base {
         }
     }
 
+    HoverHandler {
+        id: hoverHandler
+        enabled: root.enabled
+        acceptedDevices: PointerDevice.Mouse
+    }
+
     // 鼠标区域 / MouseArea
     MouseArea {
         id: mouseArea
         anchors.fill: parent
         enabled: root.enabled
         hoverEnabled: true
+        acceptedButtons: Qt.LeftButton
         onClicked: {
             toggleControl(mode)
         }
@@ -191,7 +199,7 @@ Base {
         },
         State {
             name: "hoveredCtrl"
-            when: !macStyle && mouseArea.containsMouse
+            when: !macStyle && hoverHandler.hovered
             PropertyChanges {
                 target: background;
                 opacity: 1
@@ -217,7 +225,7 @@ Base {
         },
         State {
             name: "macHoveredCtrl"
-            when: macStyle && root.enabled && mouseArea.containsMouse
+            when: macStyle && root.enabled && hoverHandler.hovered
             PropertyChanges {
                 target: background;
                 opacity: 0.9

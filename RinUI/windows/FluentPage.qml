@@ -11,6 +11,8 @@ Page {
     id: fluentPage
     default property alias content: container.data
     property alias contentHeader: headerContainer.data
+    // Backward compatibility for apps that still assign `pageFooter: Item { ... }`.
+    property alias pageFooter: fluentPage.footer
     property alias customHeader: headerRow.data
     property alias extraHeaderItems: extraHeaderRow.data
     property int radius: Theme.currentTheme.appearance.windowRadius

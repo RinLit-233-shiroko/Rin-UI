@@ -141,11 +141,11 @@ Item {
 
         RowLayout {
             id: titleRow
+            visible: root.titleEnabled
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.leftMargin: root.isMacOS ? 0 : 16
             spacing: 16
-            opacity: root.titleEnabled
 
             //图标
             IconWidget {
