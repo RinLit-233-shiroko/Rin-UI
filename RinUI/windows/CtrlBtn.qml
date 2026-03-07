@@ -10,12 +10,15 @@ Base {
     interactive: true
     property int mode: 0  //0:max 1:min 2:close
     property alias icon: icon.icon
+    property bool macStyle: Qt.platform.os === "osx"
+    property bool macGlyphVisible: macStyle && root.enabled && mouseArea.containsMouse
+    property color macGlyphColor: "#1f1f1f"
 
     // tooltip
     ToolTip {
         parent: parent
         delay: 500
-        visible: mouseArea.containsMouse
+        visible: !macStyle && mouseArea.containsMouse
         text: mode === 0 ? qsTr("Maximize") : mode === 1 ? qsTr("Minimize") : mode === 2 ? qsTr("Close") : qsTr("Unknown")
     }
 
@@ -34,18 +37,39 @@ Base {
         }
     }
 
-    implicitWidth: 48
-    height: parent.height
+    function macButtonColor(buttonMode) {
+        if (buttonMode === 2) {
+            return "#ff5f57"  // close
+        }
+        if (buttonMode === 1) {
+            return "#febc2e"  // minimize
+        }
+        return "#28c840"  // maximize
+    }
+
+    implicitWidth: macStyle ? 12 : 48
+    implicitHeight: macStyle ? 12 : 40
+    width: implicitWidth
+    height: macStyle ? implicitHeight : (parent ? parent.height : implicitHeight)
 
 
     // 背景 / Background
     Rectangle {
         id: background
         anchors.fill: parent
-        color: mode === 2 ? Theme.currentTheme.colors.captionCloseColor : Theme.currentTheme.colors.subtleSecondaryColor
-        opacity: 0
+        color: macStyle
+            ? macButtonColor(mode)
+            : mode === 2
+                ? Theme.currentTheme.colors.captionCloseColor
+                : Theme.currentTheme.colors.subtleSecondaryColor
+        radius: macStyle ? width / 2 : 0
+        border.width: macStyle ? 1 : 0
+        border.color: macStyle ? Qt.darker(background.color, 1.15) : "transparent"
+        opacity: macStyle ? (root.enabled ? 1 : 0.45) : 0
+        scale: 1
 
         Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.InOutQuad } }
+        Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.InOutQuad } }
     }
 
 
@@ -63,7 +87,69 @@ Base {
             :
                 "ic_fluent_circle_20_regular"  // unknown style
         size: mode === 0 ? 14 : 16
+        visible: !macStyle
         anchors.centerIn: parent
+    }
+
+    Item {
+        id: macGlyph
+        anchors.centerIn: parent
+        width: 7
+        height: 7
+        visible: macGlyphVisible
+
+        // close: x
+        Rectangle {
+            visible: root.mode === 2
+            width: 7
+            height: 1.4
+            radius: height / 2
+            color: root.macGlyphColor
+            anchors.centerIn: parent
+            rotation: 45
+            antialiasing: true
+        }
+        Rectangle {
+            visible: root.mode === 2
+            width: 7
+            height: 1.4
+            radius: height / 2
+            color: root.macGlyphColor
+            anchors.centerIn: parent
+            rotation: -45
+            antialiasing: true
+        }
+
+        // minimize: -
+        Rectangle {
+            visible: root.mode === 1
+            width: 7
+            height: 1.4
+            radius: height / 2
+            color: root.macGlyphColor
+            anchors.centerIn: parent
+            antialiasing: true
+        }
+
+        // maximize: +
+        Rectangle {
+            visible: root.mode === 0
+            width: 7
+            height: 1.4
+            radius: height / 2
+            color: root.macGlyphColor
+            anchors.centerIn: parent
+            antialiasing: true
+        }
+        Rectangle {
+            visible: root.mode === 0
+            width: 1.4
+            height: 7
+            radius: width / 2
+            color: root.macGlyphColor
+            anchors.centerIn: parent
+            antialiasing: true
+        }
     }
 
     // 鼠标区域 / MouseArea
@@ -80,7 +166,7 @@ Base {
     states: [
         State {
         name: "disabledCtrl"
-            when: !enabled
+            when: !enabled && !macStyle
             PropertyChanges {  // 禁用时禁止改变属性
                 target: icon;
                 opacity: 0.3614
@@ -91,7 +177,7 @@ Base {
         },
         State {
             name: "pressedCtrl"
-            when: mouseArea.pressed
+            when: !macStyle && mouseArea.pressed
             PropertyChanges {
                 target: background;
                 opacity: 0.8
@@ -104,7 +190,7 @@ Base {
         },
         State {
             name: "hoveredCtrl"
-            when: mouseArea.containsMouse
+            when: !macStyle && mouseArea.containsMouse
             PropertyChanges {
                 target: background;
                 opacity: 1
@@ -113,6 +199,32 @@ Base {
                 target: icon;
                 opacity: root.mode === 2 ? 1 : 0.6063
                 color: root.mode === 2 ? Theme.currentTheme.colors.captionCloseTextColor : textColor
+            }
+        },
+        State {
+            name: "macPressedCtrl"
+            when: macStyle && root.enabled && mouseArea.pressed
+            PropertyChanges {
+                target: background;
+                opacity: 0.75
+                scale: 0.95
+            }
+            PropertyChanges {
+                target: macGlyph;
+                opacity: 0.95
+            }
+        },
+        State {
+            name: "macHoveredCtrl"
+            when: macStyle && root.enabled && mouseArea.containsMouse
+            PropertyChanges {
+                target: background;
+                opacity: 0.9
+                scale: 1.05
+            }
+            PropertyChanges {
+                target: macGlyph;
+                opacity: 1
             }
         }
     ]

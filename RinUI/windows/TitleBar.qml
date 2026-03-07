@@ -19,10 +19,19 @@ Item {
     property bool minimizeEnabled: true
     property bool maximizeEnabled: true
     property bool closeEnabled: true
+    property bool isMacOS: Qt.platform.os === "osx"
+    property int macControlSize: 12
+    property int macControlSpacing: 8
+    property int macControlLeftMargin: 12
+    property int macDragGap: 12
+    property int macVisibleControlCount: (closeVisible ? 1 : 0) + (minimizeVisible ? 1 : 0) + (maximizeVisible ? 1 : 0)
+    property int macControlGroupWidth: macVisibleControlCount > 0
+        ? (macVisibleControlCount * macControlSize) + ((macVisibleControlCount - 1) * macControlSpacing)
+        : 0
 
-    property alias minimizeVisible: minimizeBtn.visible
-    property alias maximizeVisible: maximizeBtn.visible
-    property alias closeVisible: closeBtn.visible
+    property bool minimizeVisible: true
+    property bool maximizeVisible: true
+    property bool closeVisible: true
 
     // area
     default property alias content: contentItem.data
@@ -52,7 +61,9 @@ Item {
 
         MouseArea {
             anchors.fill: parent
-            anchors.leftMargin: 48
+            anchors.leftMargin: root.isMacOS
+                ? root.macControlLeftMargin + root.macControlGroupWidth + root.macDragGap
+                : 48
             anchors.margins: Utils.windowDragArea
             propagateComposedEvents: true
             acceptedButtons: Qt.LeftButton
@@ -89,14 +100,49 @@ Item {
     RowLayout {
         anchors.fill: parent
         anchors.margins: 0
-        spacing: 48
+        spacing: root.isMacOS ? 12 : 48
+
+        // macOS traffic-light controls stay on the left side of the title.
+        Row {
+            id: macWindowControls
+            visible: root.isMacOS
+            Layout.alignment: Qt.AlignVCenter
+            Layout.leftMargin: root.macControlLeftMargin
+            spacing: root.macControlSpacing
+
+            CtrlBtn {
+                id: macCloseBtn
+                mode: 2
+                width: root.macControlSize
+                height: root.macControlSize
+                enabled: root.closeEnabled
+                visible: root.closeVisible
+            }
+            CtrlBtn {
+                id: macMinimizeBtn
+                mode: 1
+                width: root.macControlSize
+                height: root.macControlSize
+                enabled: root.minimizeEnabled
+                visible: root.minimizeVisible
+            }
+            CtrlBtn {
+                id: macMaximizeBtn
+                mode: 0
+                width: root.macControlSize
+                height: root.macControlSize
+                enabled: root.maximizeEnabled
+                visible: root.maximizeVisible
+
+            }
+        }
         // 窗口标题 / Window Title
 
         RowLayout {
             id: titleRow
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.leftMargin: 16
+            Layout.leftMargin: root.isMacOS ? 0 : 16
             spacing: 16
             opacity: root.titleEnabled
 
@@ -130,6 +176,8 @@ Item {
 
         // 窗口按钮 / Window Controls
         Row {
+            id: windowControls
+            visible: !root.isMacOS
             width: implicitWidth
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignRight
@@ -138,17 +186,20 @@ Item {
                 id: minimizeBtn
                 mode: 1
                 enabled: root.minimizeEnabled
+                visible: root.minimizeVisible
             }
             CtrlBtn {
                 id: maximizeBtn
                 mode: 0
                 enabled: root.maximizeEnabled
+                visible: root.maximizeVisible
 
             }
             CtrlBtn {
                 id: closeBtn
                 mode: 2
                 enabled: root.closeEnabled
+                visible: root.closeVisible
             }
         }
     }
