@@ -10,7 +10,8 @@ Base {
     interactive: true
     property int mode: 0  //0:max 1:min 2:close
     property alias icon: icon.icon
-    property bool macStyle: Qt.platform.os === "osx"
+    // Keep macOS detection resilient across Qt variants.
+    property bool macStyle: Qt.platform.os === "osx" || Qt.platform.os === "macos" || Qt.platform.os === "darwin"
     property bool macGlyphVisible: macStyle && root.enabled && mouseArea.containsMouse
     property color macGlyphColor: "#1f1f1f"
 

@@ -19,7 +19,8 @@ Item {
     property bool minimizeEnabled: true
     property bool maximizeEnabled: true
     property bool closeEnabled: true
-    property bool isMacOS: Qt.platform.os === "osx"
+    // Keep macOS detection resilient across Qt variants.
+    property bool isMacOS: Qt.platform.os === "osx" || Qt.platform.os === "macos" || Qt.platform.os === "darwin"
     property int macControlSize: 12
     property int macControlSpacing: 8
     property int macControlLeftMargin: 12
