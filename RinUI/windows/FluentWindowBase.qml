@@ -17,6 +17,8 @@ ApplicationWindow {
     property bool isMacOS: Qt.platform.os === "osx" || Qt.platform.os === "macos" || Qt.platform.os === "darwin"
     // Native traffic lights + single custom titlebar integration on macOS.
     property bool useNativeMacFrame: isMacOS
+    // Fine-tune custom title content baseline to match native traffic lights.
+    property int macNativeContentVerticalOffset: useNativeMacFrame ? -2 : 0
     property int expandedClientAreaHint: typeof Qt.ExpandedClientAreaHint !== "undefined"
         ? Qt.ExpandedClientAreaHint
         : 0
@@ -156,6 +158,9 @@ ApplicationWindow {
         hoverEnabled: !baseWindow.useNativeMacFrame && baseWindow.visibility !== Window.Maximized
         z: -1
         cursorShape: {
+            if (baseWindow.useNativeMacFrame || baseWindow.visibility === Window.Maximized) {
+                return Qt.ArrowCursor
+            }
             const p = Qt.point(mouseX, mouseY)
             const b = Utils.windowDragArea
             if (p.x < b && p.y < b) return Qt.SizeFDiagCursor
@@ -164,6 +169,7 @@ ApplicationWindow {
             if (p.x < b && p.y >= height - b) return Qt.SizeBDiagCursor
             if (p.x < b || p.x >= width - b) return Qt.SizeHorCursor
             if (p.y < b || p.y >= height - b) return Qt.SizeVerCursor
+            return Qt.ArrowCursor
         }
         acceptedButtons: Qt.NoButton
     }

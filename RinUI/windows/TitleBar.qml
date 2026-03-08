@@ -29,6 +29,12 @@ Item {
     property int macDragGap: 12
     // Reserve a small leading no-drag zone for overlay actions (e.g. NavigationView back button).
     property int macLeadingInteractiveWidth: 40
+    // Align custom title content with native traffic lights on macOS.
+    property real macNativeContentVerticalOffset: root.isMacOS && root.useNativeMacControls
+        ? ((root.window && root.window.macNativeContentVerticalOffset !== undefined)
+            ? root.window.macNativeContentVerticalOffset
+            : -2)
+        : 0
     property int macNativeControlCount: root.isMacOS && root.useNativeMacControls ? 3 : 0
     property int macVisibleControlCount: root.showMacCustomControls
         ? (closeVisible ? 1 : 0) + (minimizeVisible ? 1 : 0) + (maximizeVisible ? 1 : 0)
@@ -117,7 +123,11 @@ Item {
     }
 
     RowLayout {
-        anchors.fill: parent
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenterOffset: root.macNativeContentVerticalOffset
+        height: parent.height
         anchors.margins: 0
         spacing: root.isMacOS ? (root.showMacCustomControls ? 12 : 0) : 48
 

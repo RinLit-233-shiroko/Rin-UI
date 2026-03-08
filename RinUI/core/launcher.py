@@ -32,6 +32,9 @@ class RinUIWindow:
         self.win_event_manager = None
         self._mac_objc = None
         self._mac_appkit = None
+        # Fine-tune native macOS traffic-light position.
+        self._mac_traffic_lights_offset_x = 10
+        self._mac_traffic_lights_offset_down = 10
         self.qml_path = qml_path
         self._initialized = True
 
@@ -167,6 +170,28 @@ class RinUIWindow:
                 self._mac_appkit.NSWindowStyleMaskFullSizeContentView
             )
             ns_window.setStyleMask_(style_mask)
+
+            if not window.property("_rinuiMacTrafficLightsShiftApplied"):
+                traffic_lights = (
+                    ns_window.standardWindowButton_(
+                        self._mac_appkit.NSWindowCloseButton
+                    ),
+                    ns_window.standardWindowButton_(
+                        self._mac_appkit.NSWindowMiniaturizeButton
+                    ),
+                    ns_window.standardWindowButton_(
+                        self._mac_appkit.NSWindowZoomButton
+                    ),
+                )
+                for button in traffic_lights:
+                    if not button:
+                        continue
+                    frame = button.frame()
+                    frame.origin.x += self._mac_traffic_lights_offset_x
+                    # Cocoa y+ is up, so moving down subtracts from y.
+                    frame.origin.y -= self._mac_traffic_lights_offset_down
+                    button.setFrame_(frame)
+                window.setProperty("_rinuiMacTrafficLightsShiftApplied", True)
         except Exception as err:
             print(f"Failed to apply macOS native titlebar style: {err}")
             window.setProperty("useNativeMacFrame", False)
