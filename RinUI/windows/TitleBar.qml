@@ -21,14 +21,30 @@ Item {
     property bool closeEnabled: true
     // Keep macOS detection resilient across Qt variants.
     property bool isMacOS: Qt.platform.os === "osx" || Qt.platform.os === "macos" || Qt.platform.os === "darwin"
+    property bool useNativeMacControls: false
+    property bool showMacCustomControls: root.isMacOS && !root.useNativeMacControls
     property int macControlSize: 12
     property int macControlSpacing: 8
-    property int macControlLeftMargin: 12
+    property int macControlLeftMargin: 20
     property int macDragGap: 12
-    property int macVisibleControlCount: (closeVisible ? 1 : 0) + (minimizeVisible ? 1 : 0) + (maximizeVisible ? 1 : 0)
+    // Reserve a small leading no-drag zone for overlay actions (e.g. NavigationView back button).
+    property int macLeadingInteractiveWidth: 40
+    property int macNativeControlCount: root.isMacOS && root.useNativeMacControls ? 3 : 0
+    property int macVisibleControlCount: root.showMacCustomControls
+        ? (closeVisible ? 1 : 0) + (minimizeVisible ? 1 : 0) + (maximizeVisible ? 1 : 0)
+        : 0
+    property int macControlOccupyCount: macVisibleControlCount > 0 ? macVisibleControlCount : macNativeControlCount
     property int macControlGroupWidth: macVisibleControlCount > 0
         ? (macVisibleControlCount * macControlSize) + ((macVisibleControlCount - 1) * macControlSpacing)
         : 0
+    property int macLeadingInset: root.isMacOS && macControlOccupyCount > 0
+        ? root.macControlLeftMargin + (macControlOccupyCount * root.macControlSize) + ((macControlOccupyCount - 1) * root.macControlSpacing) + root.macDragGap
+        : 0
+    property bool macControlsHovered: root.showMacCustomControls && (
+        (macCloseBtn.visible && (macCloseBtn.localHovered || macCloseBtn.localPressed)) ||
+        (macMinimizeBtn.visible && (macMinimizeBtn.localHovered || macMinimizeBtn.localPressed)) ||
+        (macMaximizeBtn.visible && (macMaximizeBtn.localHovered || macMaximizeBtn.localPressed))
+    )
 
     property bool minimizeVisible: true
     property bool maximizeVisible: true
@@ -36,6 +52,7 @@ Item {
 
     // area
     default property alias content: contentItem.data
+    property alias contentHost: contentItem
 
 
     height: titleBarHeight
@@ -61,9 +78,10 @@ Item {
         color: "transparent"
 
         MouseArea {
+            enabled: !root.useNativeMacControls
             anchors.fill: parent
             anchors.leftMargin: root.isMacOS
-                ? root.macControlLeftMargin + root.macControlGroupWidth + root.macDragGap
+                ? root.macLeadingInset + root.macLeadingInteractiveWidth
                 : 48
             anchors.margins: Utils.windowDragArea
             propagateComposedEvents: true
@@ -101,12 +119,12 @@ Item {
     RowLayout {
         anchors.fill: parent
         anchors.margins: 0
-        spacing: root.isMacOS ? 12 : 48
+        spacing: root.isMacOS ? (root.showMacCustomControls ? 12 : 0) : 48
 
         // macOS traffic-light controls stay on the left side of the title.
         Row {
             id: macWindowControls
-            visible: root.isMacOS
+            visible: root.showMacCustomControls
             Layout.alignment: Qt.AlignVCenter
             Layout.leftMargin: root.macControlLeftMargin
             spacing: root.macControlSpacing
@@ -118,6 +136,7 @@ Item {
                 height: root.macControlSize
                 enabled: root.closeEnabled
                 visible: root.closeVisible
+                macGroupHovered: root.macControlsHovered
             }
             CtrlBtn {
                 id: macMinimizeBtn
@@ -126,6 +145,7 @@ Item {
                 height: root.macControlSize
                 enabled: root.minimizeEnabled
                 visible: root.minimizeVisible
+                macGroupHovered: root.macControlsHovered
             }
             CtrlBtn {
                 id: macMaximizeBtn
@@ -134,6 +154,7 @@ Item {
                 height: root.macControlSize
                 enabled: root.maximizeEnabled
                 visible: root.maximizeVisible
+                macGroupHovered: root.macControlsHovered
 
             }
         }
@@ -144,7 +165,7 @@ Item {
             visible: root.titleEnabled
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.leftMargin: root.isMacOS ? 0 : 16
+            Layout.leftMargin: root.isMacOS ? (root.useNativeMacControls ? root.macLeadingInset : 0) : 16
             spacing: 16
 
             //图标

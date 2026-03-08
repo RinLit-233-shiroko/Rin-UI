@@ -1,4 +1,5 @@
 import sys
+from ctypes import c_void_p
 from pathlib import Path
 from typing import Union
 
@@ -29,6 +30,8 @@ class RinUIWindow:
         self.theme_manager = ThemeManager()
         self.win_event_filter = None
         self.win_event_manager = None
+        self._mac_objc = None
+        self._mac_appkit = None
         self.qml_path = qml_path
         self._initialized = True
 
@@ -86,6 +89,7 @@ class RinUIWindow:
 
         # 窗口句柄管理
         self._window_handle_setup()
+        self._setup_macos_native_window()
 
         self._print_startup_info()
 
@@ -108,6 +112,64 @@ class RinUIWindow:
             "WinEventManager", self.win_event_manager
         )
         self._apply_windows_effects()
+
+    def _setup_macos_native_window(self) -> None:
+        """Apply macOS native titlebar tweaks for custom title content."""
+        if sys.platform != "darwin":
+            return
+
+        try:
+            import AppKit
+            import objc
+        except Exception as err:
+            print(f"Cannot enable native macOS titlebar integration: {err}")
+            self._disable_native_mac_frame()
+            return
+
+        self._mac_appkit = AppKit
+        self._mac_objc = objc
+
+        for window in self.windows:
+            if not window.property("useNativeMacFrame"):
+                continue
+
+            self._apply_macos_window_style(window)
+            window.visibleChanged.connect(
+                lambda visible, w=window: self._on_macos_window_visible_changed(
+                    w, visible
+                )
+            )
+
+    def _on_macos_window_visible_changed(self, window: QQuickWindow, visible: bool) -> None:
+        if visible and window.property("useNativeMacFrame"):
+            self._apply_macos_window_style(window)
+
+    def _disable_native_mac_frame(self) -> None:
+        for window in self.windows:
+            if window.property("useNativeMacFrame"):
+                window.setProperty("useNativeMacFrame", False)
+
+    def _apply_macos_window_style(self, window: QQuickWindow) -> None:
+        if not self._mac_objc or not self._mac_appkit:
+            return
+
+        try:
+            ns_view = self._mac_objc.objc_object(c_void_p=int(window.winId()))
+            ns_window = ns_view.window() if ns_view else None
+            if not ns_window:
+                return
+
+            # Hide the system title visuals and keep traffic lights in place.
+            ns_window.setTitleVisibility_(self._mac_appkit.NSWindowTitleHidden)
+            ns_window.setTitlebarAppearsTransparent_(True)
+            ns_window.setMovableByWindowBackground_(False)
+            style_mask = int(ns_window.styleMask()) | int(
+                self._mac_appkit.NSWindowStyleMaskFullSizeContentView
+            )
+            ns_window.setStyleMask_(style_mask)
+        except Exception as err:
+            print(f"Failed to apply macOS native titlebar style: {err}")
+            window.setProperty("useNativeMacFrame", False)
 
     def setIcon(self, path: Union[str, Path] = None) -> None:
         """

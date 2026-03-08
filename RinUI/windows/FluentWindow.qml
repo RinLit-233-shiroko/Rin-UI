@@ -13,7 +13,7 @@ FluentWindowBase {
     minimumWidth: 400
     minimumHeight: 300
     titleEnabled: false
-    titleBarHeight: Theme.currentTheme.appearance.windowTitleBarHeight
+    titleBarHeight: useNativeMacFrame ? 36 : Theme.currentTheme.appearance.windowTitleBarHeight
 
     property alias navigationView: navigationView  // 导航栏
     property alias navigationItems: navigationView.navigationItems  // 导航栏item

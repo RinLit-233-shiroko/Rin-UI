@@ -13,6 +13,29 @@ Item {
     property var navigationItems: [
         // {title: "Title", page: "path/to/page.qml", icon: undefined}
     ]
+    // Keep macOS detection resilient across Qt variants.
+    property bool isMacOS: Qt.platform.os === "osx" || Qt.platform.os === "macos" || Qt.platform.os === "darwin"
+    property bool closeButtonVisible: true
+    property bool minimizeButtonVisible: true
+    property bool maximizeButtonVisible: true
+    property bool useNativeMacControls: false
+    property var window: null
+    property int macControlSize: 12
+    property int macControlSpacing: 8
+    property int macControlLeftMargin: 20
+    property int macDragGap: 12
+    property int macNativeControlExtraInset: useNativeMacControls ? 18 : 0
+    property int titleBarHeight: window && window.titleBarHeight !== undefined
+        ? window.titleBarHeight
+        : Theme.currentTheme.appearance.windowTitleBarHeight
+    property int macVisibleControlCount: isMacOS
+        ? (useNativeMacControls
+            ? 3
+            : (closeButtonVisible ? 1 : 0) + (minimizeButtonVisible ? 1 : 0) + (maximizeButtonVisible ? 1 : 0))
+        : 0
+    property int macTitleSafeInset: isMacOS && macVisibleControlCount > 0
+        ? macControlLeftMargin + (macVisibleControlCount * macControlSize) + ((macVisibleControlCount - 1) * macControlSpacing) + macDragGap + macNativeControlExtraInset
+        : 0
 
     // property int currentSubIndex: -1
     property bool titleBarEnabled: true
@@ -192,11 +215,16 @@ Item {
 
     Row {
         id: title
+        parent: navigationBar.window && navigationBar.window.titleBarHost
+            ? navigationBar.window.titleBarHost
+            : navigationBar
         anchors.left: parent.left
-        anchors.bottom: parent.top
+        anchors.leftMargin: navigationBar.macTitleSafeInset
+        anchors.verticalCenter: parent.verticalCenter
         height: titleBarHeight
         spacing: 16
         visible: navigationBar.titleBarEnabled
+        z: 2
 
         // 返回按钮
         ToolButton {

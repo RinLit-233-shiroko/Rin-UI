@@ -59,9 +59,14 @@ RowLayout {
 
     NavigationBar {
         id: navigationBar
+        window: navigationView.window
         windowTitle: window.title
         windowIcon: window.icon
         windowWidth: window.width
+        closeButtonVisible: window && window.closeVisible !== undefined ? window.closeVisible : true
+        minimizeButtonVisible: window && window.minimizeVisible !== undefined ? window.minimizeVisible : true
+        maximizeButtonVisible: window && window.maximizeVisible !== undefined ? window.maximizeVisible : true
+        useNativeMacControls: window && window.useNativeMacFrame !== undefined ? window.useNativeMacFrame : false
         stackView: stackView
         z: 999
         Layout.fillHeight: true

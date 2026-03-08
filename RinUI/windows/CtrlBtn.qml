@@ -11,9 +11,14 @@ Base {
     interactive: false
     property int mode: 0  //0:max 1:min 2:close
     property alias icon: icon.icon
+    property alias localHovered: hoverHandler.hovered
+    property alias localPressed: mouseArea.pressed
     // Keep macOS detection resilient across Qt variants.
     property bool macStyle: Qt.platform.os === "osx" || Qt.platform.os === "macos" || Qt.platform.os === "darwin"
-    property bool macGlyphVisible: macStyle && root.enabled && (hoverHandler.hovered || mouseArea.pressed)
+    property bool macGroupHovered: false
+    property bool macWindowActive: !macStyle || !window || window.active
+    property bool macGlyphVisible: macStyle && root.enabled && macWindowActive && (macGroupHovered || hoverHandler.hovered || mouseArea.pressed)
+    property bool macUnsavedChanges: false
     property color macGlyphColor: "#1f1f1f"
 
     // tooltip
@@ -25,9 +30,20 @@ Base {
     }
 
     //关闭 最大化 最小化按钮
-    function toggleControl(mode) {
+    function toggleControl(mode, modifiers) {
         if (mode === 0) {
-            WindowManager.maximizeWindow(window);
+            if (macStyle) {
+                if ((modifiers & Qt.AltModifier) !== 0) {
+                    // Option + click maps to zoom behavior on macOS.
+                    WindowManager.maximizeWindow(window);
+                } else if (window.visibility === Window.FullScreen || window.visibility === Window.Maximized) {
+                    window.showNormal();
+                } else {
+                    window.showFullScreen();
+                }
+            } else {
+                WindowManager.maximizeWindow(window);
+            }
         } else if (mode===1) {
             window.showMinimized();
         } else if (mode===2) {
@@ -40,13 +56,16 @@ Base {
     }
 
     function macButtonColor(buttonMode) {
+        if (!macWindowActive) {
+            return "#D0D0D0"
+        }
         if (buttonMode === 2) {
-            return "#ff5f57"  // close
+            return "#FF5F56"  // close
         }
         if (buttonMode === 1) {
-            return "#febc2e"  // minimize
+            return "#FFBD2E"  // minimize
         }
-        return "#28c840"  // maximize
+        return "#27C93F"  // maximize
     }
 
     implicitWidth: macStyle ? 12 : 48
@@ -67,11 +86,20 @@ Base {
         radius: macStyle ? width / 2 : 0
         border.width: macStyle ? 1 : 0
         border.color: macStyle ? Qt.darker(background.color, 1.15) : "transparent"
-        opacity: macStyle ? (root.enabled ? 1 : 0.45) : 0
+        opacity: macStyle ? (root.enabled ? 1 : 0.28) : 0
         scale: 1
 
         Behavior on opacity { NumberAnimation { duration: 100; easing.type: Easing.InOutQuad } }
         Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.InOutQuad } }
+    }
+
+    Rectangle {
+        anchors.centerIn: parent
+        width: 3.2
+        height: 3.2
+        radius: 1.6
+        color: "#3A3A3A"
+        visible: macStyle && root.mode === 2 && root.macUnsavedChanges && root.enabled && root.macWindowActive && !root.macGlyphVisible
     }
 
 
@@ -167,8 +195,8 @@ Base {
         enabled: root.enabled
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton
-        onClicked: {
-            toggleControl(mode)
+        onClicked: function(mouse) {
+            toggleControl(mode, mouse.modifiers)
         }
     }
 
