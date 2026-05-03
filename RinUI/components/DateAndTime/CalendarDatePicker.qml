@@ -42,7 +42,7 @@ Button {
     }
 
     text: root.selectedDate ? root.fmt(root.selectedDate) : root.placeholderText
-    onClicked: { pickerPopup.open() }
+    onClicked: { pickerPopup.visible ? pickerPopup.close() : pickerPopup.open() }
 
 
     contentItem: RowLayout {
