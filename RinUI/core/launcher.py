@@ -169,7 +169,8 @@ class RinUIWindow:
             # Hide the system title visuals and keep traffic lights in place.
             ns_window.setTitleVisibility_(self._mac_appkit.NSWindowTitleHidden)
             ns_window.setTitlebarAppearsTransparent_(True)
-            ns_window.setMovableByWindowBackground_(False)
+            # Allow dragging from custom title/content background areas.
+            ns_window.setMovableByWindowBackground_(True)
             style_mask = int(ns_window.styleMask()) | int(
                 self._mac_appkit.NSWindowStyleMaskFullSizeContentView
             )

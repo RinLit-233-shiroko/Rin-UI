@@ -25,6 +25,7 @@ Item {
     property int macControlLeftMargin: 20
     property int macDragGap: 12
     property int macNativeControlExtraInset: useNativeMacControls ? 18 : 0
+    property int macNativeVisualInset: useNativeMacControls ? 8 : 0
     property int titleBarHeight: window && window.titleBarHeight !== undefined
         ? window.titleBarHeight
         : Theme.currentTheme.appearance.windowTitleBarHeight
@@ -219,7 +220,7 @@ Item {
             ? navigationBar.window.titleBarHost
             : navigationBar
         anchors.left: parent.left
-        anchors.leftMargin: navigationBar.macTitleSafeInset
+        anchors.leftMargin: navigationBar.macTitleSafeInset + navigationBar.macNativeVisualInset
         anchors.verticalCenter: parent.verticalCenter
         height: titleBarHeight
         spacing: 16
@@ -232,8 +233,9 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             icon.name: "ic_fluent_arrow_left_20_regular"
             onClicked: navigationView.safePop()
-            width: 40
-            height: 40
+            property int controlSize: Math.max(32, Math.min(40, title.height - 4))
+            width: controlSize
+            height: controlSize
             size: 16
             enabled: navigationView.lastPages.length > 0
 

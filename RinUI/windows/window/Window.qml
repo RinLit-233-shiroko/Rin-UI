@@ -11,7 +11,7 @@ Window {
     // Native traffic lights + single custom titlebar integration on macOS.
     property bool useNativeMacFrame: isMacOS
     // Fine-tune custom title content baseline to match native traffic lights.
-    property int macNativeContentVerticalOffset: useNativeMacFrame ? -2 : 0
+    property int macNativeContentVerticalOffset: 0
     property int expandedClientAreaHint: typeof Qt.ExpandedClientAreaHint !== "undefined"
         ? Qt.ExpandedClientAreaHint
         : 0
@@ -46,9 +46,9 @@ Window {
     // 布局
     ColumnLayout {
         anchors.fill: parent
-        anchors.bottomMargin: baseWindow.useNativeMacFrame ? 0 : Utils.windowDragArea
-        anchors.leftMargin: baseWindow.useNativeMacFrame ? 0 : Utils.windowDragArea
-        anchors.rightMargin: baseWindow.useNativeMacFrame ? 0 : Utils.windowDragArea
+        anchors.bottomMargin: Utils.windowDragArea
+        anchors.leftMargin: Utils.windowDragArea
+        anchors.rightMargin: Utils.windowDragArea
         spacing: 0
 
         // 顶部边距

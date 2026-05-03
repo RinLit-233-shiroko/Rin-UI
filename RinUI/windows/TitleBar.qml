@@ -115,7 +115,7 @@ Item {
         color: "transparent"
 
         MouseArea {
-            enabled: !root.useNativeMacControls
+            enabled: Qt.platform.os !== "windows"
             anchors.fill: parent
             anchors.leftMargin: root.isMacOS
                 ? root.macLeadingInset + root.macLeadingInteractiveWidth
