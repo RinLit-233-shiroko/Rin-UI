@@ -3,7 +3,13 @@ import platform
 from ctypes import wintypes
 
 import win32con
-from PySide6.QtCore import QAbstractNativeEventFilter, QByteArray, QObject, Slot
+from PySide6.QtCore import (
+    QAbstractNativeEventFilter,
+    QByteArray,
+    QObject,
+    Signal,
+    Slot,
+)
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQuick import QQuickWindow
 from win32api import GetSystemMetrics, MonitorFromWindow, SendMessage
@@ -82,11 +88,24 @@ user32 = ctypes.windll.user32
 # 定义必要的 Windows 常量
 WM_NCCALCSIZE = 0x0083
 WM_NCHITTEST = 0x0084
+WM_NCMOUSEMOVE = 0x00A0
+WM_NCLBUTTONDOWN = 0x00A1
+WM_NCLBUTTONUP = 0x00A2
+WM_NCMOUSELEAVE = 0x02A2
 WM_SYSCOMMAND = 0x0112
 WM_GETMINMAXINFO = 0x0024
+WM_SIZE = 0x0005
+
+WVR_REDRAW = 0x0300
+
+HTCAPTION = 2
+HTMAXBUTTON = 9
 
 WS_CAPTION = 0x00C00000
 WS_THICKFRAME = 0x00040000
+WS_SYSMENU = 0x00080000
+WS_MAXIMIZEBOX = 0x00010000
+WS_MINIMIZEBOX = 0x00020000
 
 SC_MINIMIZE = 0xF020
 SC_MAXIMIZE = 0xF030
@@ -100,6 +119,15 @@ class MINMAXINFO(ctypes.Structure):
         ("ptMaxPosition", wintypes.POINT),
         ("ptMinTrackSize", wintypes.POINT),
         ("ptMaxTrackSize", wintypes.POINT),
+    ]
+
+
+class TRACKMOUSEEVENT(ctypes.Structure):
+    _fields_ = [
+        ("cbSize", wintypes.DWORD),
+        ("dwFlags", wintypes.DWORD),
+        ("hwndTrack", wintypes.HWND),
+        ("dwHoverTime", wintypes.DWORD),
     ]
 
 
@@ -144,10 +172,15 @@ def get_resize_border_thickness(hwnd: wintypes.HWND, horizontal=True) -> int:
 
 
 class WinEventManager(QObject):
+    # Sync non-client maximize-button hover/press state back to QML.
+    maximizeBtnHovered = Signal(int)
+    maximizeBtnLeave = Signal(int)
+    maximizeBtnPressed = Signal(int)
+    maximizeBtnReleased = Signal(int)
+
     @Slot(QObject, result=int)
     def getWindowId(self, window):
         """获取窗口的句柄"""
-        print(f"GetWindowId: {window.winId()}")
         return int(window.winId())
 
     @Slot(int)
@@ -189,11 +222,15 @@ class WinEventManager(QObject):
 
 
 class WinEventFilter(QAbstractNativeEventFilter):
-    def __init__(self, windows: list):
+    # Logical px, converted to physical px with devicePixelRatio.
+    CAPTION_BTN_WIDTH = 48
+    TITLE_BAR_LEFT_INTERACTIVE_WIDTH = 48
+
+    def __init__(self, windows: list, win_event_manager: WinEventManager = None):
         super().__init__()
         self.windows = windows  # 接受多个窗口
         self.hwnds = {}  # 用于存储每个窗口的 hwnd
-        self.resize_border = 8
+        self.win_event_manager = win_event_manager
 
         for window in self.windows:
             # 使用lambda创建闭包来捕获特定的窗口对象
@@ -219,13 +256,87 @@ class WinEventFilter(QAbstractNativeEventFilter):
             return
 
         style = user32.GetWindowLongPtrW(hwnd, -16)  # GWL_STYLE
-        style |= WS_CAPTION | WS_THICKFRAME
+        style |= (
+            WS_CAPTION | WS_THICKFRAME | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX
+        )
         user32.SetWindowLongPtrW(hwnd, -16, style)  # GWL_STYLE
+
+        # Keep DWM shadow without letting it fully own non-client hit-testing.
+        margins = (ctypes.c_int * 4)(0, 0, 0, 1)
+        ctypes.windll.dwmapi.DwmExtendFrameIntoClientArea(hwnd, ctypes.byref(margins))
 
         # 重绘
         user32.SetWindowPos(
             hwnd, 0, 0, 0, 0, 0, 0x0002 | 0x0001 | 0x0040
         )  # SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED
+
+    def _is_in_maximize_btn(
+        self, window: QQuickWindow, hwnd: int, screen_x: int, screen_y: int
+    ) -> bool:
+        max_enabled = window.property("maximizeEnabled")
+        if max_enabled is not None and not max_enabled:
+            return False
+
+        max_visible = window.property("maximizeVisible")
+        if max_visible is not None and not max_visible:
+            return False
+
+        rect = wintypes.RECT()
+        user32.GetWindowRect(hwnd, ctypes.byref(rect))
+
+        screen = window.screen()
+        dp_ratio = screen.devicePixelRatio() if screen else 1.0
+
+        btn_w = int(self.CAPTION_BTN_WIDTH * dp_ratio)
+        title_h = (
+            int(window.property("titleBarHeight") * dp_ratio)
+            if window.property("titleBarHeight")
+            else int(48 * dp_ratio)
+        )
+
+        close_visible = window.property("closeVisible")
+        close_visible = True if close_visible is None else bool(close_visible)
+
+        btn_right = rect.right - (btn_w if close_visible else 0)
+        btn_left = btn_right - btn_w
+        btn_top = rect.top
+        btn_bottom = btn_top + title_h
+
+        return btn_left <= screen_x < btn_right and btn_top <= screen_y < btn_bottom
+
+    def _is_in_title_bar_drag_region(
+        self, window: QQuickWindow, hwnd: int, screen_x: int, screen_y: int
+    ) -> bool:
+        rect = wintypes.RECT()
+        user32.GetWindowRect(hwnd, ctypes.byref(rect))
+
+        screen = window.screen()
+        dp_ratio = screen.devicePixelRatio() if screen else 1.0
+        title_h = (
+            int(window.property("titleBarHeight") * dp_ratio)
+            if window.property("titleBarHeight")
+            else int(48 * dp_ratio)
+        )
+        btn_w = int(self.CAPTION_BTN_WIDTH * dp_ratio)
+
+        if not (
+            rect.left <= screen_x < rect.right
+            and rect.top <= screen_y < rect.top + title_h
+        ):
+            return False
+
+        left_interactive_width = int(self.TITLE_BAR_LEFT_INTERACTIVE_WIDTH * dp_ratio)
+        if screen_x < rect.left + left_interactive_width:
+            return False
+
+        button_count = 0
+        for prop_name in ("closeVisible", "maximizeVisible", "minimizeVisible"):
+            value = window.property(prop_name)
+            if value is None or bool(value):
+                button_count += 1
+
+        control_area_left = rect.right - button_count * btn_w
+        return rect.left + left_interactive_width <= screen_x < control_area_left
 
     def nativeEventFilter(self, event_type: QByteArray, message):
         if event_type != b"windows_generic_MSG":
@@ -252,12 +363,27 @@ class WinEventFilter(QAbstractNativeEventFilter):
         # 遍历每个窗口，检查哪个窗口收到了消息
         for window in self.windows:
             hwnd_window = self.hwnds.get(window)
+
+            # Window handle may change after native recreation; refresh cached hwnd.
+            if hwnd_window != hwnd and window.isVisible():
+                try:
+                    current_hwnd = int(window.winId())
+                except Exception:
+                    current_hwnd = None
+                if current_hwnd and current_hwnd == hwnd and current_hwnd != hwnd_window:
+                    self.hwnds[window] = current_hwnd
+                    self.set_window_styles(window)
+                    hwnd_window = current_hwnd
+
             if hwnd_window != hwnd:
                 continue
 
             if message_id == WM_NCHITTEST:
                 x = ctypes.c_short(l_param & 0xFFFF).value
                 y = ctypes.c_short((l_param >> 16) & 0xFFFF).value
+
+                if self._is_in_maximize_btn(window, hwnd_window, x, y):
+                    return True, HTMAXBUTTON
 
                 rect = wintypes.RECT()
                 user32.GetWindowRect(hwnd_window, ctypes.byref(rect))
@@ -267,7 +393,7 @@ class WinEventFilter(QAbstractNativeEventFilter):
                     rect.right,
                     rect.bottom,
                 )
-                border = self.resize_border
+                border = get_resize_border_thickness(hwnd_window)
 
                 if left <= x < left + border:
                     if top <= y < top + border:
@@ -286,64 +412,107 @@ class WinEventFilter(QAbstractNativeEventFilter):
                 if bottom - border <= y < bottom:
                     return True, 15  # HTBOTTOM
 
+                if self._is_in_title_bar_drag_region(window, hwnd_window, x, y):
+                    return True, HTCAPTION
+
                 # 其他区域不处理
                 return False, 0
 
+            if message_id == WM_NCMOUSEMOVE:
+                if w_param == HTMAXBUTTON and self.win_event_manager:
+                    self.win_event_manager.maximizeBtnHovered.emit(hwnd_window)
+                    tme = TRACKMOUSEEVENT()
+                    tme.cbSize = ctypes.sizeof(TRACKMOUSEEVENT)
+                    tme.dwFlags = 0x00000002 | 0x00000010
+                    tme.hwndTrack = hwnd_window
+                    tme.dwHoverTime = 0
+                    user32.TrackMouseEvent(ctypes.byref(tme))
+                return False, 0
+
+            if message_id == WM_NCMOUSELEAVE:
+                if self.win_event_manager:
+                    self.win_event_manager.maximizeBtnLeave.emit(hwnd_window)
+                return False, 0
+
+            if message_id == WM_NCLBUTTONDOWN:
+                if w_param == HTMAXBUTTON:
+                    if self.win_event_manager:
+                        self.win_event_manager.maximizeBtnPressed.emit(hwnd_window)
+                    return True, 0
+
+            if message_id == WM_NCLBUTTONUP:
+                if w_param == HTMAXBUTTON:
+                    if self.win_event_manager:
+                        self.win_event_manager.maximizeBtnReleased.emit(hwnd_window)
+                    if is_maximized(hwnd_window):
+                        ShowWindow(hwnd_window, SW_RESTORE)
+                    else:
+                        ShowWindow(hwnd_window, SW_MAXIMIZE)
+                    return True, 0
+
             # 移除标题栏
-            if message_id == WM_NCCALCSIZE and w_param:
-                client_rect = ctypes.cast(
-                    l_param, ctypes.POINTER(NCCALCSIZE_PARAMS)
-                ).contents.rgrc[0]
-                if is_maximized(hwnd):
-                    ty = get_resize_border_thickness(hwnd, False)
-                    client_rect.top += ty
-                    client_rect.bottom -= ty
-                    tx = get_resize_border_thickness(hwnd, True)
-                    client_rect.left += tx
-                    client_rect.right -= tx
-                    abd = APPBARDATA()
-                    ctypes.memset(ctypes.byref(abd), 0, ctypes.sizeof(abd))
-                    abd.cbSize = ctypes.sizeof(APPBARDATA)
-                    taskbar_state = ctypes.windll.shell32.SHAppBarMessage(
-                        ABM_GETSTATE, ctypes.byref(abd)
-                    )
-                    if taskbar_state & ABS_AUTOHIDE:
-                        edge = -1
-                        abd2 = APPBARDATA()
-                        ctypes.memset(ctypes.byref(abd2), 0, ctypes.sizeof(abd2))
-                        abd2.cbSize = ctypes.sizeof(APPBARDATA)
-                        abd2.hWnd = FindWindow("Shell_TrayWnd", None)
-                        if abd2.hWnd:
-                            window_monitor = MonitorFromWindow(
-                                hwnd, MONITOR_DEFAULTTONEAREST
-                            )
-                            if window_monitor:
-                                taskbar_monitor = MonitorFromWindow(
-                                    abd2.hWnd, MONITOR_DEFAULTTOPRIMARY
+            if message_id == WM_NCCALCSIZE:
+                if w_param:
+                    client_rect = ctypes.cast(
+                        l_param, ctypes.POINTER(NCCALCSIZE_PARAMS)
+                    ).contents.rgrc[0]
+                    if is_maximized(hwnd):
+                        ty = get_resize_border_thickness(hwnd, False)
+                        client_rect.top += ty
+                        client_rect.bottom -= ty
+                        tx = get_resize_border_thickness(hwnd, True)
+                        client_rect.left += tx
+                        client_rect.right -= tx
+                        abd = APPBARDATA()
+                        ctypes.memset(ctypes.byref(abd), 0, ctypes.sizeof(abd))
+                        abd.cbSize = ctypes.sizeof(APPBARDATA)
+                        taskbar_state = ctypes.windll.shell32.SHAppBarMessage(
+                            ABM_GETSTATE, ctypes.byref(abd)
+                        )
+                        if taskbar_state & ABS_AUTOHIDE:
+                            edge = -1
+                            abd2 = APPBARDATA()
+                            ctypes.memset(ctypes.byref(abd2), 0, ctypes.sizeof(abd2))
+                            abd2.cbSize = ctypes.sizeof(APPBARDATA)
+                            abd2.hWnd = FindWindow("Shell_TrayWnd", None)
+                            if abd2.hWnd:
+                                window_monitor = MonitorFromWindow(
+                                    hwnd, MONITOR_DEFAULTTONEAREST
                                 )
-                                if (
-                                    taskbar_monitor
-                                    and taskbar_monitor == window_monitor
-                                ):
-                                    ctypes.windll.shell32.SHAppBarMessage(
-                                        ABM_GETTASKBARPOS, ctypes.byref(abd2)
+                                if window_monitor:
+                                    taskbar_monitor = MonitorFromWindow(
+                                        abd2.hWnd, MONITOR_DEFAULTTOPRIMARY
                                     )
-                                    edge = abd2.uEdge
-                        top = edge == 1
-                        bottom = edge == 3
-                        left = edge == 0
-                        right = edge == 2
-                        if top:
-                            client_rect.top += 1
-                        elif bottom:
-                            client_rect.bottom -= 1
-                        elif left:
-                            client_rect.left += 1
-                        elif right:
-                            client_rect.right -= 1
-                        else:
-                            client_rect.bottom -= 1
-                return True, 0
+                                    if (
+                                        taskbar_monitor
+                                        and taskbar_monitor == window_monitor
+                                    ):
+                                        ctypes.windll.shell32.SHAppBarMessage(
+                                            ABM_GETTASKBARPOS, ctypes.byref(abd2)
+                                        )
+                                        edge = abd2.uEdge
+                            top = edge == 1
+                            bottom = edge == 3
+                            left = edge == 0
+                            right = edge == 2
+                            if top:
+                                client_rect.top += 1
+                            elif bottom:
+                                client_rect.bottom -= 1
+                            elif left:
+                                client_rect.left += 1
+                            elif right:
+                                client_rect.right -= 1
+                            else:
+                                client_rect.bottom -= 1
+                return True, WVR_REDRAW if w_param else 0
+
+            if message_id == WM_SIZE:
+                margins = (ctypes.c_int * 4)(0, 0, 0, 1)
+                ctypes.windll.dwmapi.DwmExtendFrameIntoClientArea(
+                    hwnd_window, ctypes.byref(margins)
+                )
+                return False, 0
 
             # 支持动画
             if message_id == WM_SYSCOMMAND:
@@ -373,10 +542,10 @@ class WinEventFilter(QAbstractNativeEventFilter):
                     monitor_info.rcWork.top - monitor_info.rcMonitor.top
                 )
                 minmax_info.ptMaxSize.x = (
-                    monitor_info.rcWork.right - monitor_info.rcMonitor.left
+                    monitor_info.rcWork.right - monitor_info.rcWork.left
                 )
                 minmax_info.ptMaxSize.y = (
-                    monitor_info.rcWork.bottom - monitor_info.rcMonitor.top
+                    monitor_info.rcWork.bottom - monitor_info.rcWork.top
                 )
 
                 def get_window_int_property(window, name, default):

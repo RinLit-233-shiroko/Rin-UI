@@ -108,8 +108,8 @@ class RinUIWindow:
 
         from .window import WinEventFilter, WinEventManager
 
-        self.win_event_filter = WinEventFilter(self.windows)
         self.win_event_manager = WinEventManager()
+        self.win_event_filter = WinEventFilter(self.windows, self.win_event_manager)
 
         app_instance = QApplication.instance()
         app_instance.installNativeEventFilter(self.win_event_filter)

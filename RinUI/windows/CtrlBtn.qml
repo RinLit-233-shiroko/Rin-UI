@@ -13,6 +13,9 @@ Base {
     property alias icon: icon.icon
     property alias localHovered: hoverHandler.hovered
     property alias localPressed: mouseArea.pressed
+    // Native non-client hover/press state driven by WinEventManager for Snap Layout.
+    property bool nativeHovered: false
+    property bool nativePressed: false
     // Keep macOS detection resilient across Qt variants.
     property bool macStyle: Qt.platform.os === "osx" || Qt.platform.os === "macos" || Qt.platform.os === "darwin"
     property bool macGroupHovered: false
@@ -25,7 +28,7 @@ Base {
     ToolTip {
         parent: parent
         delay: 500
-        visible: !macStyle && hoverHandler.hovered
+        visible: !macStyle && (hoverHandler.hovered || root.nativeHovered)
         text: mode === 0 ? qsTr("Maximize") : mode === 1 ? qsTr("Minimize") : mode === 2 ? qsTr("Close") : qsTr("Unknown")
     }
 
@@ -214,7 +217,7 @@ Base {
         },
         State {
             name: "pressedCtrl"
-            when: !macStyle && mouseArea.pressed
+            when: !macStyle && (mouseArea.pressed || root.nativePressed)
             PropertyChanges {
                 target: background;
                 opacity: 0.8
@@ -227,7 +230,7 @@ Base {
         },
         State {
             name: "hoveredCtrl"
-            when: !macStyle && hoverHandler.hovered
+            when: !macStyle && (hoverHandler.hovered || root.nativeHovered)
             PropertyChanges {
                 target: background;
                 opacity: 1

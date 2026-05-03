@@ -78,6 +78,37 @@ Item {
         WindowManager.maximizeWindow(window)
     }
 
+    // Sync maximize button visual state with native non-client interactions on Windows.
+    Connections {
+        target: (Qt.platform.os === "windows" && typeof WinEventManager !== "undefined") ? WinEventManager : null
+        function onMaximizeBtnHovered(hwnd) {
+            if (!window || WinEventManager.getWindowId(window) !== hwnd) {
+                return
+            }
+            maximizeBtn.nativeHovered = true
+        }
+        function onMaximizeBtnLeave(hwnd) {
+            if (!window || WinEventManager.getWindowId(window) !== hwnd) {
+                return
+            }
+            maximizeBtn.nativeHovered = false
+            maximizeBtn.nativePressed = false
+        }
+        function onMaximizeBtnPressed(hwnd) {
+            if (!window || WinEventManager.getWindowId(window) !== hwnd) {
+                return
+            }
+            maximizeBtn.nativePressed = true
+        }
+        function onMaximizeBtnReleased(hwnd) {
+            if (!window || WinEventManager.getWindowId(window) !== hwnd) {
+                return
+            }
+            maximizeBtn.nativePressed = false
+            maximizeBtn.nativeHovered = false
+        }
+    }
+
     Rectangle{
         id:rectBk
         anchors.fill: parent
@@ -95,22 +126,25 @@ Item {
             property point clickPos: "0,0"
 
             onPressed: {
-                clickPos = Qt.point(mouseX, mouseY)
-
-                if (Qt.platform.os !== "windows" || !WindowManager._isWinMgrInitialized()) {
+                if (Qt.platform.os === "windows") {
                     return
                 }
-                WindowManager.sendDragWindowEvent(window)
+
+                clickPos = Qt.point(mouseX, mouseY)
             }
-            onDoubleClicked: toggleMaximized()
+            onDoubleClicked: {
+                if (Qt.platform.os === "windows") {
+                    return
+                }
+                toggleMaximized()
+            }
             onPositionChanged: (mouse) => {
+                if (Qt.platform.os === "windows") {
+                    return
+                }
+
                 if (window.isMaximized || window.isFullScreen || window.visibility === Window.Maximized) {
                     return
-                }
-
-                if (Qt.platform.os !== "windows" && WindowManager._isWinMgrInitialized()) {
-                    log("Windows only")
-                    return  // 在win环境使用原生方法拖拽
                 }
 
                 //鼠标偏移量
