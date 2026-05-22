@@ -247,7 +247,7 @@ Item {
         anchors.fill: parent
         visible: frameVisible
         color: Theme.currentTheme.colors.cardColor
-        borderColor: Theme.currentTheme.colors.cardBorderColor
+        border.color: Theme.currentTheme.colors.cardBorderColor
         radius: Theme.currentTheme.appearance.windowRadius
         hoverable: false
     }

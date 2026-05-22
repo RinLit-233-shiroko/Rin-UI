@@ -111,8 +111,8 @@ ControlPage {
                             property bool isSelected: index === iconGrid.currentIndex
 
                             radius: Theme.currentTheme.appearance.windowRadius
-                            borderColor: isSelected ? Theme.currentTheme.colors.primaryColor : "transparent"
-                            borderWidth: isSelected ? 3 : 0
+                            border.color: isSelected ? Theme.currentTheme.colors.primaryColor : "transparent"
+                            border.width: isSelected ? 3 : 0
                             width: 92
                             height: 92
 

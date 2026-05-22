@@ -42,7 +42,7 @@ Frame {
     }
 
     color: Theme.currentTheme.colors.backgroundAcrylicColor
-    borderColor: Theme.currentTheme.colors.flyoutBorderColor
+    border.color: Theme.currentTheme.colors.flyoutBorderColor
 
     // width: 200
     Layout.fillWidth: true

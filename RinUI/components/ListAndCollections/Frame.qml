@@ -11,8 +11,7 @@ Frame {
     property bool hover: false
     property color color: Theme.currentTheme.colors.cardColor
     property alias radius: background.radius
-    property color borderColor: Theme.currentTheme.colors.cardBorderColor
-    property int borderWidth: Theme.currentTheme.appearance.borderWidth
+    property alias border: background.border
 
     clip: true
     // leftPadding: 0
@@ -25,8 +24,8 @@ Frame {
         anchors.fill: parent
         radius: Theme.currentTheme.appearance.smallRadius
         color: root.color
-        border.width: borderWidth
-        border.color: borderColor
+        border.width: Theme.currentTheme.appearance.borderWidth
+        border.color: Theme.currentTheme.colors.cardBorderColor
         opacity: root.hover? 0.7 : 1
         visible: !root.frameless
 
