@@ -29,13 +29,13 @@ Expander {
             Layout.maximumWidth: parent.width * 0.6
             spacing: 16
 
-            IconWidget {
+            Icon {
                 id: icon
-                size: 20
+                size: 22
             }
             Column {
                 Layout.fillWidth: true
-                spacing: 0
+                spacing: 2
                 Text {
                     width: parent.width
                     typography: Typography.Body
@@ -61,7 +61,7 @@ Expander {
             Layout.fillHeight: true
             Item { Layout.fillWidth: true }
             Layout.alignment: Qt.AlignRight
-            spacing: 16
+            spacing: 8
         }
     }
 }

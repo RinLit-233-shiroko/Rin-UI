@@ -31,7 +31,7 @@ Frame {
 
             Icon {
                 id: icon
-                size: 20
+                size: 22
                 visible: name !== "" || source !== ""
             }
             ColumnLayout {
@@ -64,7 +64,7 @@ Frame {
             id: rightContent
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignRight
-            spacing: 16
+            spacing: 8
         }
     }
 }

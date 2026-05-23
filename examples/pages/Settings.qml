@@ -31,7 +31,7 @@ FluentPage {
             width: parent.width
             title: qsTr("App Theme")
             description: qsTr("Select which app theme to display")
-            icon.name: "ic_fluent_paint_brush_20_regular"
+            icon.name: "ic_fluent_color_20_regular"
 
             ComboBox {
                 property var data: [Theme.mode.Light, Theme.mode.Dark, Theme.mode.Auto]
