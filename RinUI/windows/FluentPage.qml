@@ -71,7 +71,7 @@ Page {
             anchors.topMargin: 18
             anchors.horizontalCenter: parent.horizontalCenter
             width: Math.min(fluentPage.width - fluentPage.horizontalPadding * 2, fluentPage.wrapperWidth)  // 24 + 24 的边距
-            spacing: 14
+            spacing: fluentPage.spacing
         }
     }
 

@@ -8,8 +8,8 @@ FluentWindow {
     id: window
     visible: true
     // title: qsTr("Gallery")
-    width: 1200
-    height: 700
+    width: 1400
+    height: 800
     minimumWidth: 550
     minimumHeight: 400
 
@@ -88,14 +88,15 @@ FluentWindow {
                     page: Qt.resolvedUrl("pages/Iconography.qml"),
                     icon: "ic_fluent_symbols_20_regular"
                 }
-            ]
+            ],
+            position: Position.Top  // 置顶导航项
         },
 
         // 控件示例 / Sample //
         {
-            title: qsTr("All Samples"),
+            title: qsTr("All"),
             page: Qt.resolvedUrl("pages/AllSamples.qml"),
-            icon: "ic_fluent_apps_list_20_regular"
+            icon: "ic_fluent_grid_20_regular"
 
         },
         {

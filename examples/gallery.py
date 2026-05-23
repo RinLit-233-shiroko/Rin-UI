@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 from config import cfg
-from PySide6.QtCore import QLocale, QObject, Qt, QTranslator, Slot
+from PySide6.QtCore import QLocale, QObject, Qt, QTranslator, Signal, Slot
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QApplication
 
@@ -33,6 +33,8 @@ class Gallery(RinUIWindow):
 
 
 class Backend(QObject):
+    favoritesChanged = Signal()
+
     def setBackendParent(self, parent):
         self.parent = parent
 
@@ -74,6 +76,28 @@ class Backend(QObject):
         QApplication.instance().installTranslator(ui_translator)
         QApplication.instance().installTranslator(translator)
         self.parent.engine.retranslate()
+
+    @Slot(result=list)
+    def getFavorites(self):
+        return cfg["favorites"] or []
+
+    @Slot(str, result=bool)
+    def isFavorite(self, title: str):
+        return title in self.getFavorites()
+
+    @Slot(str, result=bool)
+    def toggleFavorite(self, title: str):
+        favorites = self.getFavorites()
+        if title in favorites:
+            favorites.remove(title)
+            favorited = False
+        else:
+            favorites.append(title)
+            favorited = True
+        cfg["favorites"] = favorites
+        cfg.save_config()
+        self.favoritesChanged.emit()
+        return favorited
 
 
 if __name__ == "__main__":

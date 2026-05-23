@@ -16,8 +16,16 @@ Button {
         anchors.fill: parent
         color: root.backgroundColor
         opacity: 1
-        // flat:
+
+        border.color: {
+            if (hovered && !pressed) {
+                return Theme.currentTheme.colors.controlBorderStrongColor
+            }
+            return Theme.currentTheme.colors.cardBorderColor
+        }
     }
+
+    opacity: hovered && !pressed ? 0.9 : 1
 
     contentItem: Item {}
 }

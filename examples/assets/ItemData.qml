@@ -30,6 +30,12 @@ QtObject {
         );
     }
 
+    function getFavoriteItems(titles) {
+        if (!titles) return [];
+
+        return allControls.filter(item => titles.indexOf(item.title) !== -1);
+    }
+
     property var recentlyAddedItems: getRecentlyAddedItems()
     property var recentlyUpdatedItems: getRecentlyUpdatedItems()
 

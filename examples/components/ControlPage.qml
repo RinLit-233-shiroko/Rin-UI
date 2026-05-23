@@ -108,6 +108,28 @@ FluentPage {
                         visible: parent.hovered
                     }
                 }
+
+                ToolButton {  // favorite
+                    id: favoriteButton
+                    icon.name: highlighted ? "ic_fluent_star_20_filled" : "ic_fluent_star_20_regular"
+                    onClicked: {
+                        highlighted = Backend.toggleFavorite(fluentPage.pageName)
+                    }
+                    highlighted: Backend.isFavorite(fluentPage.pageName)
+
+                    Connections {
+                        target: Backend
+                        function onFavoritesChanged() {
+                            favoriteButton.highlighted = Backend.isFavorite(fluentPage.pageName)
+                        }
+                    }
+
+                    ToolTip {
+                        delay: 500
+                        text: parent.highlighted ? qsTr("Remove from favorite") : qsTr("Add to favorite")
+                        visible: parent.hovered
+                    }
+                }
             }
         }
     }

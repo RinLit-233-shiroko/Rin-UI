@@ -10,6 +10,8 @@ FluentPage {
     // title: "test"
     horizontalPadding: 0
     wrapperWidth: width - 42*2
+    spacing: 18
+    id: root
 
     // Banner / 横幅 //
     contentHeader: Item {
@@ -49,7 +51,8 @@ FluentPage {
 
             Text {
                 color: "#fff"
-                typography: Typography.BodyLarge
+                font.pixelSize: 18
+                font.weight: 600
                 text: qsTr("A Fluent Design-like UI library for Qt Quick")
             }
 
@@ -104,57 +107,269 @@ FluentPage {
     }
 
     // Special Warning
-    InfoBar {
-        Layout.fillWidth: true
-        severity: Severity.Success
-        closable: false
-        title: qsTr("🎉 Congratulations!")
-        text: qsTr(
-            "Congratulations! The refactoring of RinUI Gallery is now <b>complete</b>."
-        )
+    // InfoBar {
+    //     Layout.fillWidth: true
+    //     severity: Severity.Success
+    //     closable: false
+    //     title: qsTr("🎉 Congratulations!")
+    //     text: qsTr(
+    //         "Congratulations! The refactoring of RinUI Gallery is now <b>complete</b>."
+    //     )
+    // }
+
+
+    // page
+    property int pageState: 0
+    property var favoriteItems: ItemData.getFavoriteItems(Backend.getFavorites())
+    // 0 -> Recent
+    // 1 -> Favorite
+
+    Connections {
+        target: Backend
+        function onFavoritesChanged() {
+            favoriteItems = ItemData.getFavoriteItems(Backend.getFavorites())
+        }
     }
 
-    // Content / 内容 //
-    Column {
-        Layout.fillWidth: true
+    Row {
         spacing: 8
-        Text {
-            typography: Typography.Subtitle
-            text: qsTr("Recently added samples")
+        Layout.topMargin: 32
+        Layout.alignment: Qt.AlignHCenter
+
+        PillButton {
+            width: 114
+            icon.name: "ic_fluent_clock_20_regular"
+            text: qsTr("Recent")
+            highlighted: pageState === 0
+            onClicked: {
+                if (pageState !== 0) {
+                    pageState = 0
+                    contentStack.replace(recentPageComponent)
+                }
+            }
         }
-
-        Grid {
-            width: parent.width
-            columns: Math.floor(width / (360 + 6)) // 自动算列数
-            rowSpacing: 12
-            columnSpacing: 12
-            layoutDirection: GridLayout.LeftToRight
-
-            Repeater {
-                model: ItemData.recentlyAddedItems
-                delegate: ControlClip { }
+        PillButton {
+            width: 114
+            icon.name: "ic_fluent_star_20_regular"
+            text: qsTr("Favorite")
+            highlighted: pageState === 1
+            onClicked: {
+                if (pageState !== 1) {
+                    pageState = 1
+                    contentStack.replace(favoritePageComponent)
+                }
             }
         }
     }
 
-    Column {
+    // Content / 内容 //
+    StackView {
+        id: contentStack
         Layout.fillWidth: true
-        spacing: 8
-        Text {
-            typography: Typography.Subtitle
-            text: qsTr("Recently updated samples")
+        implicitWidth: parent.width
+        implicitHeight: currentItem ? currentItem.implicitHeight : 0
+        clip: true
+
+        onCurrentItemChanged: {
+            if (currentItem) {
+                pageState = currentItem.pageIndex
+            }
         }
 
-        Grid {
-            width: parent.width
-            columns: Math.floor(width / (360 + 6)) // 自动算列数
-            rowSpacing: 12
-            columnSpacing: 12
-            layoutDirection: GridLayout.LeftToRight
+        replaceEnter : Transition {
+            SequentialAnimation  {
+                PropertyAction {
+                    property: "opacity"
+                    value: 0
+                }
 
-            Repeater {
-                model: ItemData.recentlyUpdatedItems
-                delegate: ControlClip { }
+                PauseAnimation {
+                    duration: 50
+                }
+
+                PropertyAnimation {
+                    property: "opacity"
+                    from: 0
+                    to: 1
+                    duration: Utils.appearanceSpeed / 2
+                    easing.type: Easing.InOutQuad
+                }
+            }
+
+            PropertyAnimation {
+                property: "y"
+                from: 50
+                to: 0
+                duration: Utils.animationSpeedMiddle
+                easing.type: Easing.OutQuint
+            }
+        }
+
+        replaceExit : Transition {
+            PropertyAnimation {
+                property: "opacity"
+                from: 1
+                to: 0
+                duration: 100
+            }
+            PropertyAnimation {
+                property: "y"
+                from: 0
+                to: 50
+                duration: 100
+                easing.type: Easing.InQuint
+            }
+        }
+
+        initialItem: recentPageComponent
+
+        Component {
+            id: recentPageComponent
+
+            Item {
+                property int pageIndex: 0
+                width: contentStack.width
+                implicitHeight: recentContent.implicitHeight
+
+                Column {
+                    id: recentContent
+                    width: parent.width
+                    spacing: 18
+
+                    Column {
+                        width: parent.width
+                        spacing: 12
+                        Text {
+                            typography: Typography.BodyStrong
+                            font.pixelSize: 15
+                            text: qsTr("Recently visited")
+                        }
+
+                        Flickable {
+                            id: vsFlickable
+                            width: parent.width
+                            contentWidth: visitedSamples.width
+                            height: 100
+                            Row {
+                                id: visitedSamples
+                                spacing: 12
+                                Repeater {
+                                    model: ItemData.recentlyAddedItems
+                                    delegate: ControlClip { }
+                                }
+                            }
+
+                            Behavior on contentX {
+                                NumberAnimation {
+                                    duration: 200
+                                    easing.type: Easing.OutQuad
+                                }
+                            }
+
+                            WheelHandler {
+                                target: null
+                                onWheel: (wheel) => {
+                                    let delta = wheel.angleDelta.x !== 0 ? wheel.angleDelta.x : wheel.angleDelta.y;
+                                    vsFlickable.contentX = Math.max(0, Math.min(vsFlickable.contentX - delta*2, vsFlickable.contentWidth - vsFlickable.width));
+                                }
+                            }
+                        }
+                    }
+
+                    Column {
+                        width: parent.width
+                        spacing: 12
+                        Text {
+                            typography: Typography.BodyStrong
+                            font.pixelSize: 15
+                            text: qsTr("Recently added")
+                        }
+
+                        Grid {
+                            width: parent.width
+                            columns: Math.floor(width / (360 + 6))
+                            rowSpacing: 12
+                            columnSpacing: 12
+                            layoutDirection: GridLayout.LeftToRight
+
+                            Repeater {
+                                model: ItemData.recentlyAddedItems
+                                delegate: ControlClip { }
+                            }
+                        }
+                    }
+
+                    Column {
+                        width: parent.width
+                        spacing: 12
+                        Text {
+                            typography: Typography.BodyStrong
+                            text: qsTr("Recently updated")
+                        }
+
+                        Grid {
+                            width: parent.width
+                            columns: Math.floor(width / (360 + 6))
+                            rowSpacing: 12
+                            columnSpacing: 12
+                            layoutDirection: GridLayout.LeftToRight
+
+                            Repeater {
+                                model: ItemData.recentlyUpdatedItems
+                                delegate: ControlClip { }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Component {
+            id: favoritePageComponent
+
+            Item {
+                property int pageIndex: 1
+                width: contentStack.width
+                implicitHeight: favoriteItems.length > 0 ? favoriteGrid.implicitHeight : 200
+
+                Grid {
+                    id: favoriteGrid
+                    width: parent.width
+                    columns: Math.floor(width / (360 + 6))
+                    rowSpacing: 12
+                    columnSpacing: 12
+                    layoutDirection: GridLayout.LeftToRight
+                    visible: favoriteItems.length > 0
+
+                    Repeater {
+                        model: favoriteItems
+                        delegate: ControlClip { }
+                    }
+                }
+
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    id: emptyFavorite
+                    visible: favoriteItems.length === 0
+                    spacing: 8
+
+                    Icon {
+                        Layout.alignment: Qt.AlignHCenter
+                        size: 36
+                        source: Qt.resolvedUrl("../assets/controls/RatingControl.png")
+                    }
+                    Text {
+                        Layout.alignment: Qt.AlignHCenter
+                        typography: Typography.BodyStrong
+                        text: qsTr("No favorites yet")
+                    }
+                    Text {
+                        Layout.alignment: Qt.AlignHCenter
+                        typography: Typography.Body
+                        color: Theme.currentTheme.colors.textSecondaryColor
+                        text: qsTr("Favorite samples by clicking the star icon on the sample page.")
+                    }
+                }
             }
         }
     }

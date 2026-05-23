@@ -4,9 +4,10 @@ import QtQuick.Layouts 2.15
 import RinUI
 
 Clip {
-    width: 220
-    height: 216
-    radius: Appearance.proxy.windowRadius
+    width: 232
+    height: 172
+    radius: 8
+    // radius: Appearance.proxy.windowRadius
 
     // corner sign
     IconWidget {
@@ -24,24 +25,25 @@ Clip {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 24
-        spacing: 24
+        spacing: 16
 
         Image {
             Layout.alignment: Qt.AlignVCenter
             source: modelData.icon
             fillMode: Image.PreserveAspectFit
             // layout内部宽高
-            Layout.preferredWidth: 60
-            Layout.preferredHeight: 60
+            Layout.preferredWidth: 36
+            Layout.preferredHeight: 36
         }
 
         Column {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            spacing: 4
             Layout.alignment: Qt.AlignVCenter
             Text {
                 width: parent.width
-                typography: Typography.BodyLarge
+                typography: Typography.BodyStrong
                 text: modelData.title
             }
             Text {

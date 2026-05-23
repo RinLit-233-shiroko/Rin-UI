@@ -12,6 +12,7 @@ from RinUI import ConfigManager  # noqa: E402
 PATH = Path(__file__).parent.absolute()
 DFT_CONFIG = {
     "language": QLocale.system().name(),
+    "favorites": [],
 }
 
 
