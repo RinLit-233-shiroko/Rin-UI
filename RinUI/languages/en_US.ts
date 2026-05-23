@@ -121,22 +121,22 @@
 <context>
     <name>CtrlBtn</name>
     <message>
-        <location filename="../windows/CtrlBtn.qml" line="19"/>
+        <location filename="../windows/CtrlBtn.qml" line="29"/>
         <source>Maximize</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../windows/CtrlBtn.qml" line="19"/>
+        <location filename="../windows/CtrlBtn.qml" line="29"/>
         <source>Minimize</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../windows/CtrlBtn.qml" line="19"/>
+        <location filename="../windows/CtrlBtn.qml" line="29"/>
         <source>Close</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../windows/CtrlBtn.qml" line="19"/>
+        <location filename="../windows/CtrlBtn.qml" line="29"/>
         <source>Unknown</source>
         <translation type="unfinished"></translation>
     </message>
@@ -196,17 +196,17 @@ Please try again later.</source>
 <context>
     <name>NavigationBar</name>
     <message>
-        <location filename="../components/Navigation/NavigationBar.qml" line="216"/>
+        <location filename="../components/Navigation/NavigationBar.qml" line="244"/>
         <source>Back</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../components/Navigation/NavigationBar.qml" line="257"/>
+        <location filename="../components/Navigation/NavigationBar.qml" line="285"/>
         <source>Open Navigation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../components/Navigation/NavigationBar.qml" line="257"/>
+        <location filename="../components/Navigation/NavigationBar.qml" line="285"/>
         <source>Close Navigation</source>
         <translation type="unfinished"></translation>
     </message>
@@ -286,7 +286,7 @@ Please try again later.</source>
 <context>
     <name>TitleBar</name>
     <message>
-        <location filename="../windows/TitleBar.qml" line="119"/>
+        <location filename="../windows/TitleBar.qml" line="197"/>
         <source>Fluent TitleBar</source>
         <translation type="unfinished"></translation>
     </message>

@@ -200,6 +200,17 @@ QtObject {
             updated: true,
         },
         {
+            icon: Qt.resolvedUrl("controls/PipsPager.png"),
+            title: qsTr("PageIndicator"),
+            type: "scrolling",
+            desc: qsTr(
+                "A control to let the user navigate through a paginated collection when the page numbers" +
+                "do not need to be visually known."
+            ),
+            page: Qt.resolvedUrl("../pages/controls/PageIndicator.qml"),
+            added: true,
+        },
+        {
             icon: Qt.resolvedUrl("controls/Popup.png"),
             title: qsTr("Popup"),
             type: "dialogs&flyouts",

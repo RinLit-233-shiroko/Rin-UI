@@ -54,6 +54,10 @@ TextInput 1.0 components/Text/TextInput.qml
 AutoSuggestBox 1.0 components/Text/AutoSuggestBox.qml
 
 
+# Scrolling
+PageIndicator 1.0 components/Scrolling/PageIndicator.qml
+
+
 # Status & Info
 InfoBadge 1.0 components/StatusAndInfo/InfoBadge.qml
 InfoBar 1.0 components/StatusAndInfo/InfoBar.qml

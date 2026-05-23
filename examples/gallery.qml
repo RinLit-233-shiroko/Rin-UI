@@ -147,6 +147,12 @@ FluentWindow {
             subItems: generateSubItems("navigation")
         },
         {
+            title: qsTr("Scrolling"),
+            page: Qt.resolvedUrl("pages/Scrolling.qml"),
+            icon: "ic_fluent_arrow_sort_20_regular",
+            subItems: generateSubItems("scrolling")
+        },
+        {
             title: qsTr("Status & Info"),
             page: Qt.resolvedUrl("pages/StatusAndInfo.qml"),
             icon: "ic_fluent_chat_multiple_minus_20_regular",
