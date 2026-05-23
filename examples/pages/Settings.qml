@@ -6,12 +6,25 @@ import RinUI
 FluentPage {
     title: qsTr("Settings")
 
+    property int recentlyViewedCount: Backend.getRecentlyViewed().length
+    property int favoritesCount: Backend.getFavorites().length
+
+    Connections {
+        target: Backend
+        function onRecentlyViewedChanged() {
+            recentlyViewedCount = Backend.getRecentlyViewed().length
+        }
+        function onFavoritesChanged() {
+            favoritesCount = Backend.getFavorites().length
+        }
+    }
+
     Column {
         Layout.fillWidth: true
         spacing: 3
         Text {
             typography: Typography.BodyStrong
-            text: qsTr("Appearance")
+            text: qsTr("Appearance & behavior")
         }
 
         SettingCard {
@@ -68,6 +81,24 @@ FluentPage {
                 onColorChanged: {
                     Theme.setThemeColor(color)
                 }
+            }
+        }
+
+        SettingCard {
+            width: parent.width
+            title: qsTr("Manage samples")
+            description: qsTr("Clear your recent or favorite samples")
+            icon.name: "ic_fluent_grid_20_regular"
+
+            Button {
+                enabled: recentlyViewedCount > 0
+                text: qsTr("Clear recents")
+                onClicked: Backend.clearRecentlyViewed()
+            }
+            Button {
+                enabled: favoritesCount > 0
+                text: qsTr("Remove favorites")
+                onClicked: Backend.clearFavorites()
             }
         }
     }

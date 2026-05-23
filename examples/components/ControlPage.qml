@@ -18,6 +18,10 @@ FluentPage {
 
     contentSpacing: 32
 
+    Component.onCompleted: {
+        Backend.addRecentlyViewed(fluentPage.pageName)
+    }
+
     header: Item {
         id: container
         height: headerRow.height + 44

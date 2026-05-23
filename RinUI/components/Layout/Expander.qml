@@ -52,6 +52,7 @@ Item {
             headerLayout.implicitHeight + 5 * 2,
             48
         )
+        border.color: Theme.currentTheme.colors.cardBorderColor
         radius: 0
 
         RowLayout {

@@ -60,7 +60,7 @@ FluentPage {
     // Content / 内容 //
     Grid {
         Layout.fillWidth: true
-        columns: Math.floor(width / (360 + 12)) // 自动算列数
+        columns: Math.floor((width-12) / (300 + 6)) // 自动算列数
         rowSpacing: 12
         columnSpacing: 12
         layoutDirection: GridLayout.LeftToRight

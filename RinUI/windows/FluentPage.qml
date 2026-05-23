@@ -20,7 +20,7 @@ Page {
     horizontalPadding: 56
     bottomPadding: 24
     // StackView.onRemoved: destroy()
-    spacing: 0
+    spacing: 14
     property alias contentSpacing: container.spacing
 
 

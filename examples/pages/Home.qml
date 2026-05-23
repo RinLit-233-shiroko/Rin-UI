@@ -120,15 +120,14 @@ FluentPage {
 
     // page
     property int pageState: 0
-    property var favoriteItems: ItemData.getFavoriteItems(Backend.getFavorites())
+    property var favoriteItems: []
+    property var recentlyViewedItems: []
     // 0 -> Recent
     // 1 -> Favorite
 
-    Connections {
-        target: Backend
-        function onFavoritesChanged() {
-            favoriteItems = ItemData.getFavoriteItems(Backend.getFavorites())
-        }
+    Component.onCompleted: {
+        favoriteItems = ItemData.getFavoriteItems(Backend.getFavorites())
+        recentlyViewedItems = ItemData.getRecentlyViewedItems(Backend.getRecentlyViewed())
     }
 
     Row {
@@ -244,17 +243,20 @@ FluentPage {
                             font.pixelSize: 15
                             text: qsTr("Recently visited")
                         }
+                        visible: recentlyViewedItems.length !== 0
 
                         Flickable {
                             id: vsFlickable
                             width: parent.width
                             contentWidth: visitedSamples.width
                             height: 100
+                            visible: recentlyViewedItems.length > 0
+                            clip: true
                             Row {
                                 id: visitedSamples
                                 spacing: 12
                                 Repeater {
-                                    model: ItemData.recentlyAddedItems
+                                    model: recentlyViewedItems
                                     delegate: ControlClip { }
                                 }
                             }
@@ -287,7 +289,7 @@ FluentPage {
 
                         Grid {
                             width: parent.width
-                            columns: Math.floor(width / (360 + 6))
+                            columns: Math.floor((width-12) / (300 + 6))
                             rowSpacing: 12
                             columnSpacing: 12
                             layoutDirection: GridLayout.LeftToRight

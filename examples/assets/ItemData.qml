@@ -36,6 +36,12 @@ QtObject {
         return allControls.filter(item => titles.indexOf(item.title) !== -1);
     }
 
+    function getRecentlyViewedItems(titles) {
+        if (!titles) return [];
+
+        return titles.map(title => allControls.find(item => item.title === title)).filter(item => item);
+    }
+
     property var recentlyAddedItems: getRecentlyAddedItems()
     property var recentlyUpdatedItems: getRecentlyUpdatedItems()
 

@@ -19,21 +19,23 @@ if str(PROJECT_ROOT) not in sys.path:
 class Gallery(RinUIWindow):
     def __init__(self):
         qml_file = SCRIPT_DIR / "gallery.qml"
-        super().__init__(str(qml_file))
-        icon_path = SCRIPT_DIR / "assets" / "gallery.png"
-        self.setIcon(str(icon_path))
+        super().__init__()
 
         self.backend = Backend()
         self.backend.setBackendParent(self)
+        self.engine.rootContext().setContextProperty("Backend", self.backend)
+        self.load(str(qml_file))
+
+        icon_path = SCRIPT_DIR / "assets" / "gallery.png"
+        self.setIcon(str(icon_path))
         self.setProperty(
             "title", f"RinUI Gallery {datetime.now().year}"
         )  # 前后端交互示例
 
-        self.engine.rootContext().setContextProperty("Backend", self.backend)  # 注入
-
 
 class Backend(QObject):
     favoritesChanged = Signal()
+    recentlyViewedChanged = Signal()
 
     def setBackendParent(self, parent):
         self.parent = parent
@@ -98,6 +100,32 @@ class Backend(QObject):
         cfg.save_config()
         self.favoritesChanged.emit()
         return favorited
+
+    @Slot(result=list)
+    def getRecentlyViewed(self):
+        return cfg["recentlyViewed"] or []
+
+    @Slot(str)
+    def addRecentlyViewed(self, title: str):
+        recently_viewed = self.getRecentlyViewed()
+        if title in recently_viewed:
+            recently_viewed.remove(title)
+        recently_viewed.insert(0, title)
+        cfg["recentlyViewed"] = recently_viewed[:7]
+        cfg.save_config()
+        self.recentlyViewedChanged.emit()
+
+    @Slot()
+    def clearRecentlyViewed(self):
+        cfg["recentlyViewed"] = []
+        cfg.save_config()
+        self.recentlyViewedChanged.emit()
+
+    @Slot()
+    def clearFavorites(self):
+        cfg["favorites"] = []
+        cfg.save_config()
+        self.favoritesChanged.emit()
 
 
 if __name__ == "__main__":
