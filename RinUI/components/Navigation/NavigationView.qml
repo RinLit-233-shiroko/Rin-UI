@@ -23,6 +23,7 @@ RowLayout {
     // 页面组件缓存(Component)
     property var componentCache: ({})
     property bool pushInProgress: false
+    property bool replaceBackInProgress: false
     property var loadingPages: ({})
     property var itemsToRestoreAfterReload: []
 
@@ -177,6 +178,51 @@ RowLayout {
                 }
             }
 
+            replaceEnter: Transition {
+                SequentialAnimation {
+                    PropertyAction {
+                        property: "opacity"
+                        value: 0
+                    }
+                    PauseAnimation {
+                        duration: replaceBackInProgress ? Utils.animationSpeed : 0
+                    }
+                    PropertyAnimation {
+                        property: "opacity"
+                        from: 0
+                        to: 1
+                        duration: replaceBackInProgress ? 100 : Utils.appearanceSpeed
+                        easing.type: Easing.InOutQuad
+                    }
+                }
+
+                PropertyAnimation {
+                    property: "y"
+                    from: replaceBackInProgress ? 0 : pushEnterFromY
+                    to: 0
+                    duration: replaceBackInProgress ? 0 : Utils.animationSpeedMiddle
+                    easing.type: Easing.OutQuint
+                }
+            }
+
+            replaceExit: Transition {
+                PropertyAnimation {
+                    property: "opacity"
+                    from: 1
+                    to: replaceBackInProgress ? 0 : 0
+                    duration: replaceBackInProgress ? Utils.appearanceSpeed : Utils.animationSpeed
+                    easing.type: Easing.InOutQuad
+                }
+
+                PropertyAnimation {
+                    property: "y"
+                    from: 0
+                    to: replaceBackInProgress ? pushEnterFromY : 0
+                    duration: replaceBackInProgress ? Utils.animationSpeed : 0
+                    easing.type: Easing.InQuint
+                }
+            }
+
             initialItem: Item {}
 
         }
@@ -205,6 +251,7 @@ RowLayout {
                 stackView.pop()
                 pageChanged()
             } else {
+                replaceBackInProgress = true
                 currentPage = previousPage
                 safePush(previousPage, false, true)  // 重新加载页面
             }
@@ -220,6 +267,11 @@ RowLayout {
     function push(page, properties) {
         if (properties === undefined) properties = {}
         safePush(page, false, false, properties)
+    }
+
+    function pushStack(page, properties) {
+        if (properties === undefined) properties = {}
+        safePush(page, false, true, properties)
     }
 
     function safePush(page, reload, fromNavigation, properties) {
@@ -239,8 +291,12 @@ RowLayout {
 
         let pageKey = normalizeKeyFromPage(page)
         if (!fromNavigation) {
-            if (navigationBar.currentPage === pageKey && !reload) return
-            if (loadingPages[pageKey] && !reload) return
+            if (navigationBar.currentPage === pageKey && !reload) {
+                return
+            }
+            if (loadingPages[pageKey] && !reload) {
+                return
+            }
         }
         setPushInProgress(true)
 
@@ -319,24 +375,23 @@ RowLayout {
         if (targetIndex >= 0) {
             foundAndCleaned = true
             if (targetIndex === stackView.depth - 1) {
-                let poppedItem = stackView.pop(null, StackView.Immediate)
-                if (poppedItem) poppedItem.destroy()
+                stackView.pop(null, StackView.Immediate)
             } else {
                 let itemsToRestore = []
                 for (let i = stackView.depth - 1; i > targetIndex; i--) {
                     let item = stackView.get(i)
                     if (item) {
+                        let itemPageKey = item.__navPageKey || item.objectName
                         let pageInfo = {
-                            component: componentCache[item.objectName] || null,
-                            pageKey: item.objectName,
+                            component: componentCache[itemPageKey] || null,
+                            pageKey: itemPageKey,
                             properties: {}
                         }
                         itemsToRestore.unshift(pageInfo)
                     }
                 }
                 while (stackView.depth > targetIndex + 1) stackView.pop(null, StackView.Immediate)
-                let targetItem = stackView.pop(null, StackView.Immediate)
-                if (targetItem) targetItem.destroy()
+                stackView.pop(null, StackView.Immediate)
                 navigationView.itemsToRestoreAfterReload = itemsToRestore
             }
         }
@@ -351,26 +406,23 @@ RowLayout {
                 normalizeKeyFromPage(pageKey).split("/").pop().replace(".qml", "") :
                 normalizeKeyFromPage(pageKey)
             if (stackView.currentItem && stackView.currentItem.objectName === currentObjectName) {
-                let pageInstance = component.createObject(stackView, Object.assign({}, properties, {
+                stackView.replace(stackView.currentItem, component, Object.assign({}, properties, {
                     objectName: currentObjectName
                 }))
-                if (!pageInstance) {
-                    console.error("Failed to create page instance for reload:", pageKey)
-                    setPushInProgress(false)
-                    return
-                }
-                stackView.replace(stackView.currentItem, pageInstance)
                 Qt.callLater(function() {
-                    if (stackView.busy && stackView.currentItem === pageInstance) {
-                        let animationHandler = function() {
-                            if (stackView.currentItem === pageInstance && !stackView.busy) {
+                    if (stackView.busy) {
+                        let busyHandler = function() {
+                            if (!stackView.busy) {
                                 setPushInProgress(false)
-                                stackView.busyChanged.disconnect(animationHandler)
+                                replaceBackInProgress = false
+                                stackView.busyChanged.disconnect(busyHandler)
                             }
                         }
-                        if (!stackView.busy) setPushInProgress(false)
-                        else stackView.busyChanged.connect(animationHandler)
-                    } else setPushInProgress(false)
+                        stackView.busyChanged.connect(busyHandler)
+                    } else {
+                        setPushInProgress(false)
+                        replaceBackInProgress = false
+                    }
                 })
                 return
             } else {
@@ -399,16 +451,16 @@ RowLayout {
 
         pageChanged()
 
-        let pageInstance = component.createObject(stackView, Object.assign({}, properties, {
+        let pageInstance = stackView.replace(stackView.currentItem, component, Object.assign({}, properties, {
             objectName: targetObjectName
         }))
         if (!pageInstance) {
-            console.error("Failed to create page instance for:", pageKey)
+            console.error("Failed to replace page:", pageKey)
             setPushInProgress(false)
+            replaceBackInProgress = false
             return
         }
 
-        stackView.push(pageInstance)
         if (loadingPages[pageKey]) {
             loadingPages[pageKey] = false
             delete loadingPages[pageKey]
@@ -419,18 +471,21 @@ RowLayout {
                 let animationHandler = function() {
                     if (stackView.currentItem === pageInstance && !stackView.busy) {
                         setPushInProgress(false)
+                        replaceBackInProgress = false
                         stackView.busyChanged.disconnect(animationHandler)
                         restoreItemsAfterReload()
                     }
                 }
                 if (!stackView.busy) {
                     setPushInProgress(false)
+                    replaceBackInProgress = false
                     restoreItemsAfterReload()
                 } else {
                     stackView.busyChanged.connect(animationHandler)
                 }
             } else {
                 setPushInProgress(false)
+                replaceBackInProgress = false
                 restoreItemsAfterReload()
             }
         })
@@ -443,17 +498,10 @@ RowLayout {
             for (let i = 0; i < itemsToRestore.length; i++) {
                 let pageInfo = itemsToRestore[i]
                 if (pageInfo.component && pageInfo.pageKey) {
-                    let pageInstance = pageInfo.component.createObject(stackView, {
-                        objectName: normalizeKeyFromPage(pageInfo.pageKey).includes("/") ?
-                            normalizeKeyFromPage(pageInfo.pageKey).split("/").pop().replace(".qml", "") :
-                            normalizeKeyFromPage(pageInfo.pageKey)
-                    })
-                    if (pageInstance) {
-                        stackView.push(pageInstance, {}, StackView.Immediate)
-                        // console.log("Restored page:", pageInfo.pageKey)
-                    } else {
-                        console.error("Failed to restore page instance for:", pageInfo.pageKey)
-                    }
+                    let objName = normalizeKeyFromPage(pageInfo.pageKey).includes("/") ?
+                        normalizeKeyFromPage(pageInfo.pageKey).split("/").pop().replace(".qml", "") :
+                        normalizeKeyFromPage(pageInfo.pageKey)
+                    stackView.push(pageInfo.component, { objectName: objName }, StackView.Immediate)
                 }
             }
         }
@@ -464,7 +512,6 @@ RowLayout {
         if (pageKey && loadingPages[pageKey]) {
             loadingPages[pageKey] = false
             delete loadingPages[pageKey]
-            // console.log("Cleaned up loadingPages for:", pageKey)
         }
         if (resetPush) {
             setPushInProgress(false)
@@ -473,9 +520,6 @@ RowLayout {
 
     function setPushInProgress(inProgress) {
         pushInProgress = inProgress
-        if (!inProgress) {
-            // console.log("Push operation completed, ready for next navigation")
-        }
     }
 
     function normalizeKeyFromPage(page) {
