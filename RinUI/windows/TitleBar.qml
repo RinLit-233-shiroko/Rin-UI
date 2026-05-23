@@ -128,7 +128,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: root.macNativeContentVerticalOffset
         height: parent.height
-        anchors.margins: 0
+        anchors.leftMargin: root.isMacOS ? 0 : 4
         spacing: root.isMacOS ? (root.showMacCustomControls ? 12 : 0) : 48
 
         // macOS traffic-light controls stay on the left side of the title.
