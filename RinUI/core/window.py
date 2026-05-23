@@ -16,9 +16,8 @@ from win32con import (
     MONITOR_DEFAULTTONEAREST,
     MONITOR_DEFAULTTOPRIMARY,
     SW_MAXIMIZE,
-    SW_RESTORE,
 )
-from win32gui import FindWindow, GetWindowPlacement, ReleaseCapture, ShowWindow
+from win32gui import FindWindow, GetWindowPlacement, ReleaseCapture
 
 from RinUI.core.config import is_windows
 
@@ -166,22 +165,23 @@ class WinEventManager(QObject):
             hwnd, win32con.WM_SYSCOMMAND, win32con.SC_MOVE | win32con.HTCAPTION, 0
         )
 
-    @Slot(int)
-    def maximizeWindow(self, hwnd):
+    @Slot(QObject)
+    def maximizeWindow(self, window):
         """在Windows上最大化或还原窗口"""
-        if not is_windows() or type(hwnd) is not int or hwnd == 0:
+        if not is_windows() or window is None:
             print(
                 f"Use Qt method to drag window on: {platform.system()}"
                 if not is_windows()
-                else f"Invalid window handle: {hwnd}"
+                else "Invalid window object"
             )
             return
 
         try:
+            hwnd = int(window.winId())
             if is_maximized(hwnd):
-                ShowWindow(hwnd, SW_RESTORE)
+                window.showNormal()
             else:
-                ShowWindow(hwnd, SW_MAXIMIZE)
+                window.showMaximized()
 
         except Exception as err:
             msg = f"Error toggling window state: {err}"
@@ -200,6 +200,9 @@ class WinEventFilter(QAbstractNativeEventFilter):
             window.visibleChanged.connect(
                 lambda visible, w=window: self._on_visible_changed(visible, w)
             )
+
+    def initialize_windows(self):
+        for window in self.windows:
             if window.isVisible():
                 self._init_window_handle(window)
 
@@ -221,14 +224,19 @@ class WinEventFilter(QAbstractNativeEventFilter):
         style = user32.GetWindowLongPtrW(hwnd, -16)  # GWL_STYLE
         style |= WS_CAPTION | WS_THICKFRAME
         user32.SetWindowLongPtrW(hwnd, -16, style)  # GWL_STYLE
+        self.refresh_window_frame(window)
 
-        # 重绘
+    def refresh_window_frame(self, window: QQuickWindow):
+        hwnd = self.hwnds.get(window)
+        if hwnd is None:
+            return
+
         user32.SetWindowPos(
-            hwnd, 0, 0, 0, 0, 0, 0x0002 | 0x0001 | 0x0040
-        )  # SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED
+            hwnd, 0, 0, 0, 0, 0, 0x0002 | 0x0001 | 0x0004 | 0x0010 | 0x0020
+        )  # SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED
 
     def nativeEventFilter(self, event_type: QByteArray, message):
-        if event_type != b"windows_generic_MSG":
+        if event_type not in (b"windows_generic_MSG", b"windows_dispatcher_MSG"):
             return False, 0
 
         try:

@@ -8,6 +8,7 @@ import "../../utils"
 Window {
     id: baseWindow
     property bool isMacOS: Qt.platform.os === "osx" || Qt.platform.os === "macos" || Qt.platform.os === "darwin"
+    property bool isWindows: Qt.platform.os === "windows"
     // Native traffic lights + single custom titlebar integration on macOS.
     property bool useNativeMacFrame: isMacOS
     // Fine-tune custom title content baseline to match native traffic lights.
@@ -15,14 +16,22 @@ Window {
     property int expandedClientAreaHint: typeof Qt.ExpandedClientAreaHint !== "undefined"
         ? Qt.ExpandedClientAreaHint
         : 0
+    property int noTitleBarBackgroundHint: typeof Qt.NoTitleBarBackgroundHint !== "undefined"
+        ? Qt.NoTitleBarBackgroundHint
+        : 0
+    property int macNativeTitleBarFlags: Qt.Window
+        | Qt.CustomizeWindowHint
+        | Qt.WindowTitleHint
+        | Qt.WindowSystemMenuHint
+        | expandedClientAreaHint
+        | noTitleBarBackgroundHint
+    property int windowsNativeTitleBarFlags: Qt.Window
+        | noTitleBarBackgroundHint
     flags: (useNativeMacFrame
-        ? (Qt.Window
-            | Qt.CustomizeWindowHint
-            | Qt.WindowTitleHint
-            | Qt.WindowSystemMenuHint
-            | expandedClientAreaHint
-            | Qt.NoTitleBarBackgroundHint)
-        : (Qt.FramelessWindowHint | Qt.Window))
+        ? macNativeTitleBarFlags
+        : (isWindows
+            ? windowsNativeTitleBarFlags
+            : (Qt.FramelessWindowHint | Qt.Window)))
         | Qt.WindowMinimizeButtonHint
         | Qt.WindowMaximizeButtonHint
         | Qt.WindowCloseButtonHint

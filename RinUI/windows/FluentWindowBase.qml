@@ -30,7 +30,7 @@ ApplicationWindow {
             | Qt.WindowSystemMenuHint
             | expandedClientAreaHint
             | Qt.NoTitleBarBackgroundHint)
-        : (Qt.FramelessWindowHint | Qt.Window))
+        : (Qt.Window | Qt.NoTitleBarBackgroundHint ))
         | Qt.WindowMinimizeButtonHint
         | Qt.WindowMaximizeButtonHint
         | Qt.WindowCloseButtonHint

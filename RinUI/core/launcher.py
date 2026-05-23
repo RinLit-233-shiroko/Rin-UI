@@ -1,16 +1,38 @@
+import os
 import sys
 from ctypes import c_void_p
 from pathlib import Path
 from typing import Union
 
+os.environ.setdefault("QSG_RHI_BACKEND", "opengl")
+
 from PySide6.QtCore import QCoreApplication, QObject, QTimer, QUrl
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QSurfaceFormat
 from PySide6.QtQml import QQmlApplicationEngine
-from PySide6.QtQuick import QQuickWindow
+from PySide6.QtQuick import QQuickWindow, QSGRendererInterface
+
+QQuickWindow.setGraphicsApi(QSGRendererInterface.GraphicsApi.OpenGL)
 from PySide6.QtWidgets import QApplication
 
 from .config import RINUI_PATH, BackdropEffect, Theme, is_windows
 from .theme import ThemeManager
+
+
+_quick_alpha_buffer_configured = False
+
+
+def _configure_quick_alpha_buffer() -> None:
+    global _quick_alpha_buffer_configured
+    if _quick_alpha_buffer_configured:
+        return
+    QQuickWindow.setDefaultAlphaBuffer(True)
+    surface_format = QSurfaceFormat.defaultFormat()
+    surface_format.setAlphaBufferSize(max(surface_format.alphaBufferSize(), 8))
+    QSurfaceFormat.setDefaultFormat(surface_format)
+    _quick_alpha_buffer_configured = True
+
+
+_configure_quick_alpha_buffer()
 
 
 class RinUIWindow:
@@ -75,6 +97,8 @@ class RinUIWindow:
 
         # 主题管理器
         self.engine.rootContext().setContextProperty("ThemeManager", self.theme_manager)
+        if is_windows():
+            self.engine.setInitialProperties({"visible": False})
         try:
             self.engine.load(self.qml_path)
         except Exception as e:
@@ -95,6 +119,7 @@ class RinUIWindow:
         # 窗口句柄管理
         self._window_handle_setup()
         self._setup_macos_native_window()
+        self._show_windows_after_native_setup()
 
         self._print_startup_info()
 
@@ -113,10 +138,17 @@ class RinUIWindow:
 
         app_instance = QApplication.instance()
         app_instance.installNativeEventFilter(self.win_event_filter)
+        self.win_event_filter.initialize_windows()
         self.engine.rootContext().setContextProperty(
             "WinEventManager", self.win_event_manager
         )
         self._apply_windows_effects()
+
+    def _show_windows_after_native_setup(self) -> None:
+        if not is_windows() or not self.windows:
+            return
+        for window in self.windows:
+            window.show()
 
     def _setup_macos_native_window(self) -> None:
         """Apply macOS native titlebar tweaks for custom title content."""
