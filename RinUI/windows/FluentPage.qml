@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
-import QtQuick.Effects
 import "../themes"
 import "../components"
 import "../windows"
@@ -89,33 +88,5 @@ Page {
         }
     }
 
-    // 圆角裁切遮罩源
-    Item {
-        id: maskSourceItem
-        width: fluentPage.width
-        height: fluentPage.height
-        layer.enabled: true
-        visible: false
-
-        Rectangle {
-            anchors.fill: parent
-            radius: fluentPage.radius
-            color: "white"
-
-            Rectangle {
-                anchors.right: parent.right
-                anchors.top: parent.top
-                width: parent.width - Theme.currentTheme.appearance.windowRadius
-                height: Theme.currentTheme.appearance.windowRadius
-                color: "white"
-            }
-        }
-    }
-
-    layer.enabled: true
-    layer.effect: MultiEffect {
-        maskEnabled: true
-        maskSource: maskSourceItem
-        maskThresholdMin: 0.5
-    }
+    clip: true
 }
