@@ -189,11 +189,12 @@ class WinEventManager(QObject):
 
 
 class WinEventFilter(QAbstractNativeEventFilter):
-    def __init__(self, windows: list):
+    def __init__(self, windows: list, on_window_visible=None):
         super().__init__()
         self.windows = windows  # 接受多个窗口
         self.hwnds = {}  # 用于存储每个窗口的 hwnd
         self.resize_border = 8
+        self.on_window_visible = on_window_visible
 
         for window in self.windows:
             # 使用lambda创建闭包来捕获特定的窗口对象
@@ -210,6 +211,8 @@ class WinEventFilter(QAbstractNativeEventFilter):
         # 直接使用传入的窗口对象
         if visible and self.hwnds.get(window) is None:
             self._init_window_handle(window)
+        if visible and self.on_window_visible is not None:
+            self.on_window_visible(window)
 
     def _init_window_handle(self, window: QQuickWindow):
         hwnd = int(window.winId())

@@ -97,8 +97,6 @@ class RinUIWindow:
 
         # 主题管理器
         self.engine.rootContext().setContextProperty("ThemeManager", self.theme_manager)
-        if is_windows():
-            self.engine.setInitialProperties({"visible": False})
         try:
             self.engine.load(self.qml_path)
         except Exception as e:
@@ -119,7 +117,6 @@ class RinUIWindow:
         # 窗口句柄管理
         self._window_handle_setup()
         self._setup_macos_native_window()
-        self._show_windows_after_native_setup()
 
         self._print_startup_info()
 
@@ -133,7 +130,7 @@ class RinUIWindow:
 
         from .window import WinEventFilter, WinEventManager
 
-        self.win_event_filter = WinEventFilter(self.windows)
+        self.win_event_filter = WinEventFilter(self.windows, self._apply_windows_effects)
         self.win_event_manager = WinEventManager()
 
         app_instance = QApplication.instance()
@@ -143,12 +140,6 @@ class RinUIWindow:
             "WinEventManager", self.win_event_manager
         )
         self._apply_windows_effects()
-
-    def _show_windows_after_native_setup(self) -> None:
-        if not is_windows() or not self.windows:
-            return
-        for window in self.windows:
-            window.show()
 
     def _setup_macos_native_window(self) -> None:
         """Apply macOS native titlebar tweaks for custom title content."""

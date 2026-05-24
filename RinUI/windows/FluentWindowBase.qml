@@ -15,6 +15,7 @@ ApplicationWindow {
     property int hwnd: 0
     property bool isRinUIWindow: true
     property bool isMacOS: Qt.platform.os === "osx" || Qt.platform.os === "macos" || Qt.platform.os === "darwin"
+    property bool isWindows: Qt.platform.os === "windows"
     // Native traffic lights + single custom titlebar integration on macOS.
     property bool useNativeMacFrame: isMacOS
     // Fine-tune custom title content baseline to match native traffic lights.
@@ -22,6 +23,15 @@ ApplicationWindow {
     property int expandedClientAreaHint: typeof Qt.ExpandedClientAreaHint !== "undefined"
         ? Qt.ExpandedClientAreaHint
         : 0
+    property int noTitleBarBackgroundHint: typeof Qt.NoTitleBarBackgroundHint !== "undefined"
+        ? Qt.NoTitleBarBackgroundHint
+        : 0
+    property bool startupRevealEnabled: isWindows && !useNativeMacFrame && noTitleBarBackgroundHint !== 0
+
+    StartupReveal {
+        window: baseWindow
+        enabled: baseWindow.startupRevealEnabled
+    }
 
     flags: (useNativeMacFrame
         ? (Qt.Window
@@ -29,8 +39,8 @@ ApplicationWindow {
             | Qt.WindowTitleHint
             | Qt.WindowSystemMenuHint
             | expandedClientAreaHint
-            | Qt.NoTitleBarBackgroundHint)
-        : (Qt.Window | Qt.NoTitleBarBackgroundHint ))
+            | noTitleBarBackgroundHint)
+        : (Qt.Window | noTitleBarBackgroundHint))
         | Qt.WindowMinimizeButtonHint
         | Qt.WindowMaximizeButtonHint
         | Qt.WindowCloseButtonHint

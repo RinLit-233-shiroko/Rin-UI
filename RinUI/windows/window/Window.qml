@@ -27,6 +27,13 @@ Window {
         | noTitleBarBackgroundHint
     property int windowsNativeTitleBarFlags: Qt.Window
         | noTitleBarBackgroundHint
+    property bool startupRevealEnabled: isWindows && !useNativeMacFrame && noTitleBarBackgroundHint !== 0
+
+    StartupReveal {
+        window: baseWindow
+        enabled: baseWindow.startupRevealEnabled
+    }
+
     flags: (useNativeMacFrame
         ? macNativeTitleBarFlags
         : (isWindows
