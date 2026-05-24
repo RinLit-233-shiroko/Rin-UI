@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
+import QtQuick.Window 2.15
 import Qt5Compat.GraphicalEffects  // 图形库
 import "../themes"
 import "../components"
@@ -56,7 +57,22 @@ Page {
 
     Flickable {
         anchors.fill: parent
-        clip: true
+    layer.enabled: true
+    layer.textureSize: Qt.size(fluentPage.width * Screen.devicePixelRatio, fluentPage.height * Screen.devicePixelRatio)
+    layer.effect: OpacityMask{
+        maskSource: Rectangle{
+            width: fluentPage.width
+            height: fluentPage.height
+            radius: fluentPage.radius
+
+            Rectangle {
+                anchors.right: parent.right
+                anchors.top: parent.top
+                width: parent.width - Theme.currentTheme.appearance.windowRadius
+                height: Theme.currentTheme.appearance.windowRadius
+            }
+        }
+    }
         ScrollBar.vertical: ScrollBar {
             parent: fluentPage
             anchors.top: parent.top
