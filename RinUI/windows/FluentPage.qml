@@ -1,8 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
-import QtQuick.Window 2.15
-import Qt5Compat.GraphicalEffects  // 图形库
+import QtQuick.Effects
 import "../themes"
 import "../components"
 import "../windows"
@@ -90,22 +89,33 @@ Page {
         }
     }
 
-    layer.enabled: true
-    layer.textureSize: Qt.size(fluentPage.width * Screen.devicePixelRatio, fluentPage.height * Screen.devicePixelRatio)
-    layer.effect: OpacityMask{
-        maskSource: Rectangle{
-            width: fluentPage.width
-            height: fluentPage.height
+    // 圆角裁切遮罩源
+    Item {
+        id: maskSourceItem
+        width: fluentPage.width
+        height: fluentPage.height
+        layer.enabled: true
+        visible: false
+
+        Rectangle {
+            anchors.fill: parent
             radius: fluentPage.radius
+            color: "white"
 
             Rectangle {
                 anchors.right: parent.right
                 anchors.top: parent.top
                 width: parent.width - Theme.currentTheme.appearance.windowRadius
                 height: Theme.currentTheme.appearance.windowRadius
+                color: "white"
             }
         }
     }
 
-    // anchors.fill: parent
+    layer.enabled: true
+    layer.effect: MultiEffect {
+        maskEnabled: true
+        maskSource: maskSourceItem
+        maskThresholdMin: 0.5
+    }
 }

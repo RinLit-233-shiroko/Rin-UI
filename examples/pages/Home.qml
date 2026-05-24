@@ -1,8 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
-import QtQuick.Window 2.15
-import Qt5Compat.GraphicalEffects  // 图形库
+import QtQuick.Effects
 import RinUI
 import "../assets"
 import "../components"
@@ -26,19 +25,28 @@ FluentPage {
             fillMode: Image.PreserveAspectCrop
             verticalAlignment: Image.AlignTop
 
-            layer.enabled: true
-            layer.textureSize: Qt.size(banner.width * Screen.devicePixelRatio, banner.height * Screen.devicePixelRatio)
-            layer.effect: OpacityMask {
-                maskSource: Rectangle {
-                    width: banner.width
-                    height: banner.height
+            // 渐变遮罩源
+            Item {
+                id: bannerMask
+                width: banner.width
+                height: banner.height
+                layer.enabled: true
+                visible: false
 
-                    // 渐变效果
+                Rectangle {
+                    anchors.fill: parent
                     gradient: Gradient {
-                        GradientStop { position: 0.7; color: "white" }  // 不透明
-                        GradientStop { position: 1.0; color: "transparent" }  // 完全透明
+                        GradientStop { position: 0.7; color: "white" }
+                        GradientStop { position: 1.0; color: "transparent" }
                     }
                 }
+            }
+
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                maskEnabled: true
+                maskSource: bannerMask
+                maskThresholdMin: 0.5
             }
         }
 
