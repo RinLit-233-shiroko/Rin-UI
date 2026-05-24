@@ -89,22 +89,7 @@ Page {
         }
     }
 
-    layer.enabled: true
-    layer.smooth: false
-    layer.effect: OpacityMask{
-        maskSource: Rectangle{
-            width: fluentPage.width
-            height: fluentPage.height
-            radius: fluentPage.radius
-
-            Rectangle {
-                anchors.right: parent.right
-                anchors.top: parent.top
-                width: parent.width - Theme.currentTheme.appearance.windowRadius
-                height: Theme.currentTheme.appearance.windowRadius
-            }
-        }
-    }
+    clip: true
 
     // anchors.fill: parent
 }
