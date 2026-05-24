@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick 2.15
+import QtQuick.Window 2.15
 import "../assets/fonts/FluentSystemIcons-Index.js" as Icons
 import "../themes"
 import "../utils"
@@ -29,11 +30,20 @@ QtObject {
     property int animationSpeedMiddle: 450 // 动画速度 (ms)
     property int progressBarAnimationSpeed: 1550 // 进度条动画速度 (ms)
 
+    // HiDPI 缩放因子，用于手动缩放像素值
+    readonly property real dpiScale: Screen.devicePixelRatio || 1.0
+
     function loadFontIconIndex() {
         Qt.include(fontIconIndexSource);
     }
 
+    // DPI 感知的像素值缩放
+    function dp(value) {
+        return value * dpiScale
+    }
+
     Component.onCompleted: {
         console.log("Font Family: " + fontFamily)
+        console.log("DPI Scale Factor: " + dpiScale)
     }
 }

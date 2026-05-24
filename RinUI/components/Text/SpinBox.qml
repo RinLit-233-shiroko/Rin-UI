@@ -35,7 +35,7 @@ SpinBox {
         border.color: Theme.currentTheme.colors.controlBorderColor
 
         layer.enabled: true
-        layer.smooth: true
+        layer.smooth: false
         layer.effect: OpacityMask {
             maskSource: Rectangle {
                 width: background.width

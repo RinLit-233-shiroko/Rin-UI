@@ -124,7 +124,6 @@ ApplicationWindow {
         anchors.fill: parent
         color: Utils.backdropEnabled ? "transparent" : Theme.currentTheme.colors.backgroundColor
         border.color: Theme.currentTheme.colors.windowBorderColor
-        layer.enabled: true  // 启用透明渲染
         border.width: baseWindow.useNativeMacFrame ? 0 : 1
         radius: baseWindow.useNativeMacFrame ? 0 : Theme.currentTheme.appearance.windowRadius
         z: -1

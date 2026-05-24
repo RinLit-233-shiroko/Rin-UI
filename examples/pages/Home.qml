@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
+import QtQuick.Window 2.15
 import Qt5Compat.GraphicalEffects  // 图形库
 import RinUI
 import "../assets"
@@ -26,6 +27,7 @@ FluentPage {
             verticalAlignment: Image.AlignTop
 
             layer.enabled: true
+            layer.textureSize: Qt.size(banner.width * Screen.devicePixelRatio, banner.height * Screen.devicePixelRatio)
             layer.effect: OpacityMask {
                 maskSource: Rectangle {
                     width: banner.width

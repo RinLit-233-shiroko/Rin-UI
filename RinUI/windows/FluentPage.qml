@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
+import QtQuick.Window 2.15
 import Qt5Compat.GraphicalEffects  // 图形库
 import "../themes"
 import "../components"
@@ -90,6 +91,7 @@ Page {
     }
 
     layer.enabled: true
+    layer.textureSize: Qt.size(fluentPage.width * Screen.devicePixelRatio, fluentPage.height * Screen.devicePixelRatio)
     layer.effect: OpacityMask{
         maskSource: Rectangle{
             width: fluentPage.width
