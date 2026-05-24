@@ -90,6 +90,7 @@ Page {
     }
 
     layer.enabled: true
+    layer.smooth: false
     layer.effect: OpacityMask{
         maskSource: Rectangle{
             width: fluentPage.width
