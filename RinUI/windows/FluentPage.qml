@@ -57,22 +57,7 @@ Page {
 
     Flickable {
         anchors.fill: parent
-    layer.enabled: true
-    layer.textureSize: Qt.size(fluentPage.width * Screen.devicePixelRatio, fluentPage.height * Screen.devicePixelRatio)
-    layer.effect: OpacityMask{
-        maskSource: Rectangle{
-            width: fluentPage.width
-            height: fluentPage.height
-            radius: fluentPage.radius
-
-            Rectangle {
-                anchors.right: parent.right
-                anchors.top: parent.top
-                width: parent.width - Theme.currentTheme.appearance.windowRadius
-                height: Theme.currentTheme.appearance.windowRadius
-            }
-        }
-    }
+        clip: true
         ScrollBar.vertical: ScrollBar {
             parent: fluentPage
             anchors.top: parent.top
@@ -105,7 +90,22 @@ Page {
         }
     }
 
-    clip: true
+    layer.enabled: true
+    layer.textureSize: Qt.size(fluentPage.width * Screen.devicePixelRatio, fluentPage.height * Screen.devicePixelRatio)
+    layer.effect: OpacityMask{
+        maskSource: Rectangle{
+            width: fluentPage.width
+            height: fluentPage.height
+            radius: fluentPage.radius
+
+            Rectangle {
+                anchors.right: parent.right
+                anchors.top: parent.top
+                width: parent.width - Theme.currentTheme.appearance.windowRadius
+                height: Theme.currentTheme.appearance.windowRadius
+            }
+        }
+    }
 
     // anchors.fill: parent
 }
