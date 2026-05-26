@@ -13,9 +13,22 @@ Slider {
     property int ticksPadding: 4  // 刻度线间距
     property real trackHeight: 4
     property bool showTooltip: true
+    readonly property SliderToolTip toolTip: SliderToolTip { }
     property bool tickmarks: false
     property real tickFrequency: 0  // 刻度线频率
     property color primaryColor: Theme.currentTheme.colors.primaryColor
+
+    component SliderToolTip: QtObject {
+        property bool visible: true
+        property var text: root.value.toString()
+    }
+
+    // notification of showTooltip
+    Component.onCompleted: {
+        if (!showTooltip) {
+            console.log(" DeprecationWarning: 'showTooltip' will be removed in the future. Use 'toolTip.visible' instead.")
+        }
+    }
 
     // accessibility
     FocusIndicator {
@@ -114,9 +127,12 @@ Slider {
            : (parent.height - height) / 2  // 横向
 
 
+
+
+
         ToolTip {
-            text: root.value.toString()
-            visible: root.showTooltip ? (handle.hovered || root.pressed)  : false
+            text: toolTip.text
+            visible: toolTip.visible ? (handle.hovered || root.pressed)  : false
             delay: 50
         }
 
