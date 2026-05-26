@@ -1,8 +1,4 @@
-import json
-import os
 import sys
-import time
-import urllib.request
 from ctypes import c_void_p
 from pathlib import Path
 from typing import Union
@@ -17,62 +13,6 @@ from .config import RINUI_PATH, BackdropEffect, Theme, is_windows
 from .theme import ThemeManager
 
 
-#region debug-point rhi-white-backdrop-launcher
-_DEBUG_SESSION_ID = os.environ.get("DEBUG_SESSION_ID", "rhi-white-backdrop")
-_DEBUG_SERVER_URL = os.environ.get("DEBUG_SERVER_URL", "http://127.0.0.1:7777/event")
-
-
-def _debug_report(event: str, payload: dict) -> None:
-    if os.environ.get("RINUI_DEBUG_WINDOWS_WHITE_BACKDROP", "1") != "1":
-        return
-    data = json.dumps(
-        {
-            "session": _DEBUG_SESSION_ID,
-            "source": "launcher",
-            "event": event,
-            "timestamp": time.time(),
-            "payload": payload,
-        },
-        default=str,
-    ).encode("utf-8")
-    try:
-        request = urllib.request.Request(
-            _DEBUG_SERVER_URL,
-            data=data,
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        urllib.request.urlopen(request, timeout=0.15).close()
-    except Exception:
-        pass
-
-
-def _debug_value(value):
-    return getattr(value, "value", str(value))
-
-
-def _debug_window_snapshot(window: QQuickWindow) -> dict:
-    surface_format = window.format()
-    return {
-        "className": window.metaObject().className() if window else None,
-        "winId": int(window.winId()) if window else None,
-        "visible": window.isVisible() if window else None,
-        "visibility": _debug_value(window.visibility()) if window else None,
-        "flags": _debug_value(window.flags()) if window else None,
-        "color": window.color().name() if window else None,
-        "colorAlpha": window.color().alpha() if window else None,
-        "opacity": window.opacity() if window else None,
-        "geometry": [window.x(), window.y(), window.width(), window.height()] if window else None,
-        "devicePixelRatio": window.devicePixelRatio() if window else None,
-        "formatAlpha": surface_format.alphaBufferSize(),
-        "formatRenderableType": _debug_value(surface_format.renderableType()),
-        "formatSwapBehavior": _debug_value(surface_format.swapBehavior()),
-        "isRinUIWindow": window.property("isRinUIWindow") if window else None,
-        "backdropEnabled": window.property("backdropEnabled") if window else None,
-    }
-#endregion
-
-
 _quick_alpha_buffer_configured = False
 
 
@@ -85,16 +25,6 @@ def _configure_quick_alpha_buffer() -> None:
     surface_format.setAlphaBufferSize(max(surface_format.alphaBufferSize(), 8))
     QSurfaceFormat.setDefaultFormat(surface_format)
     _quick_alpha_buffer_configured = True
-    _debug_report(
-        "quick-alpha-configured",
-        {
-            "defaultAlphaBuffer": True,
-            "graphicsApi": _debug_value(QQuickWindow.graphicsApi()),
-            "defaultFormatAlpha": QSurfaceFormat.defaultFormat().alphaBufferSize(),
-            "defaultRenderableType": _debug_value(QSurfaceFormat.defaultFormat().renderableType()),
-            "defaultSwapBehavior": _debug_value(QSurfaceFormat.defaultFormat().swapBehavior()),
-        },
-    )
 
 
 _configure_quick_alpha_buffer()
@@ -169,44 +99,9 @@ class RinUIWindow:
 
         # 主题管理器
         self.engine.rootContext().setContextProperty("ThemeManager", self.theme_manager)
-        self.engine.objectCreated.connect(
-            lambda obj, url: _debug_report(
-                "engine-object-created",
-                {
-                    "url": url.toString() if url else None,
-                    "objectType": obj.metaObject().className() if obj else None,
-                    "isWindow": isinstance(obj, QQuickWindow),
-                    "snapshot": _debug_window_snapshot(obj) if isinstance(obj, QQuickWindow) else None,
-                },
-            )
-        )
-        _debug_report(
-            "before-engine-load",
-            {
-                "qmlPath": str(self.qml_path),
-                "isWindows": is_windows(),
-                "defaultFormatAlpha": QSurfaceFormat.defaultFormat().alphaBufferSize(),
-                "defaultRenderableType": _debug_value(QSurfaceFormat.defaultFormat().renderableType()),
-                "defaultSwapBehavior": _debug_value(QSurfaceFormat.defaultFormat().swapBehavior()),
-            },
-        )
         try:
-            load_started_at = time.perf_counter()
             self.engine.load(self.qml_path)
-            _debug_report(
-                "after-engine-load-return",
-                {
-                    "elapsedMs": round((time.perf_counter() - load_started_at) * 1000, 3),
-                    "rootObjectCount": len(self.engine.rootObjects()),
-                    "rootSnapshots": [
-                        _debug_window_snapshot(obj)
-                        for obj in self.engine.rootObjects()
-                        if isinstance(obj, QQuickWindow)
-                    ],
-                },
-            )
         except Exception as e:
-            _debug_report("engine-load-exception", {"error": repr(e)})
             print(f"Cannot Load QML file: {e}")
 
         if not self.engine.rootObjects():
@@ -218,15 +113,6 @@ class RinUIWindow:
 
         all_windows = [self.root_window] + self.root_window.findChildren(QQuickWindow)
         self.windows = [w for w in all_windows if w.property("isRinUIWindow")]
-        _debug_report(
-            "root-objects-ready",
-            {
-                "rootObjectCount": len(self.engine.rootObjects()),
-                "topLevelWindowCount": len(all_windows),
-                "rinWindowCount": len(self.windows),
-                "windows": [_debug_window_snapshot(window) for window in self.windows],
-            },
-        )
 
         for window in self.windows:
             self.theme_manager.set_window(window)
@@ -258,10 +144,6 @@ class RinUIWindow:
         self.win_event_manager.flush_pending_frame_sync_windows()
         self._apply_windows_effects()
         self._install_transparent_render_clear()
-        _debug_report(
-            "after-apply-windows-effects",
-            {"windows": [_debug_window_snapshot(window) for window in self.windows]},
-        )
 
     def _install_transparent_render_clear(self) -> None:
         if not is_windows():
@@ -276,37 +158,15 @@ class RinUIWindow:
             if window.property("_rinuiTransparentRenderClearInstalled"):
                 continue
 
-            counters = {"beforeFrameBegin": 0, "beforeRendering": 0, "beforeRenderPassRecording": 0}
-
-            def enforce_transparent_clear(stage, w=window):
+            def enforce_transparent_clear(w=window):
                 if not w or not w.property("backdropEnabled"):
                     return
-                counters[stage] += 1
                 w.setColor(transparent)
-                if counters[stage] <= 3:
-                    _debug_report(
-                        "render-clear-hook-fired",
-                        {
-                            "stage": stage,
-                            "count": counters[stage],
-                            "snapshot": _debug_window_snapshot(w),
-                        },
-                    )
 
-            window.visibleChanged.connect(
-                lambda visible, w=window: _debug_report(
-                    "quick-visible-changed",
-                    {"visible": visible, "snapshot": _debug_window_snapshot(w)},
-                )
-            )
-            window.beforeFrameBegin.connect(lambda w=window: enforce_transparent_clear("beforeFrameBegin", w))
-            window.beforeRendering.connect(lambda w=window: enforce_transparent_clear("beforeRendering", w))
-            window.beforeRenderPassRecording.connect(lambda w=window: enforce_transparent_clear("beforeRenderPassRecording", w))
+            window.beforeFrameBegin.connect(enforce_transparent_clear)
+            window.beforeRendering.connect(enforce_transparent_clear)
+            window.beforeRenderPassRecording.connect(enforce_transparent_clear)
             window.setProperty("_rinuiTransparentRenderClearInstalled", True)
-            _debug_report(
-                "transparent-render-clear-installed",
-                {"snapshot": _debug_window_snapshot(window)},
-            )
 
     def _setup_macos_native_window(self) -> None:
         """Apply macOS native titlebar tweaks for custom title content."""

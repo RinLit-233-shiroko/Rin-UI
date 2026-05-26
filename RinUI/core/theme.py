@@ -1,10 +1,7 @@
 import ctypes
-import json
-import os
 import platform
 import sys
 import time
-import urllib.request
 
 import darkdetect
 from PySide6.QtCore import QObject, QThread, Signal, Slot
@@ -17,37 +14,6 @@ from .config import (
     is_win11,
     is_windows,
 )
-
-
-#region debug-point rhi-white-backdrop-theme
-_DEBUG_SESSION_ID = os.environ.get("DEBUG_SESSION_ID", "rhi-white-backdrop")
-_DEBUG_SERVER_URL = os.environ.get("DEBUG_SERVER_URL", "http://127.0.0.1:7777/event")
-
-
-def _debug_report(event: str, payload: dict) -> None:
-    if os.environ.get("RINUI_DEBUG_WINDOWS_WHITE_BACKDROP", "1") != "1":
-        return
-    data = json.dumps(
-        {
-            "session": _DEBUG_SESSION_ID,
-            "source": "theme",
-            "event": event,
-            "timestamp": time.time(),
-            "payload": payload,
-        },
-        default=str,
-    ).encode("utf-8")
-    try:
-        request = urllib.request.Request(
-            _DEBUG_SERVER_URL,
-            data=data,
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        urllib.request.urlopen(request, timeout=0.15).close()
-    except Exception:
-        pass
-#endregion
 
 
 def check_darkdetect_support():
@@ -242,22 +208,6 @@ class ThemeManager(QObject):
                 self._apply_win10_effect(effect_type, hwnd)
 
         RinConfig["backdrop_effect"] = effect_type
-        _debug_report(
-            "apply-backdrop-finished",
-            {
-                "effectType": effect_type,
-                "accentState": accent_state,
-                "windowCount": len(self.windows),
-                "windows": [
-                    {
-                        "hwnd": hwnd,
-                        "isWin11": is_win11(),
-                        "actualTheme": self._actual_theme(),
-                    }
-                    for hwnd in self.windows
-                ],
-            },
-        )
         # print(
         #     f"Applied \"{effect_type.strip().capitalize()}\" effect with "
         #     f"{platform.system() + '11' if is_win11() else '10'}"

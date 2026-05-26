@@ -1,9 +1,5 @@
 import ctypes
-import json
-import os
 import platform
-import time
-import urllib.request
 from ctypes import wintypes
 
 import win32con
@@ -24,66 +20,6 @@ from win32con import (
 from win32gui import FindWindow, GetWindowPlacement, ReleaseCapture
 
 from RinUI.core.config import is_windows
-
-
-#region debug-point rhi-white-backdrop-window
-_DEBUG_SESSION_ID = os.environ.get("DEBUG_SESSION_ID", "rhi-white-backdrop")
-_DEBUG_SERVER_URL = os.environ.get("DEBUG_SERVER_URL", "http://127.0.0.1:7777/event")
-_DEBUG_MESSAGE_COUNTS = {}
-
-
-def _debug_enabled() -> bool:
-    return os.environ.get("RINUI_DEBUG_WINDOWS_WHITE_BACKDROP", "1") == "1"
-
-
-def _debug_report(event: str, payload: dict) -> None:
-    if not _debug_enabled():
-        return
-    data = json.dumps(
-        {
-            "session": _DEBUG_SESSION_ID,
-            "source": "window",
-            "event": event,
-            "timestamp": time.time(),
-            "payload": payload,
-        },
-        default=str,
-    ).encode("utf-8")
-    try:
-        request = urllib.request.Request(
-            _DEBUG_SERVER_URL,
-            data=data,
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        urllib.request.urlopen(request, timeout=0.15).close()
-    except Exception:
-        pass
-
-
-def _debug_rect(rect) -> list:
-    return [rect.left, rect.top, rect.right, rect.bottom]
-
-
-def _debug_value(value):
-    return getattr(value, "value", str(value))
-
-
-def _debug_window_native_snapshot(hwnd: int) -> dict:
-    rect = wintypes.RECT()
-    client_rect = wintypes.RECT()
-    user32.GetWindowRect(hwnd, ctypes.byref(rect))
-    user32.GetClientRect(hwnd, ctypes.byref(client_rect))
-    return {
-        "hwnd": hwnd,
-        "style": user32.GetWindowLongPtrW(hwnd, -16),
-        "exStyle": user32.GetWindowLongPtrW(hwnd, -20),
-        "windowRect": _debug_rect(rect),
-        "clientRect": _debug_rect(client_rect),
-        "compositionEnabled": is_composition_enabled(),
-        "isMaximized": is_maximized(hwnd),
-    }
-#endregion
 
 
 # 定义 Windows 类型
@@ -166,19 +102,6 @@ WM_ACTIVATE = 0x0006
 WM_NCACTIVATE = 0x0086
 WM_ACTIVATEAPP = 0x001C
 WM_SHOWWINDOW = 0x0018
-_DEBUG_MESSAGE_NAMES = {
-    WM_NCCALCSIZE: "WM_NCCALCSIZE",
-    WM_SIZE: "WM_SIZE",
-    WM_PAINT: "WM_PAINT",
-    WM_ERASEBKGND: "WM_ERASEBKGND",
-    WM_WINDOWPOSCHANGED: "WM_WINDOWPOSCHANGED",
-    WM_DWMCOMPOSITIONCHANGED: "WM_DWMCOMPOSITIONCHANGED",
-    WM_ACTIVATE: "WM_ACTIVATE",
-    WM_NCACTIVATE: "WM_NCACTIVATE",
-    WM_ACTIVATEAPP: "WM_ACTIVATEAPP",
-    WM_SHOWWINDOW: "WM_SHOWWINDOW",
-    WM_GETMINMAXINFO: "WM_GETMINMAXINFO",
-}
 
 WS_CAPTION = 0x00C00000
 WS_THICKFRAME = 0x00040000
@@ -343,10 +266,6 @@ class WinEventManager(QObject):
         user32.SetWindowPos(
             hwnd, 0, 0, 0, 0, 0, 0x0002 | 0x0001 | 0x0004 | 0x0010 | 0x0020
         )
-        _debug_report(
-            "qml-sync-window-frame",
-            {"native": _debug_window_native_snapshot(hwnd)},
-        )
         window.requestActivate()
         if self.on_window_frame_changed is not None:
             QTimer.singleShot(0, self.on_window_frame_changed)
@@ -380,7 +299,6 @@ class WinEventFilter(QAbstractNativeEventFilter):
         self.windows = windows  # 接受多个窗口
         self.hwnds = {}  # 用于存储每个窗口的 hwnd
         self.resize_border = 8
-        self.on_window_visible = on_window_visible
 
         for window in self.windows:
             # 使用lambda创建闭包来捕获特定的窗口对象
@@ -393,40 +311,12 @@ class WinEventFilter(QAbstractNativeEventFilter):
             self._init_window_handle(window)
 
     def _on_visible_changed(self, visible: bool, window: QQuickWindow):
-        _debug_report(
-            "visible-changed",
-            {
-                "visible": visible,
-                "knownHandle": self.hwnds.get(window),
-                "winId": int(window.winId()) if window else None,
-                "geometry": [window.x(), window.y(), window.width(), window.height()] if window else None,
-                "color": window.color().name() if window else None,
-                "opacity": window.opacity() if window else None,
-            },
-        )
         if visible and self.hwnds.get(window) is None:
             self._init_window_handle(window)
-        if visible and self.on_window_visible is not None:
-            self.on_window_visible(window)
 
     def _init_window_handle(self, window: QQuickWindow):
         hwnd = int(window.winId())
         self.hwnds[window] = hwnd
-        _debug_report(
-            "init-window-handle",
-            {
-                "qt": {
-                    "visible": window.isVisible(),
-                    "visibility": _debug_value(window.visibility()),
-                    "flags": _debug_value(window.flags()),
-                    "color": window.color().name(),
-                    "opacity": window.opacity(),
-                    "geometry": [window.x(), window.y(), window.width(), window.height()],
-                    "formatAlpha": window.format().alphaBufferSize(),
-                },
-                "native": _debug_window_native_snapshot(hwnd),
-            },
-        )
         self.sync_window_backdrop(window)
 
     def sync_window_backdrop(self, window: QQuickWindow):
@@ -440,17 +330,13 @@ class WinEventFilter(QAbstractNativeEventFilter):
             return
 
         style = user32.GetWindowLongPtrW(hwnd, -16)  # GWL_STYLE
-        _debug_report(
-            "before-set-window-styles",
-            {"native": _debug_window_native_snapshot(hwnd), "styleToSet": style | WS_CAPTION | WS_THICKFRAME},
-        )
-        style |= WS_CAPTION | WS_THICKFRAME
-        user32.SetWindowLongPtrW(hwnd, -16, style)  # GWL_STYLE
+        new_style = style | WS_CAPTION | WS_THICKFRAME
+        if new_style == style:
+            return
+
+        user32.SetWindowLongPtrW(hwnd, -16, new_style)  # GWL_STYLE
+        window.setProperty("_rinuiWindowStyleChanged", True)
         self.refresh_window_frame(window)
-        _debug_report(
-            "after-set-window-styles",
-            {"native": _debug_window_native_snapshot(hwnd)},
-        )
 
     def refresh_window_frame(self, window: QQuickWindow):
         hwnd = self.hwnds.get(window)
@@ -460,10 +346,17 @@ class WinEventFilter(QAbstractNativeEventFilter):
         user32.SetWindowPos(
             hwnd, 0, 0, 0, 0, 0, 0x0002 | 0x0001 | 0x0004 | 0x0010 | 0x0020
         )  # SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED
-        _debug_report(
-            "refresh-window-frame",
-            {"native": _debug_window_native_snapshot(hwnd)},
-        )
+
+    def refresh_window_frame_if_needed(self, window: QQuickWindow):
+        hwnd = self.hwnds.get(window)
+        if hwnd is None:
+            return
+
+        if not window.property("_rinuiWindowStyleChanged"):
+            return
+
+        window.setProperty("_rinuiWindowStyleChanged", False)
+        self.refresh_window_frame(window)
 
     def extend_frame_into_client_area(self, window: QQuickWindow):
         if not window.property("backdropEnabled"):
@@ -474,12 +367,8 @@ class WinEventFilter(QAbstractNativeEventFilter):
             return
 
         margins = MARGINS(-1, -1, -1, -1)
-        result = ctypes.windll.dwmapi.DwmExtendFrameIntoClientArea(
+        ctypes.windll.dwmapi.DwmExtendFrameIntoClientArea(
             hwnd, ctypes.byref(margins)
-        )
-        _debug_report(
-            "extend-frame-into-client-area",
-            {"result": int(result), "native": _debug_window_native_snapshot(hwnd)},
         )
 
     def apply_fullscreen_opengl_border_workaround(self, window: QQuickWindow):
@@ -496,10 +385,6 @@ class WinEventFilter(QAbstractNativeEventFilter):
 
         user32.SetWindowLongPtrW(hwnd, -16, style | WS_BORDER)
         self.refresh_window_frame(window)
-        _debug_report(
-            "fullscreen-opengl-border-workaround-applied",
-            {"native": _debug_window_native_snapshot(hwnd)},
-        )
 
     def nativeEventFilter(self, event_type: QByteArray, message):
         if event_type not in (b"windows_generic_MSG", b"windows_dispatcher_MSG"):
@@ -529,41 +414,22 @@ class WinEventFilter(QAbstractNativeEventFilter):
             if hwnd_window != hwnd:
                 continue
 
-            if _debug_enabled() and message_id in _DEBUG_MESSAGE_NAMES:
-                key = (hwnd_window, message_id)
-                count = _DEBUG_MESSAGE_COUNTS.get(key, 0) + 1
-                _DEBUG_MESSAGE_COUNTS[key] = count
-                if count <= 8 or message_id in (WM_SIZE, WM_WINDOWPOSCHANGED):
-                    payload = {
-                        "message": _DEBUG_MESSAGE_NAMES[message_id],
-                        "count": count,
-                        "wParam": int(w_param),
-                        "lParam": int(l_param),
-                        "native": _debug_window_native_snapshot(hwnd_window),
-                        "qt": {
-                            "visible": window.isVisible(),
-                            "visibility": _debug_value(window.visibility()),
-                            "geometry": [window.x(), window.y(), window.width(), window.height()],
-                            "color": window.color().name(),
-                            "opacity": window.opacity(),
-                            "formatAlpha": window.format().alphaBufferSize(),
-                        },
-                    }
-                    if message_id == WM_WINDOWPOSCHANGED and l_param:
-                        pos = PWINDOWPOS.from_address(l_param)
-                        payload["windowPos"] = {
-                            "x": pos.x,
-                            "y": pos.y,
-                            "cx": pos.cx,
-                            "cy": pos.cy,
-                            "flags": int(pos.flags),
-                        }
-                    _debug_report("native-message", payload)
-
-            if message_id in (WM_SIZE, WM_WINDOWPOSCHANGED, WM_SHOWWINDOW, WM_ACTIVATE, WM_NCACTIVATE, WM_ACTIVATEAPP, WM_DWMCOMPOSITIONCHANGED):
+            if message_id in (
+                WM_SIZE,
+                WM_WINDOWPOSCHANGED,
+                WM_SHOWWINDOW,
+                WM_ACTIVATE,
+                WM_NCACTIVATE,
+                WM_ACTIVATEAPP,
+                WM_DWMCOMPOSITIONCHANGED,
+            ):
                 self.extend_frame_into_client_area(window)
 
-            if message_id in (WM_SIZE, WM_WINDOWPOSCHANGED):
+            if message_id in (
+                WM_SIZE,
+                WM_WINDOWPOSCHANGED,
+                WM_DWMCOMPOSITIONCHANGED,
+            ):
                 self.apply_fullscreen_opengl_border_workaround(window)
 
             if message_id == WM_NCHITTEST:
