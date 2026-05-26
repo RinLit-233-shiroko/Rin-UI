@@ -1,7 +1,10 @@
 import ctypes
+import json
+import os
 import platform
 import sys
 import time
+import urllib.request
 
 import darkdetect
 from PySide6.QtCore import QObject, QThread, Signal, Slot
@@ -14,6 +17,37 @@ from .config import (
     is_win11,
     is_windows,
 )
+
+
+#region debug-point rhi-white-backdrop-theme
+_DEBUG_SESSION_ID = os.environ.get("DEBUG_SESSION_ID", "rhi-white-backdrop")
+_DEBUG_SERVER_URL = os.environ.get("DEBUG_SERVER_URL", "http://127.0.0.1:7777/event")
+
+
+def _debug_report(event: str, payload: dict) -> None:
+    if os.environ.get("RINUI_DEBUG_WINDOWS_WHITE_BACKDROP", "1") != "1":
+        return
+    data = json.dumps(
+        {
+            "session": _DEBUG_SESSION_ID,
+            "source": "theme",
+            "event": event,
+            "timestamp": time.time(),
+            "payload": payload,
+        },
+        default=str,
+    ).encode("utf-8")
+    try:
+        request = urllib.request.Request(
+            _DEBUG_SERVER_URL,
+            data=data,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        urllib.request.urlopen(request, timeout=0.15).close()
+    except Exception:
+        pass
+#endregion
 
 
 def check_darkdetect_support():
@@ -88,6 +122,9 @@ class ThemeManager(QObject):
     DWMWA_NCRENDERING_POLICY = 2
     DWMNCRENDERINGPOLICY_ENABLED = 2
     DWMWA_SYSTEMBACKDROP_TYPE = 38
+    DWMWA_BORDER_COLOR = 34
+    DWMWA_CAPTION_COLOR = 35
+    DWMWA_TEXT_COLOR = 36
     WCA_ACCENT_POLICY = 19
 
     # 圆角
@@ -175,16 +212,52 @@ class ThemeManager(QObject):
 
         for hwnd in self.windows:
             if is_win11():
+                dark_mode = ctypes.c_int(self.theme_dict[self._actual_theme()])
+                ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                    hwnd,
+                    self.DWMWA_USE_IMMERSIVE_DARK_MODE,
+                    ctypes.byref(dark_mode),
+                    ctypes.sizeof(dark_mode),
+                )
                 ctypes.windll.dwmapi.DwmSetWindowAttribute(
                     hwnd,
                     self.DWMWA_SYSTEMBACKDROP_TYPE,
                     ctypes.byref(ctypes.c_int(accent_state)),
                     ctypes.sizeof(ctypes.c_int),
                 )
+                transparent_color = ctypes.c_int(0xFFFFFFFE)
+                ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                    hwnd,
+                    self.DWMWA_CAPTION_COLOR,
+                    ctypes.byref(transparent_color),
+                    ctypes.sizeof(transparent_color),
+                )
+                ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                    hwnd,
+                    self.DWMWA_BORDER_COLOR,
+                    ctypes.byref(transparent_color),
+                    ctypes.sizeof(transparent_color),
+                )
             elif is_win10() and effect_type == BackdropEffect.Acrylic.value:
                 self._apply_win10_effect(effect_type, hwnd)
 
         RinConfig["backdrop_effect"] = effect_type
+        _debug_report(
+            "apply-backdrop-finished",
+            {
+                "effectType": effect_type,
+                "accentState": accent_state,
+                "windowCount": len(self.windows),
+                "windows": [
+                    {
+                        "hwnd": hwnd,
+                        "isWin11": is_win11(),
+                        "actualTheme": self._actual_theme(),
+                    }
+                    for hwnd in self.windows
+                ],
+            },
+        )
         # print(
         #     f"Applied \"{effect_type.strip().capitalize()}\" effect with "
         #     f"{platform.system() + '11' if is_win11() else '10'}"

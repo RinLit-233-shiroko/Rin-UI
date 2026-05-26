@@ -2,7 +2,6 @@ module RinUI.windows
 
 FluentWindowBase 1.0 FluentWindowBase.qml
 FluentWindow 1.0 FluentWindow.qml
-StartupReveal 1.0 StartupReveal.qml
 TitleBar 1.0 TitleBar.qml
 FluentPage 1.0 FluentPage.qml
 CtrlBtn 1.0 CtrlBtn.qml

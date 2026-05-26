@@ -26,26 +26,27 @@ ApplicationWindow {
     property int noTitleBarBackgroundHint: typeof Qt.NoTitleBarBackgroundHint !== "undefined"
         ? Qt.NoTitleBarBackgroundHint
         : 0
-    property bool startupRevealEnabled: isWindows && !useNativeMacFrame && noTitleBarBackgroundHint !== 0
-
-    StartupReveal {
-        window: baseWindow
-        enabled: baseWindow.startupRevealEnabled
-    }
 
     flags: (useNativeMacFrame
         ? (Qt.Window
             | Qt.CustomizeWindowHint
             | Qt.WindowTitleHint
             | Qt.WindowSystemMenuHint
-            | expandedClientAreaHint
-            | noTitleBarBackgroundHint)
-        : (Qt.Window | noTitleBarBackgroundHint))
+            | Qt.ExpandedClientAreaHint
+            | Qt.NoTitleBarBackgroundHint)
+        : (Qt.Window | Qt.FramelessWindowHint))
         | Qt.WindowMinimizeButtonHint
         | Qt.WindowMaximizeButtonHint
         | Qt.WindowCloseButtonHint
     color: useNativeMacFrame ? Theme.currentTheme.colors.backgroundColor : "transparent"
     topPadding: 0
+    
+    Component.onCompleted: {
+        if (baseWindow.isWindows) {
+            baseWindow.flags = baseWindow.flags & ~Qt.FramelessWindowHint
+            WinEventManager.syncWindowFrame(baseWindow)
+        }
+    }
 
     // 自定义属性
     property var icon: ""  // 图标
