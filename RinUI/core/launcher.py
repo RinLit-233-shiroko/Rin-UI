@@ -1,10 +1,9 @@
 import sys
-from ctypes import c_void_p
 from pathlib import Path
 from typing import Union
 
 from PySide6.QtCore import QCoreApplication, QObject, QUrl, QTimer
-from PySide6.QtGui import QColor, QIcon, QSurfaceFormat
+from PySide6.QtGui import QColor, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 from PySide6.QtWidgets import QApplication
@@ -13,29 +12,23 @@ from .config import RINUI_PATH, BackdropEffect, Theme, is_windows
 from .theme import ThemeManager
 
 
-_quick_alpha_buffer_configured = False
+_shared_engine = None
 
 
-def _configure_quick_alpha_buffer() -> None:
-    global _quick_alpha_buffer_configured
-    if _quick_alpha_buffer_configured:
-        return
-    QQuickWindow.setDefaultAlphaBuffer(True)
-    surface_format = QSurfaceFormat.defaultFormat()
-    surface_format.setAlphaBufferSize(max(surface_format.alphaBufferSize(), 8))
-    QSurfaceFormat.setDefaultFormat(surface_format)
-    _quick_alpha_buffer_configured = True
-
-
-_configure_quick_alpha_buffer()
+def _get_shared_engine() -> QQmlApplicationEngine:
+    global _shared_engine
+    if _shared_engine is None:
+        _shared_engine = QQmlApplicationEngine()
+    return _shared_engine
 
 
 class RinUIWindow:
-    def __init__(self, qml_path: Union[str, Path] = None):
+    def __init__(self, qml_path: Union[str, Path] = None, shared_engine: bool = True):
         """
         Create an application window with RinUI.
         If qml_path is provided, it will automatically load the specified QML file.
         :param qml_path: str or Path, QML file path (eg = "path/to/main.qml")
+        :param shared_engine: bool, reuse the shared QML engine when creating RinUI windows
         """
         super().__init__()
         self.windows = None
@@ -43,7 +36,8 @@ class RinUIWindow:
             return
 
         self.root_window = None
-        self.engine = QQmlApplicationEngine()
+        self.shared_engine = shared_engine
+        self.engine = _get_shared_engine() if shared_engine else QQmlApplicationEngine()
         self.theme_manager = ThemeManager()
         self.win_event_filter = None
         self.win_event_manager = None
@@ -62,6 +56,7 @@ class RinUIWindow:
         self._mac_traffic_lights_retry_interval_ms = 50
         self._mac_traffic_lights_max_retries = 8
         self.qml_path = qml_path
+        self._loaded_root_count = len(self.engine.rootObjects())
         self._initialized = True
 
         print("✨ RinUIWindow Initializing")
@@ -92,7 +87,12 @@ class RinUIWindow:
         self.qml_path = Path(qml_path)
 
         if self.qml_path.exists():
-            self.engine.addImportPath(RINUI_PATH)
+            if self.shared_engine:
+                import_paths = self.engine.importPathList()
+                if str(RINUI_PATH) not in import_paths:
+                    self.engine.addImportPath(RINUI_PATH)
+            else:
+                self.engine.addImportPath(RINUI_PATH)
         else:
             msg = f"Cannot find RinUI module: {RINUI_PATH}"
             raise FileNotFoundError(msg)
@@ -104,12 +104,14 @@ class RinUIWindow:
         except Exception as e:
             print(f"Cannot Load QML file: {e}")
 
-        if not self.engine.rootObjects():
+        root_objects = self.engine.rootObjects()
+        if len(root_objects) <= self._loaded_root_count:
             msg = f"Error loading QML file: {self.qml_path}"
             raise RuntimeError(msg)
 
         # 窗口设置
-        self.root_window = self.engine.rootObjects()[0]
+        self.root_window = root_objects[-1]
+        self._loaded_root_count = len(root_objects)
 
         all_windows = [self.root_window] + self.root_window.findChildren(QQuickWindow)
         self.windows = [w for w in all_windows if w.property("isRinUIWindow")]
@@ -141,6 +143,8 @@ class RinUIWindow:
         app_instance = QApplication.instance()
         app_instance.installNativeEventFilter(self.win_event_filter)
         self.win_event_filter.initialize_windows()
+        for window in self.windows:
+            self.win_event_manager.syncWindowFrame(window)
         self.win_event_manager.flush_pending_frame_sync_windows()
         self._apply_windows_effects()
         self._install_transparent_render_clear()
