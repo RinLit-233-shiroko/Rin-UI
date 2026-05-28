@@ -33,12 +33,20 @@ FluentPage {
                     width: banner.width
                     height: banner.height
 
-                    // 渐变效果
                     gradient: Gradient {
-                        GradientStop { position: 0.7; color: "white" }  // 不透明
-                        GradientStop { position: 1.0; color: "transparent" }  // 完全透明
+                        GradientStop { position: 0.7; color: "white" }
+                        GradientStop { position: 1.0; color: "transparent" }
                     }
                 }
+            }
+        }
+
+        Rectangle {
+            anchors.fill: banner
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "transparent" }
+                GradientStop { position: 0.7; color: "transparent" }
+                GradientStop { position: 1.0; color: Theme.currentTheme.colors.backgroundColor }
             }
         }
 
