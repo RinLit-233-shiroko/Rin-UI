@@ -13,7 +13,7 @@ Item {
     property int blur: 96
     property real blurMultiplier: 0
     property real downsample: 0.5
-    property color tintColor: Theme.currentTheme.isDark ? "#CC1F1F1F" : "#CCFFFFFF"
+    property color tintColor: Theme.currentTheme.isDark ? "#CC1F1F1F" : "#BBFFFFFF"
     property real tintOpacity: 1
     property real tintLuminosityOpacity: 0
     property real noiseOpacity: 0.02

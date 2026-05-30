@@ -166,7 +166,7 @@ FluentWindow {
             subItems: generateSubItems("styles")
         },
         {
-            title: qsTr("Text & Typography"),
+            title: qsTr("Text"),
             page: Qt.resolvedUrl("pages/Text.qml"),
             icon: "ic_fluent_text_font_20_regular",
             subItems: generateSubItems("text")

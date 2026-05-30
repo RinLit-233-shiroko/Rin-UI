@@ -74,7 +74,19 @@ FluentPage {
             description: qsTr("Pick the color which app highlighted color")
             icon.name: "ic_fluent_paint_brush_20_regular"
 
+            ToolButton {
+                icon.name:"ic_fluent_arrow_reset_20_regular"
+                ToolTip {
+                    text: qsTr("Reset")
+                    visible: parent.hovered
+                }
+                onClicked: {
+                    accentColorPicker.color ="#605ed2"
+                }
+            }
+
             DropDownColorPicker {
+                id: accentColorPicker
                 position: Position.Left
 
                 color: Theme.getThemeColor()

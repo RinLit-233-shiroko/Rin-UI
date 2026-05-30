@@ -25,6 +25,7 @@ FluentPage {
         { title: qsTr("Navigation"), type: "navigation" },
         { title: qsTr("Scrolling"), type: "scrolling" },
         { title: qsTr("Status & Info"), type: "status&info" },
+        { title: qsTr("Styles"), type: "styles" },
         { title: qsTr("Text & Typography"), type: "text" }
     ]
     property int visibleCategoryCount: 5
