@@ -53,7 +53,7 @@ QtObject {
         {
             icon: Qt.resolvedUrl("controls/Acrylic.png"),
             title: qsTr("AcrylicBrush"),
-            type: "text",
+            type: "styles",
             desc: qsTr("A translucent material recommended for panel backgrounds."),
             page: Qt.resolvedUrl("../pages/controls/AcrylicBrush.qml"),
             added: true,

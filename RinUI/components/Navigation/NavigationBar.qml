@@ -221,8 +221,8 @@ Item {
 
     Row {
         id: title
-        parent: navigationBar.window && navigationBar.window.titleBarHost
-            ? navigationBar.window.titleBarHost
+        parent: navigationBar.window && navigationBar.window.titleBarLeadingHost
+            ? navigationBar.window.titleBarLeadingHost
             : navigationBar
         anchors.left: parent.left
         anchors.leftMargin: navigationBar.macTitleSafeInset

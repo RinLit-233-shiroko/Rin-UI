@@ -160,6 +160,12 @@ FluentWindow {
             subItems: generateSubItems("status&info")
         },
         {
+            title: qsTr("Styles"),
+            page: Qt.resolvedUrl("pages/Styles.qml"),
+            icon: "ic_fluent_color_20_regular",
+            subItems: generateSubItems("styles")
+        },
+        {
             title: qsTr("Text & Typography"),
             page: Qt.resolvedUrl("pages/Text.qml"),
             icon: "ic_fluent_text_font_20_regular",
