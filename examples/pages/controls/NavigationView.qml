@@ -190,26 +190,26 @@ ControlPage {
 
                             function updateNavigationItems() {
                                 var items = []
-                                
+
                                 // Add top item with or without position
                                 var top = Object.assign({}, topItem)
                                 if (pinTopCheckbox.checked) {
                                     top.position = Position.Top
                                 }
                                 items.push(top)
-                                
+
                                 // Add base items
                                 for (var i = 0; i < baseItems.length; i++) {
                                     items.push(baseItems[i])
                                 }
-                                
+
                                 // Add bottom item with or without position
                                 var bottom = Object.assign({}, bottomItem)
                                 if (pinBottomCheckbox.checked) {
                                     bottom.position = Position.Bottom
                                 }
                                 items.push(bottom)
-                                
+
                                 navigationItems = items
                             }
 
@@ -240,14 +240,14 @@ ControlPage {
                             checked: true
                             onCheckedChanged: navView.updateNavigationItems()
                         }
-                        
+
                         CheckBox {
                             id: pinBottomCheckbox
                             text: qsTr("Pin to Bottom")
                             checked: true
                             onCheckedChanged: navView.updateNavigationItems()
                         }
-                        
+
                         CheckBox {
                             id: dragResizeCheckbox
                             text: qsTr("Enable Drag Resize")
@@ -257,22 +257,22 @@ ControlPage {
                                 navView.navigationBar.userResizedWidth = 0
                             }
                         }
-                        
+
                         Rectangle {
                             width: parent.width
                             height: 1
                             color: Theme.currentTheme.colors.dividerBorderColor
                         }
-                        
+
                         Column {
                             spacing: 4
                             width: parent.width
-                            
+
                             Text {
                                 typography: Typography.Caption
                                 text: qsTr("Width (px):")
                             }
-                            
+
                             TextField {
                                 id: expandWidthInput
                                 width: parent.width
@@ -286,11 +286,11 @@ ControlPage {
                                     var value = parseInt(text) || 0
                                     navView.navigationBar.expandWidth = value
                                     navView.navigationBar.userResizedWidth = 0
-                                    
+
                                     widthModeSwitch.checked = (value <= 0)
                                 }
                             }
-                            
+
                             Text {
                                 width: parent.width
                                 typography: Typography.Caption
@@ -305,12 +305,12 @@ ControlPage {
                                     }
                                 }
                             }
-                            
+
                             Switch {
                                 id: widthModeSwitch
                                 text: checked ? qsTr("Dynamic Width") : qsTr("Fixed Width")
                                 checked: true
-                                
+
                                 onCheckedChanged: {
                                     if (checked) {
                                         // 动态宽度
@@ -321,18 +321,18 @@ ControlPage {
                                     }
                                 }
                             }
-                            
+
                             Rectangle {
                                 width: parent.width
                                 height: 1
                                 color: Theme.currentTheme.colors.dividerBorderColor
                             }
-                            
+
                             Text {
                                 typography: Typography.Caption
                                 text: qsTr("Min Width (px):")
                             }
-                            
+
                             TextField {
                                 id: minWidthInput
                                 width: parent.width
@@ -347,12 +347,12 @@ ControlPage {
                                     navView.navigationBar.minNavbarWidth = value
                                 }
                             }
-                            
+
                             Text {
                                 typography: Typography.Caption
                                 text: qsTr("Max Width (px):")
                             }
-                            
+
                             TextField {
                                 id: maxWidthInput
                                 width: parent.width

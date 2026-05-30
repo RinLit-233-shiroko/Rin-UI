@@ -170,14 +170,14 @@ Item {
 
     function _switchViewMode(newMode) {
         if (newMode === viewMode) return
-        
+
         _suppressingViewTransition = true
         _pendingViewMode = newMode
-        
+
         // 使用Timer来延迟视图切换，避免动画冲突
         viewSwitchTimer.start()
     }
-    
+
     Timer {
         id: viewSwitchTimer
         interval: 16 // 约60fps
@@ -467,11 +467,11 @@ Item {
                 columnSpacing: gridArea.spacing
                 opacity: calendar.viewMode === "day" ? 1 : 0
                 visible: opacity > 0
-                Behavior on opacity { 
-                    NumberAnimation { 
-                        duration: (calendar.suppressCellBehavior || calendar.fastMode || calendar._suppressingViewTransition) ? 0 : 300; 
-                        easing.type: Easing.OutCubic 
-                    } 
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: (calendar.suppressCellBehavior || calendar.fastMode || calendar._suppressingViewTransition) ? 0 : 300;
+                        easing.type: Easing.OutCubic
+                    }
                 }
                 Repeater {
                     id: dayRepeater
@@ -485,11 +485,11 @@ Item {
                 anchors.fill: parent
                 opacity: calendar.viewMode === "months" ? 1 : 0
                 visible: opacity > 0
-                Behavior on opacity { 
-                    NumberAnimation { 
-                        duration: calendar._suppressingViewTransition ? 0 : 300; 
-                        easing.type: Easing.OutCubic 
-                    } 
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: calendar._suppressingViewTransition ? 0 : 300;
+                        easing.type: Easing.OutCubic
+                    }
                 }
                 property int cols: 4
                 property int spacing: gridArea.spacing
@@ -548,11 +548,11 @@ Item {
                 anchors.fill: parent
                 opacity: calendar.viewMode === "years" ? 1 : 0
                 visible: opacity > 0
-                Behavior on opacity { 
-                    NumberAnimation { 
-                        duration: calendar._suppressingViewTransition ? 0 : 300; 
-                        easing.type: Easing.OutCubic 
-                    } 
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: calendar._suppressingViewTransition ? 0 : 300;
+                        easing.type: Easing.OutCubic
+                    }
                 }
                 property int cols: 4
                 property int spacing: gridArea.spacing

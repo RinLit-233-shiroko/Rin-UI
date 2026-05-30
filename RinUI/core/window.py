@@ -21,7 +21,6 @@ from win32gui import FindWindow, GetWindowPlacement, ReleaseCapture
 
 from RinUI.core.config import is_windows
 
-
 # 定义 Windows 类型
 ULONG_PTR = (
     ctypes.c_ulong if ctypes.sizeof(ctypes.c_void_p) == 4 else ctypes.c_ulonglong
@@ -367,9 +366,7 @@ class WinEventFilter(QAbstractNativeEventFilter):
             return
 
         margins = MARGINS(-1, -1, -1, -1)
-        ctypes.windll.dwmapi.DwmExtendFrameIntoClientArea(
-            hwnd, ctypes.byref(margins)
-        )
+        ctypes.windll.dwmapi.DwmExtendFrameIntoClientArea(hwnd, ctypes.byref(margins))
 
     def apply_fullscreen_opengl_border_workaround(self, window: QQuickWindow):
         if not window.property("enableFullscreenOpenGLBorderWorkaround"):

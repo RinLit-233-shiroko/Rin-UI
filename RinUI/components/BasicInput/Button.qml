@@ -49,15 +49,7 @@ Button {
             highlighted ? Theme.currentTheme.colors.disabledColor : Theme.currentTheme.colors.controlBorderColor
 
         // 裁切
-        layer.enabled: true
-        layer.smooth: true
-        layer.effect: OpacityMask {
-            maskSource: Rectangle {
-                width: background.width
-                height: background.height
-                radius: background.radius
-            }
-        }
+        clip: true
 
         // 底部border
         Rectangle {
@@ -100,15 +92,15 @@ Button {
                 color: {
                     if (icon.color) return icon.color
                     if (!enabled) {
-                        return flat 
-                            ? Theme.currentTheme.colors.disabledColor 
-                            : (highlighted 
-                                ? Theme.currentTheme.colors.textOnAccentColor 
+                        return flat
+                            ? Theme.currentTheme.colors.disabledColor
+                            : (highlighted
+                                ? Theme.currentTheme.colors.textOnAccentColor
                                 : Theme.currentTheme.colors.textColor)
                     }
                     if (highlighted) {
-                        return flat 
-                            ? Theme.currentTheme.colors.textAccentColor 
+                        return flat
+                            ? Theme.currentTheme.colors.textAccentColor
                             : Theme.currentTheme.colors.textOnAccentColor
                     }
                     return Theme.currentTheme.colors.textColor
@@ -143,15 +135,15 @@ Button {
             PropertyChanges {
                 target: root
                 opacity: 0.65
-                backgroundColor: highlighted 
-                    ? Theme.currentTheme.colors.disabledColor 
+                backgroundColor: highlighted
+                    ? Theme.currentTheme.colors.disabledColor
                     : Theme.currentTheme.colors.controlColor
             }
             PropertyChanges {
                 target: text
-                color: flat 
-                    ? Theme.currentTheme.colors.disabledColor 
-                    : (highlighted 
+                color: flat
+                    ? Theme.currentTheme.colors.disabledColor
+                    : (highlighted
                         ? Theme.currentTheme.colors.textOnAccentColor
                         : Theme.currentTheme.colors.textColor)
             }

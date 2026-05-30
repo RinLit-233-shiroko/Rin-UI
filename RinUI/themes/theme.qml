@@ -139,16 +139,23 @@ Item {
 
     function load_qml(themeName) {
         if (themeName) {
-            let themeObject = Qt.createQmlObject("import '../themes'; " + themeName + " {}", themeManager)
-            let mode = ThemeManager.get_theme()
+            let themeObject
+            if (themeName === "Light") {
+                themeObject = light
+            } else if (themeName === "Dark") {
+                themeObject = dark
+            } else {
+                console.error("Invalid theme name:", themeName)
+                return
+            }
             if (themeObject) {
                 currentTheme = themeObject
                 // console.log("Switched to", mode, "mode")
             } else {
-                console.error("Failed to create theme object for mode:", mode)
+                console.error("Failed to create theme object for mode:", themeName)
             }
         } else {
-            console.error("Invalid theme mode:", mode)
+            console.error("Invalid theme mode:", themeName)
         }
     }
 
