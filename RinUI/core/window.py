@@ -460,6 +460,16 @@ class WinEventFilter(QAbstractNativeEventFilter):
                 if bottom - border <= y < bottom:
                     return True, 15  # HTBOTTOM
 
+                # 对标题栏区域返回 HTCAPTION 让 Windows 处理原生窗口交互
+                try:
+                    title_bar_height = window.property("titleBarHeight")
+                except Exception:
+                    title_bar_height = None
+                if not title_bar_height:
+                    title_bar_height = 32
+                if top <= y < top + title_bar_height:
+                    return True, 1  # HTCAPTION
+
                 # 其他区域不处理
                 return False, 0
 
