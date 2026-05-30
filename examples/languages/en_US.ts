@@ -145,8 +145,8 @@
     </message>
     <message>
         <location filename="../pages/controls/Button.qml" line="104"/>
-        <source>This is some text 
-that is too long 
+        <source>This is some text
+that is too long
 but with wrapping.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -606,7 +606,7 @@ but with wrapping.</source>
     </message>
     <message>
         <location filename="../pages/controls/Dialog.qml" line="18"/>
-        <source>This a dialog with basic content. 
+        <source>This a dialog with basic content.
 Meow</source>
         <translation type="unfinished"></translation>
     </message>

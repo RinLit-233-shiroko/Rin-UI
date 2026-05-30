@@ -22,6 +22,7 @@ RowLayout {
 
     // 页面组件缓存(Component)
     property var componentCache: ({})
+    property int maxCacheSize: 10
     property bool pushInProgress: false
     property bool replaceBackInProgress: false
     property var loadingPages: ({})
@@ -308,6 +309,7 @@ RowLayout {
                 let component = Qt.createComponent(page)
 
                 if (component.status === Component.Ready) {
+                    evictCacheIfFull()
                     componentCache[pageKey] = component
                     loadingPages[pageKey] = false
                     asyncPush(component, pageKey, reload, fromNavigation, properties)
@@ -326,6 +328,7 @@ RowLayout {
                     let handler = function() {
                         component.statusChanged.disconnect(handler)
                         if (component.status === Component.Ready) {
+                            evictCacheIfFull()
                             componentCache[pageKey] = component
                             loadingPages[pageKey] = false
                             asyncPush(component, pageKey, reload, fromNavigation, properties)
@@ -345,6 +348,7 @@ RowLayout {
                         component.statusChanged.connect(handler)
                     } catch (e) {
                         if (component.status === Component.Ready) {
+                            evictCacheIfFull()
                             componentCache[pageKey] = component
                             loadingPages[pageKey] = false
                             asyncPush(component, pageKey, reload, fromNavigation, properties)
@@ -520,6 +524,16 @@ RowLayout {
 
     function setPushInProgress(inProgress) {
         pushInProgress = inProgress
+    }
+
+    function evictCacheIfFull() {
+        let keys = Object.keys(componentCache)
+        if (keys.length >= maxCacheSize) {
+            // Remove the oldest entry (first key in insertion order)
+            let oldestKey = keys[0]
+            componentCache[oldestKey].destroy()
+            delete componentCache[oldestKey]
+        }
     }
 
     function normalizeKeyFromPage(page) {
