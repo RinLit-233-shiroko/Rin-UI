@@ -85,7 +85,9 @@ jobs:
       attestations: write
       artifact-metadata: write
     runs-on: ubuntu-latest
-    if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) || github.event_name == 'workflow_dispatch'
+    if: |
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.tag)
 
     env:
       TAG_NAME: ${{ github.event.inputs.tag || github.ref_name }}
