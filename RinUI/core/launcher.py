@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 from typing import Union
 
-from PySide6.QtCore import QCoreApplication, QObject, QUrl, QTimer
+from PySide6.QtCore import QCoreApplication, QObject, QTimer, QUrl
 from PySide6.QtGui import QColor, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
@@ -10,7 +10,6 @@ from PySide6.QtWidgets import QApplication
 
 from .config import RINUI_PATH, BackdropEffect, Theme, is_windows
 from .theme import ThemeManager
-
 
 _shared_engine = None
 
@@ -99,10 +98,7 @@ class RinUIWindow:
 
         # 主题管理器
         self.engine.rootContext().setContextProperty("ThemeManager", self.theme_manager)
-        try:
-            self.engine.load(self.qml_path)
-        except Exception as e:
-            print(f"Cannot Load QML file: {e}")
+        self.engine.load(self.qml_path)
 
         root_objects = self.engine.rootObjects()
         if len(root_objects) <= self._loaded_root_count:
@@ -135,7 +131,9 @@ class RinUIWindow:
 
         from .window import WinEventFilter, WinEventManager
 
-        self.win_event_filter = WinEventFilter(self.windows, self._apply_windows_effects)
+        self.win_event_filter = WinEventFilter(
+            self.windows, self._apply_windows_effects
+        )
         if self.win_event_manager is None:
             self.win_event_manager = WinEventManager()
         self.win_event_manager.set_windows(self.windows, self._apply_windows_effects)
@@ -199,7 +197,9 @@ class RinUIWindow:
                 )
             )
 
-    def _on_macos_window_visible_changed(self, window: QQuickWindow, visible: bool) -> None:
+    def _on_macos_window_visible_changed(
+        self, window: QQuickWindow, visible: bool
+    ) -> None:
         if visible and window.property("useNativeMacFrame"):
             window.setProperty("_rinuiMacTrafficLightsShiftApplied", False)
             window.setProperty("_rinuiMacTrafficLightsShiftRetryCount", 0)
@@ -276,12 +276,16 @@ class RinUIWindow:
             zoom_button = ns_window.standardWindowButton_(
                 self._mac_appkit.NSWindowZoomButton
             )
-            buttons = [btn for btn in (close_button, minimize_button, zoom_button) if btn]
+            buttons = [
+                btn for btn in (close_button, minimize_button, zoom_button) if btn
+            ]
             if not buttons:
                 return False
 
             # Move the shared container first to preserve native spacing.
-            button_host = close_button.superview() if close_button else buttons[0].superview()
+            button_host = (
+                close_button.superview() if close_button else buttons[0].superview()
+            )
             if button_host:
                 host_frame = button_host.frame()
                 button_host.setFrameOrigin_(
@@ -300,7 +304,7 @@ class RinUIWindow:
                         frame.origin.y - self._mac_traffic_lights_offset_down,
                     )
                 )
-            return True
+            return True  # noqa: TRY300
         except Exception as err:
             print(f"Failed to shift macOS traffic lights: {err}")
             return False

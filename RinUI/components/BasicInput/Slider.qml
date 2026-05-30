@@ -16,6 +16,7 @@ Slider {
     readonly property SliderToolTip toolTip: SliderToolTip { }
     property bool tickmarks: false
     property real tickFrequency: 0  // 刻度线频率
+    readonly property real effectiveTickInterval: tickFrequency !== 0 ? Math.abs(tickFrequency) : (stepSize > 0 ? Math.abs(stepSize) : 1)
     property color primaryColor: Theme.currentTheme.colors.primaryColor
 
     component SliderToolTip: QtObject {
@@ -35,8 +36,8 @@ Slider {
         control: parent
     }
 
-    // auto enable snap
-    snapMode: Slider.SnapAlways
+    // 自动吸附
+    snapMode: stepSize > 0 ? Slider.SnapAlways : Slider.NoSnap
 
     // 自适应高度和宽度
     implicitHeight: orientation === Qt.Horizontal ? 32 : 150
@@ -88,14 +89,14 @@ Slider {
 
         // 刻度线 / Repeater //
          Repeater {
-             model: (to - from) / (tickFrequency !== 0 ? tickFrequency : stepSize)
+             model: Math.abs(to - from) / effectiveTickInterval
 
              delegate: Column {
                 x: root.orientation === Qt.Horizontal ?
-                    index * parent.width / (to - from) * (tickFrequency !== 0 ? tickFrequency : stepSize) - width / 2
+                    index * parent.width / Math.abs(to - from) * effectiveTickInterval - width / 2
                     : ticksPadding + trackHeight
                 y: root.orientation === Qt.Vertical ?
-                    index * parent.height / (to - from) * (tickFrequency !== 0 ? tickFrequency : stepSize) - height / 2
+                    index * parent.height / Math.abs(to - from) * effectiveTickInterval - height / 2
                     : ticksPadding + trackHeight
                 spacing: 2
                 Rectangle {
@@ -104,7 +105,7 @@ Slider {
                     height: root.orientation === Qt.Horizontal ? 4 : 1
                     color: Theme.currentTheme.colors.controlStrongColor
 
-                    visible: root.tickmarks && index !== 0 && index !== ((to - from) / stepSize)
+                    visible: root.tickmarks && index !== 0 && index !== (Math.abs(to - from) / effectiveTickInterval)
                 }
              }
         }

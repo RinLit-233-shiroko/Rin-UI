@@ -10,17 +10,13 @@ ScrollBar {
     property int expandWidth: Theme.currentTheme.appearance.scrollBarWidth
 
     // 宽高
-    // implicitWidth: horizontal ? parent.width
-    //     : (implicitContentWidth + leftPadding + rightPadding)
-    // implicitHeight: vertical ? parent.height
-    //     : (implicitContentHeight + topPadding + bottomPadding)
     implicitWidth: horizontal
         ? availableWidth
-        : implicitContentWidth + leftPadding + rightPadding
+        : (scrollBar.interactive ? scrollBar.expandWidth : scrollBar.minimumWidth) + leftPadding + rightPadding
 
     implicitHeight: vertical
         ? availableHeight
-        : implicitContentHeight + topPadding + bottomPadding
+        : (scrollBar.interactive ? scrollBar.expandWidth : scrollBar.minimumWidth) + topPadding + bottomPadding
 
     // 锚点 //
     anchors.verticalCenter: vertical && parent ? parent.verticalCenter : undefined
@@ -33,44 +29,44 @@ ScrollBar {
     enabled: size < 1.0
 
     // 控制按钮 / Control Button //
-    ToolButton {
-        background: Item {}  // 无背景
-
-        width: 15
-        height: 15
-        size: 8
-        color: Theme.currentTheme.colors.textSecondaryColor
-        icon.name: vertical ? "ic_fluent_triangle_up_20_filled" : "ic_fluent_triangle_left_20_filled"
+    Loader {
+        active: scrollBar.size < 1.0
         anchors {
             top: vertical ? parent.top : undefined
             left: horizontal ? parent.left : undefined
             horizontalCenter: vertical ? parent.horizontalCenter : undefined
             verticalCenter: horizontal ? parent.verticalCenter : undefined
         }
-        onClicked: scrollBar.decrease()
-
-        visible: scrollBar.size < 1.0
-        opacity: background.opacity
+        sourceComponent: ToolButton {
+            background: Item {}
+            width: 15
+            height: 15
+            size: 8
+            color: Theme.currentTheme.colors.textSecondaryColor
+            icon.name: vertical ? "ic_fluent_triangle_up_20_filled" : "ic_fluent_triangle_left_20_filled"
+            onClicked: scrollBar.decrease()
+            opacity: background.opacity
+        }
     }
 
-    ToolButton {
-        background: Item {}  // 无背景
-
-        width: 15
-        height: 15
-        size: 8
-        color: Theme.currentTheme.colors.textSecondaryColor
-        icon.name: vertical ? "ic_fluent_triangle_down_20_filled" : "ic_fluent_triangle_right_20_filled"
+    Loader {
+        active: scrollBar.size < 1.0
         anchors {
             bottom: vertical ? parent.bottom : undefined
             right: horizontal ? parent.right : undefined
             horizontalCenter: vertical ? parent.horizontalCenter : undefined
             verticalCenter: horizontal ? parent.verticalCenter : undefined
         }
-        onClicked: scrollBar.increase()
-
-        visible: scrollBar.size < 1.0
-        opacity: background.opacity
+        sourceComponent: ToolButton {
+            background: Item {}
+            width: 15
+            height: 15
+            size: 8
+            color: Theme.currentTheme.colors.textSecondaryColor
+            icon.name: vertical ? "ic_fluent_triangle_down_20_filled" : "ic_fluent_triangle_right_20_filled"
+            onClicked: scrollBar.increase()
+            opacity: background.opacity
+        }
     }
 
 

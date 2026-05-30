@@ -40,7 +40,7 @@ ApplicationWindow {
         | Qt.WindowCloseButtonHint
     color: useNativeMacFrame ? Theme.currentTheme.colors.backgroundColor : "transparent"
     topPadding: 0
-    
+
     Component.onCompleted: {
         if (baseWindow.isWindows) {
             baseWindow.flags = baseWindow.flags & ~Qt.FramelessWindowHint

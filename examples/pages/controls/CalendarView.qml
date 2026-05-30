@@ -109,7 +109,7 @@ ControlPage {
                     text: qsTr("Selected: none")
                 },
 
-             
+
                 Text { text: qsTr("Minimum Date") },
                 CalendarDatePicker {
                     onDateSelected: function(d) { cal1.minimumDate = d }

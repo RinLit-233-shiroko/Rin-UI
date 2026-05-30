@@ -21,7 +21,6 @@ from win32gui import FindWindow, GetWindowPlacement, ReleaseCapture
 
 from RinUI.core.config import is_windows
 
-
 # 定义 Windows 类型
 ULONG_PTR = (
     ctypes.c_ulong if ctypes.sizeof(ctypes.c_void_p) == 4 else ctypes.c_ulonglong
@@ -367,9 +366,7 @@ class WinEventFilter(QAbstractNativeEventFilter):
             return
 
         margins = MARGINS(-1, -1, -1, -1)
-        ctypes.windll.dwmapi.DwmExtendFrameIntoClientArea(
-            hwnd, ctypes.byref(margins)
-        )
+        ctypes.windll.dwmapi.DwmExtendFrameIntoClientArea(hwnd, ctypes.byref(margins))
 
     def apply_fullscreen_opengl_border_workaround(self, window: QQuickWindow):
         if not window.property("enableFullscreenOpenGLBorderWorkaround"):
@@ -462,6 +459,16 @@ class WinEventFilter(QAbstractNativeEventFilter):
                     return True, 12  # HTTOP
                 if bottom - border <= y < bottom:
                     return True, 15  # HTBOTTOM
+
+                # 对标题栏区域返回 HTCAPTION 让 Windows 处理原生窗口交互
+                try:
+                    title_bar_height = window.property("titleBarHeight")
+                except Exception:
+                    title_bar_height = None
+                if not title_bar_height:
+                    title_bar_height = 32
+                if top <= y < top + title_bar_height:
+                    return True, 1  # HTCAPTION
 
                 # 其他区域不处理
                 return False, 0

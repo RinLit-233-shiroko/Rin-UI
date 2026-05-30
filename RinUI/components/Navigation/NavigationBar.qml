@@ -41,12 +41,12 @@ Item {
     property bool titleBarEnabled: true
     property int expandWidth: 0  // 0 或负值=动态宽度，正值=固定宽度
     property int minimumExpandWidth: 900
-    
+
     // 动态宽度系统配置
     property int minNavbarWidth: 200  // 最小导航栏宽度
     property int maxNavbarWidth: 400  // 最大导航栏宽度
     property bool enableDragResize: false  // 是否启用拖拽调整(可与动态/固定模式共存)
-    
+
     property int userResizedWidth: 0  // 用户拖拽后的宽度(内部使用，拖拽后自动设置)
 
     property alias windowTitle: titleLabel.text
@@ -61,27 +61,27 @@ Item {
     function isNotOverMinimumWidth() {  // 判断窗口是否小于最小宽度
         return windowWidth < minimumExpandWidth;
     }
-    
+
     // 获取有效宽度(综合考虑拖拽、固定、动态三种模式)
     function getEffectiveWidth() {
         // 优先级 1: 用户拖拽的宽度(如果启用拖拽调整且用户已拖拽)
         if (enableDragResize && userResizedWidth > 0) {
             return userResizedWidth
         }
-        
+
         // 优先级 2: 固定宽度(如果 expandWidth > 0)
         if (expandWidth > 0) {
             return expandWidth
         }
-        
+
         // 优先级 3: 动态宽度(基于内容智能计算)
         return cachedOptimalWidth
     }
-    
+
     // 计算所有导航项的最优宽度
     function calculateOptimalWidth() {
         let maxWidth = minNavbarWidth
-        
+
         // 遍历顶部导航项
         for (let i = 0; i < topRepeater.count; i++) {
             let item = topRepeater.itemAt(i)
@@ -92,7 +92,7 @@ Item {
                 let expandBtnWidth = (item.itemData.subItems && item.itemData.subItems.length > 0) ? 28 : 0
                 let requiredWidth = navigationTextMetrics.width + 66 + expandBtnWidth
                 maxWidth = Math.max(maxWidth, requiredWidth)
-                
+
                 // 如果有子项且当前项未折叠，计算子项宽度
                 if (item.itemData.subItems && !item.collapsed) {
                     for (let j = 0; j < item.itemData.subItems.length; j++) {
@@ -103,7 +103,7 @@ Item {
                 }
             }
         }
-        
+
         // 遍历中间导航项
         for (let i = 0; i < mainRepeater.count; i++) {
             let item = mainRepeater.itemAt(i)
@@ -112,7 +112,7 @@ Item {
                 let expandBtnWidth = (item.itemData.subItems && item.itemData.subItems.length > 0) ? 28 : 0
                 let requiredWidth = navigationTextMetrics.width + 66 + expandBtnWidth
                 maxWidth = Math.max(maxWidth, requiredWidth)
-                
+
                 if (item.itemData.subItems && !item.collapsed) {
                     for (let j = 0; j < item.itemData.subItems.length; j++) {
                         navigationTextMetrics.text = item.itemData.subItems[j].title || ""
@@ -122,7 +122,7 @@ Item {
                 }
             }
         }
-        
+
         // 遍历底部导航项
         for (let i = 0; i < bottomRepeater.count; i++) {
             let item = bottomRepeater.itemAt(i)
@@ -131,7 +131,7 @@ Item {
                 let expandBtnWidth = (item.itemData.subItems && item.itemData.subItems.length > 0) ? 28 : 0
                 let requiredWidth = navigationTextMetrics.width + 66 + expandBtnWidth
                 maxWidth = Math.max(maxWidth, requiredWidth)
-                
+
                 if (item.itemData.subItems && !item.collapsed) {
                     for (let j = 0; j < item.itemData.subItems.length; j++) {
                         navigationTextMetrics.text = item.itemData.subItems[j].title || ""
@@ -141,11 +141,11 @@ Item {
                 }
             }
         }
-        
+
         // 限制在最小/最大宽度之间，并对齐到 4px
         return Math.min(Math.ceil(Math.max(maxWidth, minNavbarWidth) / 4) * 4, maxNavbarWidth)
     }
-    
+
     // 请求重新计算布局
     function requestLayoutUpdate() {
         if (expandWidth <= 0 && !collapsed) {  // 仅在动态宽度模式下计算
@@ -155,7 +155,7 @@ Item {
             })
         }
     }
-    
+
     // 组件完成时初始化缓存宽度
     Component.onCompleted: {
         if (expandWidth <= 0) {  // 仅在动态宽度模式下初始化
@@ -164,7 +164,7 @@ Item {
             })
         }
     }
-    
+
     // TextMetrics 用于计算文本宽度
     TextMetrics {
         id: navigationTextMetrics
@@ -298,13 +298,13 @@ Item {
             return item.position === Position.Top;
         });
     }
-    
+
     function getMiddleItems() {
         return navigationItems.filter(function(item) {
             return item.position === undefined || item.position === null || item.position === Position.None || item.position === Position.Center;
         });
     }
-    
+
     function getBottomItems() {
         return navigationItems.filter(function(item) {
             return item.position === Position.Bottom;
@@ -489,7 +489,7 @@ Item {
             policy: ScrollBar.AsNeeded
         }
     }
-    
+
     // 拖拽调整区域
     MouseArea {
         id: resizeHandle
@@ -501,26 +501,26 @@ Item {
         enabled: enableDragResize && !collapsed
         visible: enabled
         z: 1000
-        
+
         property int startX: 0
         property int startWidth: 0
-        
+
         onPressed: function(mouse) {
             startX = mouse.x
             startWidth = getEffectiveWidth()  // 从当前有效宽度开始拖拽
         }
-        
+
         onPositionChanged: function(mouse) {
             if (pressed) {
                 let delta = mouse.x - startX
                 let newWidth = startWidth + delta
-                
+
                 // 限制在最小/最大宽度之间
                 newWidth = Math.max(minNavbarWidth, Math.min(maxNavbarWidth, newWidth))
-                
+
                 // 确保是 4 的倍数
                 newWidth = Math.round(newWidth / 4) * 4
-                
+
                 navigationBar.userResizedWidth = newWidth  // 存储到拖拽宽度
             }
         }

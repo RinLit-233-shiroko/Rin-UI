@@ -15,7 +15,7 @@
 > [!NOTE]
 > ### RinUI has reached 100 ⭐!
 > This milestone came as a pleasant surprise to me. Thank you to everyone who follows, uses, and supports the project.
-> 
+>
 > I would also like to give special thanks to all contributors.
 > Whether through code contributions, issue reports, or suggestions and discussions, your efforts have helped make RinUI better.
 
@@ -92,8 +92,7 @@ Now you can learn more about RinUI components and themes in [the online document
 - [WinUI 3 Gallery](https://github.com/microsoft/WinUI-Gallery)
 
 ### Contributors
-Contributions are welcome! Please read the [contribution guidelines](./CONTRIBUTING.md) before submitting a pull request.
-
+<!-- Contributions are welcome! Please read the [contribution guidelines](./CONTRIBUTING.md) before submitting a pull request. -->
 Thanks to the great people who contributed to this project.
 [![Contributors](http://contrib.nn.ci/api?repo=rinlit-233-shiroko/Rin-UI)](https://github.com/RinLit-233-shiroko/Rin-UI/graphs/contributors)
 

@@ -141,7 +141,7 @@ Item {
             visible: subItem && !navigationBar.collapsed
             opacity: 0.7
 
-            onClicked: { 
+            onClicked: {
                 collapsed = !collapsed
                 // Notify NavigationBar to recalculate width
                 if (navigationBar && typeof navigationBar.requestLayoutUpdate === "function") {

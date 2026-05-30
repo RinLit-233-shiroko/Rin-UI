@@ -19,8 +19,8 @@ Item {
     property bool enableColorOverlay: false  // 颜色覆盖层(用于 SVG 图标主题色适配)
 
     // 计算是否是字体图标
-    property bool isUnicode: icon.length === 1  // 判断是否为单字符（字体图标通常是单个字符）
-    property bool isFontIcon: source === ""  // 判断是否为字体图标
+    property bool isFontIcon: source === "" && icon.length > 0 && Utils.fontIconIndex[icon] !== undefined  // 判断是否为字体图标
+    property bool isUnicode: source === "" && icon.length > 0 && !isFontIcon  // 判断是否为原始 Unicode 字符
     property bool isSvg: source.toString().toLowerCase().endsWith(".svg")  // 判断是否为 SVG 图标
 
     // 匹配尺寸
@@ -39,7 +39,7 @@ Item {
         id: text
         anchors.centerIn: parent
         // text: isFontIcon ? icon : ""  // 仅当 `icon` 是单字符时显示
-        text: isUnicode ? icon : String.fromCharCode(Utils.fontIconIndex[icon])  // 显示 FluentSystemIcons 字体图标
+        text: isFontIcon ? String.fromCharCode(Utils.fontIconIndex[icon]) : (isUnicode ? icon : "")  // 显示 FluentSystemIcons 字体图标
         font.family: Utils.iconFontFamily
         font.pixelSize: size
         lineHeight: size
