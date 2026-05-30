@@ -59,6 +59,8 @@ Item {
     // area
     default property alias content: contentItem.data
     property alias contentHost: contentItem
+    property alias leadingContent: leadingContentItem.data
+    property alias leadingContentHost: leadingContentItem
 
 
     height: titleBarHeight
@@ -174,7 +176,7 @@ Item {
             id: titleRow
             visible: root.titleEnabled
             Layout.fillHeight: true
-            Layout.fillWidth: true
+            Layout.preferredWidth: visible ? implicitWidth : 0
             Layout.leftMargin: root.isMacOS ? (root.useNativeMacControls ? root.macLeadingInset : 0) : 16
             spacing: 16
 
@@ -196,6 +198,14 @@ Item {
                 typography: Typography.Caption
                 text: qsTr("Fluent TitleBar")
             }
+        }
+
+        Item {
+            id: leadingContentItem
+            Layout.fillHeight: true
+            Layout.preferredWidth: childrenRect.width
+            visible: children.length > 0
+            clip: true
         }
 
         Item {

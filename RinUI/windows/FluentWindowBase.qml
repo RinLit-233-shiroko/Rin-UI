@@ -63,6 +63,8 @@ ApplicationWindow {
     property int titleBarHeight: Theme.currentTheme.appearance.dialogTitleBarHeight
     property alias titleBarArea: titleBar.content
     property alias titleBarHost: titleBar.contentHost
+    property alias titleBarLeadingArea: titleBar.leadingContent
+    property alias titleBarLeadingHost: titleBar.leadingContentHost
 
 
     // 直接添加子项

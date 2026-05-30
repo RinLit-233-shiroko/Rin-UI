@@ -13,10 +13,10 @@ Frame {
     property alias icon: icon
     property string description
 
-    leftPadding: 15
-    rightPadding: 15
-    topPadding: 13
-    bottomPadding: 13
+    leftPadding: 18
+    rightPadding: 18
+    topPadding: 16
+    bottomPadding: 16
     // implicitHeight: 62
 
     RowLayout {
@@ -27,7 +27,7 @@ Frame {
             id: leftContent
             Layout.maximumWidth: parent.width * 0.6
             Layout.fillHeight: true
-            spacing: 16
+            spacing: 18
 
             Icon {
                 id: icon

@@ -7,18 +7,11 @@ Text {
     id: label
     property int typography: -1
 
-    color: targetColor
+    color: Theme.currentTheme.colors.textColor
     linkColor: Theme.currentTheme.colors.primaryColor
-    property color targetColor: Theme.currentTheme.colors.textColor  // 目标颜色，用于切换动画
     wrapMode: Text.WordWrap
 
-    // 主题切换动画  TODO: 会坠机
-    // Behavior on color {
-    //     ColorAnimation {
-    //         duration: Utils.appearanceSpeed
-    //         easing.type: Easing.OutQuart
-    //     }
-    // }
+    // 主题切换动画
 
     font.pixelSize: {
         switch (typography) {
@@ -50,6 +43,21 @@ Text {
                 return Font.Normal;
             default:
                 return font.weight;
+        }
+    }
+
+    lineHeightMode: Text.FixedHeight
+    lineHeight: {
+        switch (typography) {
+            case Typography.Display: return Theme.currentTheme.typography.displayLineHeight;
+            case Typography.TitleLarge: return Theme.currentTheme.typography.titleLargeLineHeight;
+            case Typography.Title: return Theme.currentTheme.typography.titleLineHeight;
+            case Typography.Subtitle: return Theme.currentTheme.typography.subtitleLineHeight;
+            case Typography.BodyLarge: return Theme.currentTheme.typography.bodyLargeLineHeight;
+            case Typography.Body: return Theme.currentTheme.typography.bodyLineHeight;
+            case Typography.BodyStrong: return Theme.currentTheme.typography.bodyStrongLineHeight;
+            case Typography.Caption: return Theme.currentTheme.typography.captionLineHeight;
+            default: return Theme.currentTheme.typography.bodyLineHeight;
         }
     }
 }

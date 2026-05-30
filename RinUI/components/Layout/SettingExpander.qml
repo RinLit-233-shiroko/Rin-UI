@@ -35,7 +35,7 @@ Expander {
             }
             Column {
                 Layout.fillWidth: true
-                spacing: 2
+                // spacing: 2
                 Text {
                     width: parent.width
                     typography: Typography.Body

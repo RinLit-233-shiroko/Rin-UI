@@ -42,6 +42,7 @@ Item {
         text: isUnicode ? icon : String.fromCharCode(Utils.fontIconIndex[icon])  // 显示 FluentSystemIcons 字体图标
         font.family: Utils.iconFontFamily
         font.pixelSize: size
+        lineHeight: size
     }
 
     Image {

@@ -19,7 +19,7 @@ Page {
     property int radius: Theme.currentTheme.appearance.windowRadius
     property int wrapperWidth: 1000
     horizontalPadding: 56
-    bottomPadding: 24
+    // bottomPadding: 24
     // StackView.onRemoved: destroy()
     spacing: 14
     property alias contentSpacing: container.spacing
@@ -73,7 +73,7 @@ Page {
             anchors.bottom: parent.bottom
             anchors.bottomMargin: fluentPage.footer ? fluentPage.footer.height : 0
         }
-        contentHeight: container.height + 18 + headerContainer.height
+        contentHeight: container.height + 18 + headerContainer.height + 24
 
         Row {
             id: headerContainer

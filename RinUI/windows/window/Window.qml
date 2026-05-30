@@ -41,6 +41,8 @@ Window {
     property int titleBarHeight: Theme.currentTheme.appearance.dialogTitleBarHeight
     property alias titleBarArea: titleBar.content
     property alias titleBarHost: titleBar.contentHost
+    property alias titleBarLeadingArea: titleBar.leadingContent
+    property alias titleBarLeadingHost: titleBar.leadingContentHost
     property alias titleEnabled: titleBar.titleEnabled
     property alias minimizeEnabled: titleBar.minimizeEnabled
     // property alias maximizeEnabled: titleBar.maximizeEnabled

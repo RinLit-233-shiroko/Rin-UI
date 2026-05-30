@@ -143,5 +143,14 @@ QtObject {
         property int bodySize: 14
         property int bodyStrongSize: 14
         property int captionSize: 12
+        // Line Heights
+        property int displayLineHeight: 92
+        property int titleLargeLineHeight: 52
+        property int titleLineHeight: 36
+        property int subtitleLineHeight: 28
+        property int bodyLargeLineHeight: 24
+        property int bodyLineHeight: 20
+        property int bodyStrongLineHeight: 20
+        property int captionLineHeight: 16
     }
 }
