@@ -195,7 +195,8 @@ Item {
         anchors.margins: -5
         anchors.topMargin: 0
         radius: Theme.currentTheme.appearance.windowRadius
-        color: Theme.currentTheme.colors.backgroundAcrylicColor
+        // color: "transparent"
+        color: backdrop.enabled ? Theme.currentTheme.colors.controlFillColor : Theme.currentTheme.colors.backgroundAcrylicColor
         border.color: Theme.currentTheme.colors.flyoutBorderColor
         z: -1
         visible: isNotOverMinimumWidth() && !collapsed
@@ -204,6 +205,11 @@ Item {
             NumberAnimation {
                 duration: collapsed ? Utils.animationSpeed / 2 : 50
             }
+        }
+
+        AcrylicBrush {
+            id: backdrop
+            sourceItem: stackView
         }
 
         layer.enabled: true

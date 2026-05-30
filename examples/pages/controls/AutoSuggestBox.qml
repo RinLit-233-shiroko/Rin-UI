@@ -7,6 +7,8 @@ import "../../components"
 
 ControlPage {
     title: qsTr("AutoSuggestBox")
+    badgeText: qsTr("Extra")
+    badgeSeverity: Severity.Success
 
     // intro
     Text {

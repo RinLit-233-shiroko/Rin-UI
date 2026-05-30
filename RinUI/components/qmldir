@@ -2,6 +2,7 @@ module RinUI.AdvancedComponents
 
 Base 1.0 Base.qml
 Shadow 1.0 Shadow.qml
+AcrylicBrush 1.0 Styles/AcrylicBrush.qml
 FocusIndicator 1.0 FocusIndicator.qml
 
 IconWidget 1.0 Icon.qml

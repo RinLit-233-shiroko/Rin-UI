@@ -6,6 +6,7 @@ singleton Colors 1.0 themes/Colors.qml
 singleton Appearance 1.0 themes/Appearance.qml
 
 Shadow 1.0 components/Shadow.qml
+AcrylicBrush 1.0 components/Styles/AcrylicBrush.qml
 FocusIndicator 1.0 components/FocusIndicator.qml
 
 # Basic Input

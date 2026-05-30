@@ -17,26 +17,45 @@ FluentPage {
     // Banner / 横幅 //
     contentHeader: Item {
         width: parent.width
-        height: Math.max(window.height * 0.35, 200)
+        height: 350
+        // height: Math.max(window.height * 0.45, 200)
 
         Image {
-            id: banner
+            id: bannerSource
             anchors.fill: parent
             source: "../assets/banner.png"
             fillMode: Image.PreserveAspectCrop
             verticalAlignment: Image.AlignTop
+        }
 
-            layer.enabled: true
-            layer.textureSize: Qt.size(banner.width * Screen.devicePixelRatio, banner.height * Screen.devicePixelRatio)
-            layer.effect: OpacityMask {
+        ShaderEffectSource {
+            id: bannerTexture
+            sourceItem: bannerSource
+            hideSource: true
+            live: true
+            visible: false
+        }
+
+        Item {
+            id: bannerBackdrop
+            anchors.fill: parent
+
+            // Rectangle {
+            //     anchors.fill: parent
+            //     color: Theme.currentTheme.colors.backgroundColor
+            // }
+
+            OpacityMask {
+                id: bannerContent
+                anchors.fill: parent
+                source: bannerTexture
                 maskSource: Rectangle {
-                    width: banner.width
-                    height: banner.height
+                    width: bannerContent.width
+                    height: bannerContent.height
 
-                    // 渐变效果
                     gradient: Gradient {
-                        GradientStop { position: 0.7; color: "white" }  // 不透明
-                        GradientStop { position: 1.0; color: "transparent" }  // 完全透明
+                        GradientStop { position: 0.75; color: "white" }
+                        GradientStop { position: 0.97; color: "transparent" }
                     }
                 }
             }
@@ -68,10 +87,13 @@ FluentPage {
 
     // link card
     Flickable {
-        width: parent.width
+        Layout.fillWidth: true
+        // width: parent.width
         implicitWidth: parent.width
         height: linkRow.height
         contentWidth: linkRow.width
+
+        Layout.topMargin: -164
 
         clip: true
 
@@ -103,7 +125,11 @@ FluentPage {
                         url: "https://github.com/RinLit-233-shiroko/Rin-UI"
                     },
                 ]
-                delegate: LinkClip { }
+                delegate: LinkClip {
+                    AcrylicBrush {
+                        sourceItem: bannerBackdrop
+                    }
+                }
             }
         }
     }
@@ -235,7 +261,7 @@ FluentPage {
                 Column {
                     id: recentContent
                     width: parent.width
-                    spacing: 18
+                    spacing: 32
 
                     Column {
                         width: parent.width
