@@ -21,11 +21,15 @@ RowLayout {
     property var window: parent  // 窗口对象
 
     // 页面组件缓存(Component)
+    property bool keepAlivePages: true  // 页面实例缓存，避免导航切换时重复创建页面
     property var componentCache: ({})
+    property var pageInstanceCache: ({})
+    property var pageInstanceKeys: []
     property bool pushInProgress: false
     property bool replaceBackInProgress: false
     property var loadingPages: ({})
     property var itemsToRestoreAfterReload: []
+    property Item keepAliveCurrentItem: null
 
     signal pageChanged()  // 页面切换信号
 
@@ -56,6 +60,16 @@ RowLayout {
                 navigationBar.collapsedByAutoResize = true
             }
         }
+    }
+
+    Component.onDestruction: {
+        for (let key in pageInstanceCache) {
+            if (pageInstanceCache[key]) {
+                pageInstanceCache[key].destroy()
+            }
+        }
+        pageInstanceCache = ({})
+        pageInstanceKeys = []
     }
 
     NavigationBar {
@@ -110,6 +124,9 @@ RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 1
             anchors.topMargin: 1
+            visible: !navigationView.keepAlivePages
+            enabled: !navigationView.keepAlivePages
+            z: 1
 
             // 切换动画 / Page Transition //
             pushEnter : Transition {
@@ -227,6 +244,87 @@ RowLayout {
 
         }
 
+        Item {
+            id: keepAliveHost
+            anchors.fill: parent
+            anchors.leftMargin: 1
+            anchors.topMargin: 1
+            clip: true
+            visible: navigationView.keepAlivePages
+            enabled: navigationView.keepAlivePages
+            z: 1
+        }
+
+        ParallelAnimation {
+            id: keepAliveExitAnimation
+            property Item targetItem: null
+
+            PropertyAnimation {
+                target: keepAliveExitAnimation.targetItem
+                property: "opacity"
+                to: 0
+                duration: replaceBackInProgress ? Utils.appearanceSpeed : Utils.animationSpeed
+                easing.type: Easing.InOutQuad
+            }
+
+            PropertyAnimation {
+                target: keepAliveExitAnimation.targetItem
+                property: "y"
+                to: replaceBackInProgress ? pushEnterFromY : 0
+                duration: replaceBackInProgress ? Utils.animationSpeed : 0
+                easing.type: Easing.InQuint
+            }
+
+            onFinished: {
+                if (targetItem && targetItem !== keepAliveCurrentItem) {
+                    targetItem.visible = false
+                    targetItem.enabled = false
+                    targetItem.opacity = 1
+                    targetItem.y = 0
+                }
+                targetItem = null
+            }
+        }
+
+        ParallelAnimation {
+            id: keepAliveEnterAnimation
+            property Item targetItem: null
+
+            SequentialAnimation {
+                PropertyAction {
+                    target: keepAliveEnterAnimation.targetItem
+                    property: "opacity"
+                    value: 0
+                }
+                PauseAnimation {
+                    duration: replaceBackInProgress ? Utils.animationSpeed : 0
+                }
+                PropertyAnimation {
+                    target: keepAliveEnterAnimation.targetItem
+                    property: "opacity"
+                    from: 0
+                    to: 1
+                    duration: replaceBackInProgress ? 100 : Utils.appearanceSpeed
+                    easing.type: Easing.InOutQuad
+                }
+            }
+
+            PropertyAnimation {
+                target: keepAliveEnterAnimation.targetItem
+                property: "y"
+                from: replaceBackInProgress ? 0 : pushEnterFromY
+                to: 0
+                duration: replaceBackInProgress ? 0 : Utils.animationSpeedMiddle
+                easing.type: Easing.OutQuint
+            }
+
+            onFinished: {
+                targetItem = null
+                setPushInProgress(false)
+                replaceBackInProgress = false
+            }
+        }
+
         Component.onCompleted: {
             if (navigationItems.length > 0) {
                 if (defaultPage !== "") {
@@ -245,6 +343,11 @@ RowLayout {
                 lastPages = []
             } else {
                 lastPages = lastPages.slice(0, -1)  // 移除最后一个元素
+            }
+            if (keepAlivePages) {
+                currentPage = previousPage
+                safePush(previousPage, false, true)  // 显示缓存页面
+                return
             }
             if (stackView.depth > 1) {
                 currentPage = previousPage
@@ -301,7 +404,11 @@ RowLayout {
         setPushInProgress(true)
 
         if (page instanceof Component) {
-            asyncPush(page, pageKey, reload, fromNavigation, properties)
+            if (keepAlivePages) {
+                asyncShowCachedPage(page, pageKey, reload, fromNavigation, properties)
+            } else {
+                asyncPush(page, pageKey, reload, fromNavigation, properties)
+            }
         } else if (typeof page === "object" || typeof page === "string") {
             if (!componentCache[pageKey] || reload) {
                 loadingPages[pageKey] = true
@@ -310,7 +417,11 @@ RowLayout {
                 if (component.status === Component.Ready) {
                     componentCache[pageKey] = component
                     loadingPages[pageKey] = false
-                    asyncPush(component, pageKey, reload, fromNavigation, properties)
+                    if (keepAlivePages) {
+                        asyncShowCachedPage(component, pageKey, reload, fromNavigation, properties)
+                    } else {
+                        asyncPush(component, pageKey, reload, fromNavigation, properties)
+                    }
                 } else if (component.status === Component.Error) {
                     console.error("Failed to load:", page, component.errorString())
                     cleanupLoading(pageKey, true)
@@ -328,7 +439,11 @@ RowLayout {
                         if (component.status === Component.Ready) {
                             componentCache[pageKey] = component
                             loadingPages[pageKey] = false
-                            asyncPush(component, pageKey, reload, fromNavigation, properties)
+                            if (keepAlivePages) {
+                                asyncShowCachedPage(component, pageKey, reload, fromNavigation, properties)
+                            } else {
+                                asyncPush(component, pageKey, reload, fromNavigation, properties)
+                            }
                         } else if (component.status === Component.Error) {
                             console.error("Failed to async load:", page, component.errorString())
                             cleanupLoading(pageKey, true)
@@ -347,7 +462,11 @@ RowLayout {
                         if (component.status === Component.Ready) {
                             componentCache[pageKey] = component
                             loadingPages[pageKey] = false
-                            asyncPush(component, pageKey, reload, fromNavigation, properties)
+                            if (keepAlivePages) {
+                                asyncShowCachedPage(component, pageKey, reload, fromNavigation, properties)
+                            } else {
+                                asyncPush(component, pageKey, reload, fromNavigation, properties)
+                            }
                         } else if (component.status === Component.Error) {
                             cleanupLoading(pageKey, true)
                         }
@@ -355,8 +474,107 @@ RowLayout {
                     return
                 }
             } else {
-                asyncPush(componentCache[pageKey], pageKey, reload, fromNavigation, properties)
+                if (keepAlivePages) {
+                    asyncShowCachedPage(componentCache[pageKey], pageKey, reload, fromNavigation, properties)
+                } else {
+                    asyncPush(componentCache[pageKey], pageKey, reload, fromNavigation, properties)
+                }
             }
+        }
+    }
+
+    function asyncShowCachedPage(component, pageKey, reload, fromNavigation, properties) {
+        if (properties === undefined) properties = {}
+
+        let targetObjectName = normalizeKeyFromPage(pageKey).includes("/") ?
+            normalizeKeyFromPage(pageKey).split("/").pop().replace(".qml", "") :
+            normalizeKeyFromPage(pageKey)
+
+        if (currentPage !== "" && !fromNavigation) {
+            if (!reload || currentPage !== pageKey) {
+                if (lastPages.length === 0) lastPages = [currentPage]
+                else if (lastPages.length === 1) lastPages = [lastPages[0], currentPage]
+                else lastPages = [lastPages[1], currentPage]
+            }
+        }
+
+        if (reload && pageInstanceCache[pageKey]) {
+            pageInstanceCache[pageKey].destroy()
+            delete pageInstanceCache[pageKey]
+            let index = pageInstanceKeys.indexOf(pageKey)
+            if (index >= 0) {
+                pageInstanceKeys = pageInstanceKeys.slice(0, index).concat(pageInstanceKeys.slice(index + 1))
+            }
+        }
+
+        let pageInstance = pageInstanceCache[pageKey]
+        let wasCached = !!pageInstance
+        if (!pageInstance) {
+            pageInstance = component.createObject(keepAliveHost, Object.assign({}, properties, {
+                objectName: targetObjectName,
+                visible: false,
+                x: 0,
+                y: 0,
+                width: keepAliveHost.width,
+                height: keepAliveHost.height
+            }))
+            if (!pageInstance) {
+                console.error("Failed to create cached page:", pageKey, component.errorString())
+                cleanupLoading(pageKey, true)
+                replaceBackInProgress = false
+                return
+            }
+            pageInstanceCache[pageKey] = pageInstance
+            if (pageInstanceKeys.indexOf(pageKey) === -1) {
+                pageInstanceKeys = pageInstanceKeys.concat([pageKey])
+            }
+            pageInstance.width = Qt.binding(function() { return keepAliveHost.width })
+            pageInstance.height = Qt.binding(function() { return keepAliveHost.height })
+        }
+
+        if (keepAliveEnterAnimation.running) keepAliveEnterAnimation.stop()
+        if (keepAliveExitAnimation.running) keepAliveExitAnimation.stop()
+
+        let previousItem = keepAliveCurrentItem
+        for (let i = 0; i < pageInstanceKeys.length; i++) {
+            let key = pageInstanceKeys[i]
+            if (pageInstanceCache[key] && pageInstanceCache[key] !== pageInstance) {
+                pageInstanceCache[key].visible = false
+                pageInstanceCache[key].enabled = false
+                pageInstanceCache[key].opacity = 1
+                pageInstanceCache[key].y = 0
+            }
+        }
+
+        currentPage = pageKey
+        pageChanged()
+
+        keepAliveCurrentItem = pageInstance
+        pageInstance.visible = true
+        pageInstance.enabled = true
+        pageInstance.z = 2
+
+        if (loadingPages[pageKey]) {
+            loadingPages[pageKey] = false
+            delete loadingPages[pageKey]
+        }
+
+        if (previousItem && previousItem !== pageInstance) {
+            previousItem.visible = true
+            previousItem.enabled = false
+            previousItem.z = 1
+            keepAliveExitAnimation.targetItem = previousItem
+            keepAliveExitAnimation.start()
+        }
+
+        if (previousItem !== pageInstance || !wasCached || reload) {
+            keepAliveEnterAnimation.targetItem = pageInstance
+            keepAliveEnterAnimation.start()
+        } else {
+            pageInstance.opacity = 1
+            pageInstance.y = 0
+            setPushInProgress(false)
+            replaceBackInProgress = false
         }
     }
 
