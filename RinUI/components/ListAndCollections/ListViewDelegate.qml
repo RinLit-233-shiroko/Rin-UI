@@ -8,55 +8,26 @@ import "../../components"
 ItemDelegate {
     id: delegate
     width: ListView.view ? ListView.view.width : 200
-    height: contents.implicitHeight + 20  // 自适应
+    height: contentItem.implicitHeight + 20  // 自适应
     highlighted: ListView.isCurrentItem  // 当前项高亮
     focusPolicy: Qt.StrongFocus
+
+    leftPadding: 16
+    rightPadding: 5
+    topPadding: 3
+    bottomPadding: 0
 
     // accessibility
     FocusIndicator {
         control: parent
     }
 
-    property alias leftArea: leftArea.data
-    property alias middleArea: middleArea.data
-    property alias rightArea: rightArea.data
-    property alias contents: contents.data
-
-    contentItem: Item {}
-
-    RowLayout {
-        id: contents
-        anchors.fill: parent
-        anchors.leftMargin: 5 + 11
-        anchors.rightMargin: 5
-        anchors.topMargin: 3
-        spacing: 8
-
-        Row {
-            id: leftArea
-        }
-
-        ColumnLayout {
-            id: middleArea
-            Layout.fillHeight: true
-            Text {
-                visible: text.text.length > 0
-                Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
-                id: text
-                typography: Typography.Body
-                wrapMode: Text.Wrap
-                text: {
-                    delegate.text
-                }
-            }
-        }
-
-        RowLayout {
-            id: rightArea
-            spacing: 16
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-        }
+    contentItem: Text {
+        visible: text.length > 0
+        typography: Typography.Body
+        verticalAlignment: Text.AlignVCenter
+        wrapMode: Text.Wrap
+        text: delegate.text
     }
 
     background: Rectangle {

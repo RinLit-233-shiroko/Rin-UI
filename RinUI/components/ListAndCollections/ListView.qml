@@ -117,23 +117,5 @@ ListView {
                 default: return "";
             }
         }
-        // middleArea: [
-        //     Text {
-        //         Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
-        //         id: text
-        //         typography: Typography.Body
-        //         wrapMode: Text.Wrap
-        //         text: {
-        //             switch (root.modelType) {
-        //                 case "array": return modelData;
-        //                 case "array-with-role": return modelData[root.textRole] || modelData || "";
-        //                 case "listmodel":
-        //                 case "listmodel-like":
-        //                     return model[root.textRole] || modelData || "";
-        //                 default: return "";
-        //             }
-        //         }
-        //     }
-        // ]
     }
 }

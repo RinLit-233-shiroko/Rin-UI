@@ -8,8 +8,8 @@ import "../../components"
 ControlPage {
     id: page
     title: "ListView"
-    badgeText: qsTr("Experimental")
-    badgeSeverity: Severity.Warning
+    // badgeText: qsTr("Experimental")
+    // badgeSeverity: Severity.Warning
 
     Text {
         Layout.fillWidth: true
@@ -110,7 +110,7 @@ ControlPage {
 
         Text {
             typography: Typography.BodyStrong
-                text: "ListView with custom ListViewDelegate"
+            text: "ListView with custom ItemTemplate"
         }
         Frame {
             width: parent.width
@@ -118,9 +118,9 @@ ControlPage {
                 spacing: 4
                 Text {
                     width: parent.parent.width
-                    text: "You can customize the ListViewDelegate to show some custom items. " +
-                        "The ListViewDelegate is a component that defines how each delegates should look. " +
-                        "You can use any QML controls inside the ListViewDelegate to create a custom contents."
+                    text: "You can customize the ListView item template by replacing the ListViewDelegate contentItem. " +
+                        "The ListViewDelegate keeps the standard selection background and indicator, " +
+                        "while contentItem defines the visual tree for each item."
                 }
 
                 ListView {
@@ -128,31 +128,33 @@ ControlPage {
                     width: 350
                     height: 400
 
-                    // 自定义拓展区
                     delegate: ListViewDelegate {
-                        // 头像：之后会出头像组件替换的
-                        leftArea: Rectangle {
-                            width: 32
-                            height: 32
-                            radius: 16
-                            color: "#818181"
-                        }
+                        contentItem: RowLayout {
+                            spacing: 12
 
-                        middleArea: [
-                            Text {
-                                Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
-                                id: text
-                                typography: Typography.Body
-                                wrapMode: Text.Wrap
-                                text: modelData.name
-                            },
-                            Text {
-                                Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
-                                typography: Typography.Caption
-                                color: Theme.currentTheme.colors.textSecondaryColor
-                                text: modelData.school
+                            // 终于换上头像控件了
+                            Avatar {
+                                Layout.rowSpan: 2
+                                Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+                                size: 42
                             }
-                        ]
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Text {
+                                    Layout.fillWidth: true
+                                    typography: Typography.BodyStrong
+                                    text: modelData.name
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    // typography: Typography.Caption
+                                    color: Theme.currentTheme.colors.textSecondaryColor
+                                    text: modelData.school
+                                }
+                            }
+                        }
                     }
 
                     model: [
