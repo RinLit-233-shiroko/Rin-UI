@@ -470,7 +470,10 @@ class WinEventFilter(QAbstractNativeEventFilter):
                     title_bar_height = None
                 if not title_bar_height:
                     title_bar_height = 32
-                if top <= y < top + title_bar_height:
+                screen = window.screen()
+                dp_ratio = screen.devicePixelRatio() if screen else 1.0
+                title_bar_height_px = int(title_bar_height * dp_ratio)
+                if top <= y < top + title_bar_height_px:
                     return True, 1  # HTCAPTION
 
                 # 其他区域不处理
