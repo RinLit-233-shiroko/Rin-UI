@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
+import QtQuick.Window 2.15
 import Qt5Compat.GraphicalEffects  // 图形库
 import RinUI
 import "../assets"
@@ -13,6 +14,7 @@ FluentPage {
     padding: 0
 
     // Banner / 横幅 //
+    // 仅遮罩图片（顶圆角 + 底渐变）；标题在 mask 外直接绘制，保持 HiDPI 清晰
     header: Item {
         width: parent.width
         height: 200
@@ -26,10 +28,21 @@ FluentPage {
             horizontalAlignment: Image.AlignLeft
 
             layer.enabled: true
+            layer.smooth: false
+            layer.mipmap: false
+            layer.textureSize: Qt.size(
+                Math.max(1, Math.ceil(width * Screen.devicePixelRatio)),
+                Math.max(1, Math.ceil(height * Screen.devicePixelRatio))
+            )
             layer.effect: OpacityMask {
                 maskSource: Rectangle {
                     width: banner.width
                     height: banner.height
+                    radius: 0
+                    topLeftRadius: Theme.currentTheme.appearance.windowRadius
+                    topRightRadius: Theme.currentTheme.appearance.windowRadius
+                    bottomLeftRadius: 0
+                    bottomRightRadius: 0
 
                     // 渐变效果
                     gradient: Gradient {
