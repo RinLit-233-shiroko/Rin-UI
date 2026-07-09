@@ -13,8 +13,7 @@ FluentPage {
     wrapperWidth: width - 42*2
     padding: 0
 
-    // Banner / 横幅 //
-    // 仅遮罩图片（顶圆角 + 底渐变）；标题在 mask 外直接绘制，保持 HiDPI 清晰
+    // Banner / 横幅：仅业务渐变；卡片圆角由 NavigationView 库层裁切
     header: Item {
         width: parent.width
         height: 200
@@ -38,11 +37,6 @@ FluentPage {
                 maskSource: Rectangle {
                     width: banner.width
                     height: banner.height
-                    radius: 0
-                    topLeftRadius: Theme.currentTheme.appearance.windowRadius
-                    topRightRadius: Theme.currentTheme.appearance.windowRadius
-                    bottomLeftRadius: 0
-                    bottomRightRadius: 0
 
                     // 渐变效果
                     gradient: Gradient {

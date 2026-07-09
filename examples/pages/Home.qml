@@ -20,7 +20,7 @@ FluentPage {
         height: 350
         // height: Math.max(window.height * 0.45, 200)
 
-        // 仅遮罩图片：顶圆角贴合 appLayer + 底渐变；标题文字在 mask 外直接绘制（HiDPI 不糊字）
+        // 仅业务渐变；内容卡片圆角由 NavigationView.RoundedCornerOverlay 库层统一裁切
         Image {
             id: bannerSource
             anchors.fill: parent
@@ -36,7 +36,6 @@ FluentPage {
             live: true
             visible: false
             smooth: true
-            // 物理像素纹理，避免高分屏下 banner 被二次采样发糊
             textureSize: Qt.size(
                 Math.max(1, Math.ceil(bannerSource.width * Screen.devicePixelRatio)),
                 Math.max(1, Math.ceil(bannerSource.height * Screen.devicePixelRatio))
@@ -52,15 +51,8 @@ FluentPage {
                 anchors.fill: parent
                 source: bannerTexture
                 maskSource: Rectangle {
-                    id: bannerMask
                     width: bannerContent.width
                     height: bannerContent.height
-                    // 顶圆角与内容卡片一致；底直角接下方内容
-                    radius: 0
-                    topLeftRadius: Theme.currentTheme.appearance.windowRadius
-                    topRightRadius: Theme.currentTheme.appearance.windowRadius
-                    bottomLeftRadius: 0
-                    bottomRightRadius: 0
 
                     gradient: Gradient {
                         GradientStop { position: 0.75; color: "white" }
