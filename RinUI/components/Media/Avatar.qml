@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls.Basic 2.15
 import QtQuick.Layouts 2.15
+import QtQuick.Window 2.15
 import Qt5Compat.GraphicalEffects
 import "../../themes"
 import "../../components"
@@ -16,6 +17,7 @@ Item {
     implicitHeight: size
     opacity: enabled ? 1 : 0.4
 
+    // 圆形底 + 初始文字/图标直接绘制，不走 layer（避免 HiDPI 糊字）
     Rectangle {
         id: background
         anchors.fill: parent
@@ -54,22 +56,28 @@ Item {
         }
     }
 
+    // 仅对图片做圆形遮罩；补 textureSize 并关闭 smooth 以适配 HiDPI
     Image {
         id: image
         source: root.source
         anchors.fill: parent
         fillMode: Image.PreserveAspectCrop
+        visible: root.source !== ""
         smooth: true
-        clip: true
-    }
 
-    // 遮罩
-    layer.enabled: true
-    layer.effect: OpacityMask {
-        maskSource: Rectangle {
-            width: root.width
-            height: root.height
-            radius: background.radius
+        layer.enabled: visible
+        layer.smooth: false
+        layer.mipmap: false
+        layer.textureSize: Qt.size(
+            Math.max(1, Math.ceil(width * Screen.devicePixelRatio)),
+            Math.max(1, Math.ceil(height * Screen.devicePixelRatio))
+        )
+        layer.effect: OpacityMask {
+            maskSource: Rectangle {
+                width: image.width
+                height: image.height
+                radius: background.radius
+            }
         }
     }
 
