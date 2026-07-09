@@ -1,13 +1,14 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
-import QtQuick.Window 2.15
-import Qt5Compat.GraphicalEffects  // 图形库
 import "../themes"
 import "../components"
 import "../windows"
 
 // 内容层 / Content Area
+// HiDPI: 禁止对整页启用 layer + OpacityMask。离屏纹理会把文字重光栅化，
+// 导致 4K/高缩放下右侧正文发糊，而侧边栏（无 layer）保持清晰。
+// 圆角视觉由 NavigationView.appLayer 负责；此处仅矩形 clip 滚动区域。
 Page {
     id: fluentPage
     default property alias content: container.data
@@ -23,7 +24,6 @@ Page {
     // StackView.onRemoved: destroy()
     spacing: 14
     property alias contentSpacing: container.spacing
-
 
     // 头部 / Header //
     header: Item {
@@ -87,23 +87,6 @@ Page {
             anchors.horizontalCenter: parent.horizontalCenter
             width: Math.min(fluentPage.width - fluentPage.horizontalPadding * 2, fluentPage.wrapperWidth)  // 24 + 24 的边距
             spacing: fluentPage.spacing
-        }
-    }
-
-    layer.enabled: true
-    layer.textureSize: Qt.size(fluentPage.width * Screen.devicePixelRatio, fluentPage.height * Screen.devicePixelRatio)
-    layer.effect: OpacityMask{
-        maskSource: Rectangle{
-            width: fluentPage.width
-            height: fluentPage.height
-            radius: fluentPage.radius
-
-            Rectangle {
-                anchors.right: parent.right
-                anchors.top: parent.top
-                width: parent.width - Theme.currentTheme.appearance.windowRadius
-                height: Theme.currentTheme.appearance.windowRadius
-            }
         }
     }
 

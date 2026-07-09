@@ -8,6 +8,10 @@ Button {
     id: root
     property alias color: background.color
     property alias radius: background.radius
+    property alias topLeftRadius: background.topLeftRadius
+    property alias topRightRadius: background.topRightRadius
+    property alias bottomLeftRadius: background.bottomLeftRadius
+    property alias bottomRightRadius: background.bottomRightRadius
     property alias border: background.border
     // property alias flat: background.flat
 

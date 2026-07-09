@@ -74,9 +74,13 @@ RowLayout {
     }
 
     // 主体内容区域
+    // HiDPI: 内容区不使用 layer/OpacityMask 裁切（会糊字）。
+    // 圆角由 appLayer 背景提供；StackView 仅矩形 clip，文字直接绘制保持清晰。
     Item {
+        id: contentArea
         Layout.fillWidth: true
         Layout.fillHeight: true
+        clip: true
 
         // 导航栏展开自动收起
         MouseArea {
@@ -110,6 +114,7 @@ RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 1
             anchors.topMargin: 1
+            clip: true
 
             // 切换动画 / Page Transition //
             pushEnter : Transition {

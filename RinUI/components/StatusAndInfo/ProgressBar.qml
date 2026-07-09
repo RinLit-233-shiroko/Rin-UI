@@ -31,9 +31,10 @@ ProgressBar {
         color: backgroundColor
     }
 
-    // 遮罩（让指示条圆角可控）
+    // 遮罩（让指示条圆角可控）；smooth:false 避免 HiDPI 滤波发糊
     layer.enabled: true
-    layer.smooth: true
+    layer.smooth: false
+    layer.mipmap: false
     layer.effect: OpacityMask {
         maskSource: Rectangle {
             width: root.width
