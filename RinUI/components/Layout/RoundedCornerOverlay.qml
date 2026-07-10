@@ -2,7 +2,8 @@ import QtQuick 2.15
 import "../../themes"
 
 // 内容卡片圆角「外侧」遮罩：盖住直角溢出，不把文字送进 layer（HiDPI 安全）。
-// 单 Canvas + evenodd：角矩形 ∪ 圆，奇偶填充后只剩圆角外侧，四角同一算法。
+// 算法：角矩形 clip → 填满 → destination-out 挖圆（圆心在内侧角）。
+// 只动角 r×r 区域，避免整圆 evenodd 渗进内容区。
 Item {
     id: root
 
@@ -46,7 +47,7 @@ Item {
 
     Component.onCompleted: {
         console.log(
-            "[RinUI/RoundedCornerOverlay] evenodd canvas radius=" + paintRadius
+            "[RinUI/RoundedCornerOverlay] clip+punch radius=" + paintRadius
             + " fill=" + fillColor
             + " size=" + Math.round(width) + "x" + Math.round(height)
         )
@@ -79,15 +80,24 @@ Item {
             if (r <= 0)
                 return
 
-            ctx.fillStyle = fill
-
-            // evenodd：矩形路径 + 圆路径 → 只保留矩形中圆外的区域（圆角外侧）
+            // 在角矩形内：填色后挖掉内侧圆，只留圆角外侧
             function stampOutside(x0, y0, cx, cy) {
+                ctx.save()
                 ctx.beginPath()
                 ctx.rect(x0, y0, r, r)
-                ctx.moveTo(cx + r, cy)
-                ctx.arc(cx, cy, r, 0, Math.PI * 2, false)
-                ctx.fill("evenodd")
+                ctx.clip()
+
+                ctx.globalCompositeOperation = "source-over"
+                ctx.fillStyle = fill
+                ctx.fillRect(x0, y0, r, r)
+
+                ctx.globalCompositeOperation = "destination-out"
+                ctx.beginPath()
+                ctx.arc(cx, cy, r + 0.5, 0, Math.PI * 2, false)
+                ctx.fill()
+
+                ctx.restore()
+                ctx.globalCompositeOperation = "source-over"
             }
 
             if (root.topLeft)
