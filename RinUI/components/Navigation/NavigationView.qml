@@ -241,16 +241,14 @@ RowLayout {
 
         }
 
-        // 库层圆角剪影：盖住页面直角溢出，不重光栅化文字（HiDPI 安全）
+        // 库层圆角剪影：与 StackView 同几何，盖住页面直角溢出（不 layer 文字）
         RoundedCornerOverlay {
             id: contentCornerClip
-            anchors.fill: parent
-            anchors.leftMargin: stackView.anchors.leftMargin
-            anchors.topMargin: stackView.anchors.topMargin
+            anchors.fill: stackView
             z: 1000
             radius: contentArea.contentRadius
             fillColor: Theme.currentTheme.colors.backgroundColor
-            visible: navigationView.contentCornerClipEnabled && radius > 0
+            visible: navigationView.contentCornerClipEnabled && contentArea.contentRadius > 0
         }
 
         Component.onCompleted: {
