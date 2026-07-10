@@ -241,13 +241,18 @@ RowLayout {
 
         }
 
-        // 库层圆角剪影：与 StackView 同几何，盖住页面直角溢出（不 layer 文字）
+        // 库层圆角剪影：与旧 FluentPage OpacityMask 一致——仅左上圆角
+        // （右侧/底侧为直角；不 layer 文字，避免 HiDPI 发糊）
         RoundedCornerOverlay {
             id: contentCornerClip
             anchors.fill: stackView
             z: 1000
             radius: contentArea.contentRadius
             fillColor: Theme.currentTheme.colors.backgroundColor
+            topLeft: true
+            topRight: false
+            bottomLeft: false
+            bottomRight: false
             visible: navigationView.contentCornerClipEnabled && contentArea.contentRadius > 0
         }
 

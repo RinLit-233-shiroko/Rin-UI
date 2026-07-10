@@ -7,8 +7,8 @@ import "../windows"
 
 // 内容层 / Content Area
 // HiDPI: 禁止对整页启用 layer + OpacityMask（会把文字重光栅化导致发糊）。
-// 内容卡片圆角由 NavigationView 的 RoundedCornerOverlay + appLayer 在库层统一处理；
-// 业务页（含 banner）无需再写圆角 mask。此处 Flickable 仅矩形 clip 滚动。
+// 内容区圆角由 NavigationView.RoundedCornerOverlay 库层处理（默认仅左上圆角，
+// 与历史 OpacityMask 形状一致）；业务页无需再写圆角 mask。
 Page {
     id: fluentPage
     default property alias content: container.data

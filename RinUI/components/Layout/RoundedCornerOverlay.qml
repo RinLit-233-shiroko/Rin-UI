@@ -9,10 +9,11 @@ Item {
 
     property real radius: Theme.currentTheme.appearance.windowRadius
     property color fillColor: Theme.currentTheme.colors.backgroundColor
+    // 默认仅左上：对齐历史 FluentPage 内容裁切（右上补直角，底侧直角）
     property bool topLeft: true
-    property bool topRight: true
-    property bool bottomLeft: true
-    property bool bottomRight: true
+    property bool topRight: false
+    property bool bottomLeft: false
+    property bool bottomRight: false
 
     readonly property real paintRadius: Math.max(0, Math.round(radius))
 
