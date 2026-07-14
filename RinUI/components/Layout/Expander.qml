@@ -19,7 +19,7 @@ Item {
     enum ExpandDirection { Up, Down }
     property var expandDirection: Expander.Down
     readonly property bool directionUp: root.expandDirection === Expander.Up
-    property real radius: Theme.currentTheme.appearance.windowRadius
+    property real radius: Theme.currentTheme.appearance.smallRadius
 
     property alias header: headerCustom.data
     property string text
@@ -138,6 +138,7 @@ Item {
             ColumnLayout {
                 id: contentLayout
                 anchors.fill: parent
+                anchors.margins: content.border.width
             }
 
             Behavior on y {
