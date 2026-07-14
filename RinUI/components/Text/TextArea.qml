@@ -44,8 +44,10 @@ TextArea {
         border.color: frameless ? root.activeFocus ? Theme.currentTheme.colors.controlBorderColor : "transparent" :
             Theme.currentTheme.colors.controlBorderColor
 
+        // 仅裁切背景指示条；文字在 contentItem 直接绘制
         layer.enabled: true
         layer.smooth: false
+        layer.mipmap: false
         layer.effect: OpacityMask {
             maskSource: Rectangle {
                 width: background.width

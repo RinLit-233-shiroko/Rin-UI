@@ -1,12 +1,13 @@
 import QtQuick 2.15
 import QtQuick.Controls.Basic 2.15
 import QtQuick.Layouts 2.15
-import Qt5Compat.GraphicalEffects
 import "../../themes"
 import "../../components"
 
 
 // expander
+// HiDPI: 不对含文字的整控件使用 layer+OpacityMask（会糊字）。
+// 圆角交给 header / content 自身的 radius，文字直接绘制。
 Item {
     id: root
     property bool enabled: true
@@ -53,7 +54,12 @@ Item {
             48
         )
         border.color: Theme.currentTheme.colors.cardBorderColor
-        radius: 0
+        // 折叠时全圆角；展开时与 content 衔接侧直角，外侧保留圆角（分角半径，避免整控件 layer）
+        radius: root.radius
+        topLeftRadius: (!expanded || !directionUp) ? root.radius : 0
+        topRightRadius: (!expanded || !directionUp) ? root.radius : 0
+        bottomLeftRadius: (!expanded || directionUp) ? root.radius : 0
+        bottomRightRadius: (!expanded || directionUp) ? root.radius : 0
 
         RowLayout {
             id: headerCustom
@@ -120,7 +126,11 @@ Item {
             y: expanded
                 ? directionUp ? 2 : - 2
                 : directionUp ? height : - height
-            radius: 0
+            radius: root.radius
+            topLeftRadius: directionUp ? root.radius : 0
+            topRightRadius: directionUp ? root.radius : 0
+            bottomLeftRadius: directionUp ? 0 : root.radius
+            bottomRightRadius: directionUp ? 0 : root.radius
             opacity: root.enabled ? 1 : 0.65
 
             color: Theme.currentTheme.colors.cardSecondaryColor
@@ -147,15 +157,5 @@ Item {
     // 动画
     Behavior on implicitHeight {
         NumberAnimation { duration: Utils.animationSpeedExpander; easing.type: expanded ? Easing.InQuint : Easing.OutQuint }
-    }
-
-    // 圆角裁切
-    layer.enabled: true
-    layer.effect: OpacityMask {
-        maskSource: Rectangle {
-            width: root.width
-            height: root.height
-            radius: root.radius
-        }
     }
 }

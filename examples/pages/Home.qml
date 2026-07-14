@@ -20,6 +20,7 @@ FluentPage {
         height: 350
         // height: Math.max(window.height * 0.45, 200)
 
+        // 仅业务渐变；内容卡片圆角由 NavigationView.RoundedCornerOverlay 库层统一裁切
         Image {
             id: bannerSource
             anchors.fill: parent
@@ -34,16 +35,16 @@ FluentPage {
             hideSource: true
             live: true
             visible: false
+            smooth: true
+            textureSize: Qt.size(
+                Math.max(1, Math.ceil(bannerSource.width * Screen.devicePixelRatio)),
+                Math.max(1, Math.ceil(bannerSource.height * Screen.devicePixelRatio))
+            )
         }
 
         Item {
             id: bannerBackdrop
             anchors.fill: parent
-
-            // Rectangle {
-            //     anchors.fill: parent
-            //     color: Theme.currentTheme.colors.backgroundColor
-            // }
 
             OpacityMask {
                 id: bannerContent

@@ -48,9 +48,11 @@ Button {
             enabled ? highlighted ? primaryColor : Theme.currentTheme.colors.controlBorderColor :
             highlighted ? Theme.currentTheme.colors.disabledColor : Theme.currentTheme.colors.controlBorderColor
 
-        // 裁切
+        // 仅裁切底部指示条；smooth:false 避免 HiDPI 下边缘发糊
+        // 文字在 contentItem 中直接绘制，不受此 layer 影响
         layer.enabled: true
-        layer.smooth: true
+        layer.smooth: false
+        layer.mipmap: false
         layer.effect: OpacityMask {
             maskSource: Rectangle {
                 width: background.width

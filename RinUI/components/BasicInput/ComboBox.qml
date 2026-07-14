@@ -42,9 +42,10 @@ ComboBox {
         border.width: Theme.currentTheme.appearance.borderWidth  // 边框宽度 / Border Width
         border.color: Theme.currentTheme.colors.controlBorderColor
 
-        // 裁切
+        // 仅裁切底部指示条；smooth:false 避免 HiDPI 下边缘发糊
         layer.enabled: true
-        layer.smooth: true
+        layer.smooth: false
+        layer.mipmap: false
         layer.effect: OpacityMask {
             maskSource: Rectangle {
                 width: background.width

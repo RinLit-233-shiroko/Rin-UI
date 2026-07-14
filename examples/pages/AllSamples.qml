@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
+import QtQuick.Window 2.15
 import Qt5Compat.GraphicalEffects  // 图形库
 import RinUI
 import "../assets"
@@ -12,7 +13,7 @@ FluentPage {
     wrapperWidth: width - 42*2
     padding: 0
 
-    // Banner / 横幅 //
+    // Banner / 横幅：仅业务渐变；卡片圆角由 NavigationView 库层裁切
     header: Item {
         width: parent.width
         height: 200
@@ -26,6 +27,12 @@ FluentPage {
             horizontalAlignment: Image.AlignLeft
 
             layer.enabled: true
+            layer.smooth: false
+            layer.mipmap: false
+            layer.textureSize: Qt.size(
+                Math.max(1, Math.ceil(width * Screen.devicePixelRatio)),
+                Math.max(1, Math.ceil(height * Screen.devicePixelRatio))
+            )
             layer.effect: OpacityMask {
                 maskSource: Rectangle {
                     width: banner.width

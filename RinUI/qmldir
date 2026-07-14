@@ -43,6 +43,7 @@ TeachingTip 1.0 components/DialogsAndFlyouts/TeachingTip.qml
 Expander 1.0 components/Layout/Expander.qml
 SettingExpander 1.0 components/Layout/SettingExpander.qml
 SettingItem 1.0 components/Layout/SettingItem.qml
+RoundedCornerOverlay 1.0 components/Layout/RoundedCornerOverlay.qml
 
 
 # Text

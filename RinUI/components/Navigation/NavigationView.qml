@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
+import QtQuick.Window 2.15
 import "../../themes"
 import "../../components"
 import "../../windows"
@@ -9,6 +10,8 @@ import "../../windows"
 RowLayout {
     // 外观 / Appearance //
     property bool appLayerEnabled: true  // 应用层背景
+    // 内容卡片圆角：用上层角遮罩裁切（不 layer 文字），与 appLayer.radius 对齐
+    property bool contentCornerClipEnabled: true
     property alias navExpandWidth: navigationBar.expandWidth  // 导航栏宽度
     property alias navMinimumExpandWidth: navigationBar.minimumExpandWidth  // 导航栏保持展开时窗口的最小宽度
 
@@ -74,9 +77,19 @@ RowLayout {
     }
 
     // 主体内容区域
+    // HiDPI 治本：不对 StackView/页面做 layer+OpacityMask（会糊字）。
+    // 圆角底：appLayer；圆角剪影：RoundedCornerOverlay 盖住四角溢出，文字仍直接绘制。
     Item {
+        id: contentArea
         Layout.fillWidth: true
         Layout.fillHeight: true
+        clip: true
+
+        readonly property real contentRadius: {
+            if (window && window.visibility === Window.Maximized)
+                return 0
+            return Theme.currentTheme.appearance.windowRadius
+        }
 
         // 导航栏展开自动收起
         MouseArea {
@@ -102,7 +115,7 @@ RowLayout {
             border.color: Theme.currentTheme.colors.cardBorderColor
             border.width: 1
             opacity: (window && window.appLayerEnabled !== undefined) ? window.appLayerEnabled : navigationView.appLayerEnabled
-            radius: Theme.currentTheme.appearance.windowRadius
+            radius: contentArea.contentRadius
         }
 
         StackView {
@@ -110,6 +123,7 @@ RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 1
             anchors.topMargin: 1
+            clip: true
 
             // 切换动画 / Page Transition //
             pushEnter : Transition {
@@ -225,6 +239,21 @@ RowLayout {
 
             initialItem: Item {}
 
+        }
+
+        // 库层圆角剪影：与旧 FluentPage OpacityMask 一致——仅左上圆角
+        // （右侧/底侧为直角；不 layer 文字，避免 HiDPI 发糊）
+        RoundedCornerOverlay {
+            id: contentCornerClip
+            anchors.fill: stackView
+            z: 1000
+            radius: contentArea.contentRadius
+            fillColor: Theme.currentTheme.colors.backgroundColor
+            topLeft: true
+            topRight: false
+            bottomLeft: false
+            bottomRight: false
+            visible: navigationView.contentCornerClipEnabled && contentArea.contentRadius > 0
         }
 
         Component.onCompleted: {
