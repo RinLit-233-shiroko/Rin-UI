@@ -9,7 +9,7 @@ Item {
     required property Item control
     property real radius: Theme.currentTheme.appearance.buttonRadius
 
-    visible: control.activeFocus &&
+    visible: control.visualFocus &&
          (control.focusReason === Qt.TabFocusReason ||
           control.focusReason === Qt.BacktabFocusReason)
 

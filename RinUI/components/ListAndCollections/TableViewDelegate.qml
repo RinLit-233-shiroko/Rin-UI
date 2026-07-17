@@ -57,7 +57,7 @@ TableViewDelegate {
     topPadding: 0
     bottomPadding: 0
 
-    // accessibility
+    // accessibility (SingleSelection)
     FocusIndicator {
         control: parent
     }
@@ -92,6 +92,7 @@ TableViewDelegate {
 
         CheckBox {
             id: boolDisplay
+            focusPolicy: Qt.TabFocus
             anchors.verticalCenter: parent.verticalCenter
             x: delegate.contentLeftPadding
             visible: typeof model.display === "boolean"

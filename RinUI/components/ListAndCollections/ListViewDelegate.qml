@@ -10,7 +10,7 @@ ItemDelegate {
     width: ListView.view ? ListView.view.width : 200
     height: contentItem.implicitHeight + 20  // 自适应
     highlighted: ListView.isCurrentItem  // 当前项高亮
-    focusPolicy: Qt.StrongFocus
+    // focusPolicy: Qt.StrongFocus
 
     leftPadding: 16
     rightPadding: 5

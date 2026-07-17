@@ -37,7 +37,7 @@ ControlPage {
             { name: qsTr("Okusora Ayane"), school: qsTr("Abydos"), club: qsTr("Foreclosure Task Force"), checked: true },
             { name: qsTr("Saiba Midori"), school: qsTr("Millennium"), club: qsTr("Game Development Department"), checked: true },
             { name: qsTr("Saiba Momoi"), school: qsTr("Millennium"), club: qsTr("Game Development Department"), checked: true },
-            { name: qsTr("Shiromi Iori"), school: qsTr("Gehenna"), club: qsTr("Prefect Team") },
+            { name: qsTr("Shiromi Iori"), school: qsTr("Gehenna"), club: qsTr("Prefect Team"), checked: true },
             { name: qsTr("Shishidou Nonomi"), school: qsTr("Abydos"), club: qsTr("Foreclosure Task Force"), checked: true },
             { name: qsTr("Sunaookami Shiroko"), school: qsTr("Abydos"), club: qsTr("Foreclosure Task Force"), checked: true },
             { name: qsTr("Tendou Aris"), school: qsTr("Millennium"), club: qsTr("Game Development Department"), checked: true },
@@ -103,6 +103,7 @@ ControlPage {
 
                         model: studentsModel
                         selectionMode: selectionModeComboBox.model.get(selectionModeComboBox.currentIndex).value
+                        selectionBehavior: selectionBehaviorComboBox.model.get(selectionBehaviorComboBox.currentIndex).value
                         editTriggers: editTriggerComboBox.model.get(editTriggerComboBox.currentIndex).value
                         enabled: !tableViewCheckBox.checked
                     }
@@ -124,6 +125,20 @@ ControlPage {
                     id: vrHeaderCheckBox
                     text: "VerticalHeaderView"
                     checked: true
+                },
+                Text {
+                    text: "SelectionBehavior"
+                },
+                ComboBox {
+                    id: selectionBehaviorComboBox
+                    model: ListModel {
+                        ListElement { text: "SelectionDisabled"; value: TableView.SelectionDisabled }
+                        ListElement { text: "SelectCells"; value: TableView.SelectCells }
+                        ListElement { text: "SelectRows"; value: TableView.SelectRows }
+                        // ListElement { text: "SelectColumns"; value: TableView.SelectColumns }
+                    }
+                    textRole: "text"
+                    currentIndex: 2
                 },
                 Text {
                     text: "SelectionMode"

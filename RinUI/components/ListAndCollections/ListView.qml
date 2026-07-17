@@ -1,11 +1,12 @@
-import QtQuick 2.15
-import QtQuick.Controls.Basic 2.15
-import QtQuick.Layouts 2.15
+import QtQuick
+import QtQuick.Controls.Basic
+import QtQuick.Layouts
 import "../../themes"
 import "../../components"
 
 ListView {
     id: root
+    focusPolicy: Qt.StrongFocus
     property string textRole: ""  // 文字role
 
     property bool keyboardNavigation: false

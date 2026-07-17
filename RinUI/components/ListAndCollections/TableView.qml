@@ -20,7 +20,7 @@ TableView {
     selectionModel: ItemSelectionModel {}
     acceptedButtons: Qt.NoButton  // 禁用鼠标左键滑动，以修复选择逻辑被覆盖的问题
 
-    // interactive: true
+    focusPolicy: Qt.StrongFocus
 
     columnSpacing: 4
     rowSpacing: 4
