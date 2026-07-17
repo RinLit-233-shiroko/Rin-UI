@@ -60,18 +60,18 @@ Page {
         clip: true
         ScrollBar.vertical: ScrollBar {
             parent: fluentPage
-            anchors.top: parent.top
-            anchors.topMargin: fluentPage.header ? fluentPage.header.height : 0
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: fluentPage.footer ? fluentPage.footer.height : 0
+            // anchors.top: parent.top
+            // anchors.topMargin: fluentPage.header ? fluentPage.header.height : 0
+            // // anchors.right: parent.right
+            // // anchors.bottom: parent.bottom
+            // anchors.bottomMargin: fluentPage.footer ? fluentPage.footer.height : 0
         }
         ScrollBar.horizontal: ScrollBar {
             parent: fluentPage
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: fluentPage.footer ? fluentPage.footer.height : 0
+            // anchors.left: parent.left
+            // anchors.right: parent.right
+            // anchors.bottom: parent.bottom
+            // anchors.bottomMargin: fluentPage.footer ? fluentPage.footer.height : 0
         }
         contentHeight: container.height + 18 + headerContainer.height + 24
 

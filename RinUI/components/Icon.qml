@@ -27,17 +27,17 @@ Item {
     implicitWidth: size
     implicitHeight: size
 
-    // 主题切换动画
-    Behavior on color {
-        ColorAnimation {
-            duration: 250
-            easing.type: Easing.OutQuart
-        }
-    }
-
     Text {
         id: text
         anchors.centerIn: parent
+
+        // 主题切换动画
+        Behavior on color {
+            ColorAnimation {
+                duration: 250
+                easing.type: Easing.OutQuart
+            }
+        }
         // text: isFontIcon ? icon : ""  // 仅当 `icon` 是单字符时显示
         text: isUnicode ? icon : String.fromCharCode(Utils.fontIconIndex[icon])  // 显示 FluentSystemIcons 字体图标
         font.family: Utils.iconFontFamily

@@ -65,6 +65,7 @@ QtObject {
         property color textColor: "#1b1b1b"
         property color textSecondaryColor: Qt.alpha("#000000", 0.6063)
         property color textTertialyColor: Qt.alpha("#000000", 0.4458)
+        property color textDisabledColor: Qt.alpha("#000000", 0.3614)
         property color textAccentColor: primaryColor
         property color textOnAccentColor: "#ffffff"
         property color textSelectedColor: "#ffffff"

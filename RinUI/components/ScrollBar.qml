@@ -9,11 +9,28 @@ ScrollBar {
     property int minimumWidth: Theme.currentTheme.appearance.scrollBarMinWidth
     property int expandWidth: Theme.currentTheme.appearance.scrollBarWidth
 
+    // 检测同时显示
+    property bool biDirectional: {
+        if (!parent)
+            return false
+
+        let other = horizontal
+            ? parent.ScrollBar.vertical
+            : parent.ScrollBar.horizontal
+
+        return other && other.visible && other.size < 1.0
+    }
+
+    property int cornerSize: 14
+
     // 宽高
-    // implicitWidth: horizontal ? parent.width
-    //     : (implicitContentWidth + leftPadding + rightPadding)
-    // implicitHeight: vertical ? parent.height
-    //     : (implicitContentHeight + topPadding + bottomPadding)
+    width: horizontal && parent
+        ? parent.width - (biDirectional ? cornerSize : 0)
+        : undefined
+    height: vertical && parent
+        ? parent.height - (biDirectional ? cornerSize : 0)
+        : undefined
+
     implicitWidth: horizontal
         ? availableWidth
         : implicitContentWidth + leftPadding + rightPadding
@@ -28,7 +45,7 @@ ScrollBar {
     anchors.right: vertical && parent ? parent.right : undefined
     anchors.bottom: horizontal && parent ? parent.bottom : undefined
 
-    verticalPadding : vertical ? 15 : 3
+    verticalPadding : vertical ? 16 : 3
     horizontalPadding : horizontal ? 15 : 3
     enabled: size < 1.0
 
@@ -36,8 +53,8 @@ ScrollBar {
     ToolButton {
         background: Item {}  // 无背景
 
-        width: 15
-        height: 15
+        width: 16
+        height: 16
         size: 8
         color: Theme.currentTheme.colors.textSecondaryColor
         icon.name: vertical ? "ic_fluent_triangle_up_20_filled" : "ic_fluent_triangle_left_20_filled"

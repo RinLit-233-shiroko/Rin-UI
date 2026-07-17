@@ -9,38 +9,40 @@ import "../../components"
 ControlPage {
     id: page
     title: "TableView"
+    badgeText: qsTr("Experimental")
+    badgeSeverity: Severity.Warning
 
     Text {
         Layout.fillWidth: true
         typography: Typography.Body
         text: qsTr(
-            "TableView is a component that allows you to display a collection of data in a tabular format. "
+            "The TableView displays a collection of data in rows and columns."
         )
     }
 
-    // 示例
     TableModel {
-        id: studentsInfo
-        TableModelColumn { display: "name" }
-        TableModelColumn { display: "school" }
-        TableModelColumn { display: "age" }
+        id: studentsModel
+        TableModelColumn { display: "name"; edit: "name" }
+        TableModelColumn { display: "school"; edit: "school" }
+        TableModelColumn { display: "club"; edit: "club" }
+        TableModelColumn { display: "checked"; edit: "checked" }
 
         rows: [
-            { name: "Aikiyo Fuuka", school: "Gehenna",    age: 16 },  // 风香
-            { name: "Hayase Yuuka", school: "Millennium", age: 16 },  // 邮箱
-            { name: "Hanaoka Yuzu", school: "Millennium", age: 16 },  // 柚子
-            { name: "Kuromi Serika", school: "Abydos",    age: 15 },  // 芹香
-            { name: "Kurosaki Koyuki", school: "Millennium", age: 15 }, // 小雪
-            { name: "Kuda Izuna", school: "Hyakkiyako",   age: 15 },  // 泉奈
-            { name: "Okusora Ayane", school: "Trinity",   age: 15 },  // 绫音
-            { name: "Saiba Midori", school: "Millennium", age: 15 },  // 绿
-            { name: "Saiba Momoi", school: "Millennium",  age: 15 },  // 桃
-            { name: "Shiromi Iori", school: "Gehenna",    age: 16 },  // 伊织
-            { name: "Shishidou Nonomi", school: "Abydos", age: 16 },  // 野宫
-            { name: "Sunaookami Shiroko", school: "Abydos", age: 16 }, // 白子 😋
-            { name: "Tendou Aris", school: "Millennium",  age: "??" }, // Aris
-            { name: "Ushio Noa", school: "Millennium",    age: 16 },  // 诺亚
-            { name: "Yutori Natsu", school: "Trinity",    age: 15 }   // 夏
+            { name: qsTr("Aikiyo Fuuka"), school: qsTr("Gehenna"), club: qsTr("School Lunch Club"), checked: true },
+            { name: qsTr("Hayase Yuuka"), school: qsTr("Millennium"), club: qsTr("Seminar"), checked: true },
+            { name: qsTr("Hanaoka Yuzu"), school: qsTr("Millennium"), club: qsTr("Game Development Department"), checked: true },
+            { name: qsTr("Kuromi Serika"), school: qsTr("Abydos"), club: qsTr("Foreclosure Task Force"), checked: true },
+            { name: qsTr("Kurosaki Koyuki"), school: qsTr("Millennium"), club: qsTr("Seminar"), checked: true },
+            { name: qsTr("Kuda Izuna"), school: qsTr("Hyakkiyako"), club: qsTr("Ninjutsu Research Club"), checked: true },
+            { name: qsTr("Okusora Ayane"), school: qsTr("Abydos"), club: qsTr("Foreclosure Task Force"), checked: true },
+            { name: qsTr("Saiba Midori"), school: qsTr("Millennium"), club: qsTr("Game Development Department"), checked: true },
+            { name: qsTr("Saiba Momoi"), school: qsTr("Millennium"), club: qsTr("Game Development Department"), checked: true },
+            { name: qsTr("Shiromi Iori"), school: qsTr("Gehenna"), club: qsTr("Prefect Team") },
+            { name: qsTr("Shishidou Nonomi"), school: qsTr("Abydos"), club: qsTr("Foreclosure Task Force"), checked: true },
+            { name: qsTr("Sunaookami Shiroko"), school: qsTr("Abydos"), club: qsTr("Foreclosure Task Force"), checked: true },
+            { name: qsTr("Tendou Aris"), school: qsTr("Millennium"), club: qsTr("Game Development Department"), checked: true },
+            { name: qsTr("Ushio Noa"), school: qsTr("Millennium"), club: qsTr("Seminar"), checked: true },
+            { name: qsTr("Yutori Natsu"), school: qsTr("Trinity"), club: qsTr("After-School Sweets Club"), checked: true }
         ]
     }
 
@@ -50,39 +52,108 @@ ControlPage {
 
         Text {
             typography: Typography.BodyStrong
-                text: "Basic ListView with Simple DataTemplate"
+            text: "A Basic TableView."
         }
-        Frame {
+        ControlShowcase {
             width: parent.width
-            Column {
+            ColumnLayout {
+                width: parent.width
                 spacing: 4
                 Text {
-                    width: parent.parent.width
-                    text: "This is a basic ListView that has the full source code below (coming soon). \n" +
-                        "Other samples on this page display only the additional markup needed customize " +
-                        "the ListView like this one."
+                    width: parent.width
+                    text: "This is a basic TableView that shows complex data across multiple columns."
                 }
 
-                TableView {
-                    id: tableView
-                    width: parent.width
-                    height: 400
+                Item {
+                    Layout.fillWidth: true
+                    height: 500
 
-                    model: studentsInfo
-                    //
-                    // delegate: Rectangle {
-                    //     implicitWidth: 100
-                    //     implicitHeight: 50
-                    //     border.width: 1
-                    //     color: "transparent"
-                    //
-                    //     Text {
-                    //         text: display
-                    //         anchors.centerIn: parent
-                    //     }
-                    // }
+                    HorizontalHeaderView {
+                        id: horizontalHeader
+                        anchors.left: tableView.left
+                        anchors.top: parent.top
+                        syncView: tableView
+
+                        model: [
+                            "Name",
+                            "School",
+                            "Club",
+                            "Checked"
+                        ]
+                        visible: hrHeaderCheckBox.checked
+                    }
+
+                    VerticalHeaderView {
+                        id: verticalHeader
+                        anchors.top: tableView.top
+                        anchors.left: parent.left
+                        syncView: tableView
+                        visible: vrHeaderCheckBox.checked
+                    }
+
+                    TableView {
+                        id: tableView
+                        anchors.left: verticalHeader.visible ? verticalHeader.right : parent.left
+                        anchors.top: horizontalHeader.visible ? horizontalHeader.bottom : parent.top
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        // editTriggers: TableView.NoEditTriggers
+                        // rowDividers: true
+                        // columnDividers: true
+
+                        model: studentsModel
+                        selectionMode: selectionModeComboBox.model.get(selectionModeComboBox.currentIndex).value
+                        editTriggers: editTriggerComboBox.model.get(editTriggerComboBox.currentIndex).value
+                        enabled: !tableViewCheckBox.checked
+                    }
                 }
             }
+
+            showcase: [
+                CheckBox {
+                    id: tableViewCheckBox
+                    text: "Disable TableView"
+                    checked: false
+                },
+                CheckBox {
+                    id: hrHeaderCheckBox
+                    text: "HorizontalHeaderView"
+                    checked: true
+                },
+                CheckBox {
+                    id: vrHeaderCheckBox
+                    text: "VerticalHeaderView"
+                    checked: true
+                },
+                Text {
+                    text: "SelectionMode"
+                },
+                ComboBox {
+                    id: selectionModeComboBox
+                    model: ListModel {
+                        ListElement { text: "SingleSelection"; value: TableView.SingleSelection }
+                        ListElement { text: "ContiguousSelection"; value: TableView.ContiguousSelection }
+                        ListElement { text: "ExtendedSelection"; value: TableView.ExtendedSelection }
+                    }
+                    textRole: "text"
+                    currentIndex: 2
+                },
+                Text {
+                    text: "EditTriggers"
+                },
+                ComboBox {
+                    id: editTriggerComboBox
+                    model: ListModel {
+                        ListElement { text: "NoEditTriggers"; value: TableView.NoEditTriggers }
+                        ListElement { text: "SingleTapped"; value: TableView.SingleTapped }
+                        ListElement { text: "DoubleTapped"; value: TableView.DoubleTapped }
+                        ListElement { text: "EditKeyPressed"; value: TableView.EditKeyPressed }
+                        ListElement { text: "AnyKeyPressed"; value: TableView.AnyKeyPressed }
+                    }
+                    textRole: "text"
+                    currentIndex: 2
+                }
+            ]
         }
     }
 }

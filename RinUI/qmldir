@@ -76,6 +76,10 @@ ListView 1.0 components/ListAndCollections/ListView.qml
 ListViewDelegate 1.0 components/ListAndCollections/ListViewDelegate.qml
 TableView 1.0 components/ListAndCollections/TableView.qml
 TableViewDelegate 1.0 components/ListAndCollections/TableViewDelegate.qml
+HorizontalHeaderView 1.0 components/ListAndCollections/HorizontalHeaderView.qml
+HorizontalHeaderViewDelegate 1.0 components/ListAndCollections/HorizontalHeaderViewDelegate.qml
+VerticalHeaderView 1.0 components/ListAndCollections/VerticalHeaderView.qml
+VerticalHeaderViewDelegate 1.0 components/ListAndCollections/VerticalHeaderViewDelegate.qml
 
 # Menus & Toolbars
 Menu 1.0 components/MenusAndToolbars/Menu.qml

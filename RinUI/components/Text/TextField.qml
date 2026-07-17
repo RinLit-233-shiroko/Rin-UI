@@ -15,6 +15,8 @@ TextField {
     selectByMouse: true
     enabled: editable
 
+    width: 160
+
     // Menu
     TextInputMenu {
         id: contextMenu
@@ -100,7 +102,7 @@ TextField {
         focusPolicy: Qt.NoFocus
         flat: true
         highlighted: true
-        visible: clearEnabled && root.text && root.text.length > 0 && root.activeFocus
+        visible: clearEnabled && root.text && root.text.length > 0 && root.activeFocus && root.width >= 80
         onClicked: parent.text = ""
         contentItem: Icon {
             name: "ic_fluent_dismiss_20_regular"

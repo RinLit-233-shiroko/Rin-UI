@@ -47,11 +47,11 @@ Item {
     }
 
     Component.onCompleted: {
-        console.log(
-            "[RinUI/RoundedCornerOverlay] clip+punch radius=" + paintRadius
-            + " fill=" + fillColor
-            + " size=" + Math.round(width) + "x" + Math.round(height)
-        )
+        // console.log(
+        //     "[RinUI/RoundedCornerOverlay] clip+punch radius=" + paintRadius
+        //     + " fill=" + fillColor
+        //     + " size=" + Math.round(width) + "x" + Math.round(height)
+        // )
         schedulePaint()
     }
 
@@ -110,16 +110,16 @@ Item {
             if (root.bottomRight)
                 stampOutside(w - r, h - r, w - r, h - r)
 
-            console.log(
-                "[RinUI/RoundedCornerOverlay] painted "
-                + Math.round(w) + "x" + Math.round(h)
-                + " r=" + r
-                + " corners="
-                + (root.topLeft ? "TL " : "")
-                + (root.topRight ? "TR " : "")
-                + (root.bottomLeft ? "BL " : "")
-                + (root.bottomRight ? "BR" : "")
-            )
+            // console.log(
+            //     "[RinUI/RoundedCornerOverlay] painted "
+            //     + Math.round(w) + "x" + Math.round(h)
+            //     + " r=" + r
+            //     + " corners="
+            //     + (root.topLeft ? "TL " : "")
+            //     + (root.topRight ? "TR " : "")
+            //     + (root.bottomLeft ? "BL " : "")
+            //     + (root.bottomRight ? "BR" : "")
+            // )
         }
     }
 }

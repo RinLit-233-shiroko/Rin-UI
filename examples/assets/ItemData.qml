@@ -326,16 +326,16 @@ QtObject {
             page: Qt.resolvedUrl("../pages/controls/Switch.qml"),
         },
         // TODO: TableView
-        // {
-        //     icon: Qt.resolvedUrl("controls/VariableSizedWrapGrid.png"),
-        //     title: qsTr("TableView"),
-        //     type: "collections",
-        //     desc: qsTr("The DataGrid control provides a flexible way " +
-        //         "to display a collection of data in rows and " +
-        //         "columns."),
-        //     page: Qt.resolvedUrl("../pages/controls/TableView.qml"),
-        //     added: true,
-        // },
+        {
+            icon: Qt.resolvedUrl("controls/VariableSizedWrapGrid.png"),
+            title: qsTr("TableView"),
+            type: "collections",
+            desc: qsTr("The DataGrid control provides a flexible way " +
+                "to display a collection of data in rows and " +
+                "columns."),
+            page: Qt.resolvedUrl("../pages/controls/TableView.qml"),
+            added: true,
+        },
         {
             icon: Qt.resolvedUrl("controls/TextBox.png"),
             title: qsTr("TextArea"),

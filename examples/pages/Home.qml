@@ -340,7 +340,7 @@ FluentPage {
 
                         Grid {
                             width: parent.width
-                            columns: Math.floor(width / (360 + 6))
+                            columns: Math.floor(width / (300 + 6))
                             rowSpacing: 12
                             columnSpacing: 12
                             layoutDirection: GridLayout.LeftToRight
@@ -366,7 +366,7 @@ FluentPage {
                 Grid {
                     id: favoriteGrid
                     width: parent.width
-                    columns: Math.floor(width / (360 + 6))
+                    columns: Math.floor(width / (300 + 6))
                     rowSpacing: 12
                     columnSpacing: 12
                     layoutDirection: GridLayout.LeftToRight

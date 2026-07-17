@@ -17,6 +17,7 @@ ScrollView 1.0 ScrollView.qml
 # Basic Input
 Button 1.0 BasicInput/Button.qml
 RoundButton 1.0 BasicInput/RoundButton.qml
+CheckBox 1.0 BasicInput/CheckBox.qml
 HyperlinkButton 1.0 BasicInput/HyperlinkButton.qml
 ComboBox 1.0 BasicInput/ComboBox.qml
 Slider 1.0 BasicInput/Slider.qml
@@ -78,6 +79,8 @@ Clip 1.0 ListAndCollections/Clip.qml
 ListView 1.0 ListAndCollections/ListView.qml
 ListViewDelegate 1.0 ListAndCollections/ListViewDelegate.qml
 TableViewDelegate 1.0 ListAndCollections/TableViewDelegate.qml
+HorizontalHeaderViewDelegate 1.0 ListAndCollections/HorizontalHeaderViewDelegate.qml
+VerticalHeaderViewDelegate 1.0 ListAndCollections/VerticalHeaderViewDelegate.qml
 
 Indicator 1.0 Indicator.qml
 
