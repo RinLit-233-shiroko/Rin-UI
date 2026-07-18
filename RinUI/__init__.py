@@ -10,5 +10,5 @@ if hasattr(Qt, "HighDpiScaleFactorRoundingPolicy"):
 
 from .core import *
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 __author__ = "RinLit"
