@@ -9,6 +9,7 @@ Item {
     readonly property bool subItem: itemData.subItems ? true : false  // clean console warning
     property var currentPage
     property bool highlighted: String(navigationBar.currentPage) === String(itemData.page) || (collapsed && subItemHighlighted)
+    property bool keyboardFocused: false
 
     property bool subItemHighlighted: {
         if (!subItem) return false;
@@ -20,6 +21,35 @@ Item {
         return false;
     }
     property bool collapsed: true  // 是否折叠
+
+    function navigationTargets() {
+        let targets = [navigationItems]
+        if (!navigationBar.collapsed && !collapsed && subItem) {
+            for (let i = 0; i < subItemsRepeater.count; i++) {
+                let subItem = subItemsRepeater.itemAt(i)
+                if (subItem) {
+                    targets.push(subItem)
+                }
+            }
+        }
+        return targets
+    }
+
+    function activate() {
+        if (subItem) {
+            if (!navigationBar.collapsed) {
+                collapsed = !collapsed
+                if (navigationBar && typeof navigationBar.requestLayoutUpdate === "function") {
+                    Qt.callLater(navigationBar.requestLayoutUpdate)
+                }
+            } else {
+                subMenu.open()
+            }
+        }
+        if (itemData.page && currentPage && String(navigationBar.currentPage) !== String(itemData.page)) {
+            navigationView.safePush(itemData.page, false, false)
+        }
+    }
 
     // 子菜单重置
     Connections {
@@ -36,6 +66,12 @@ Item {
     height: 40 + (!collapsed && subItem ? subItemsColumn.height : 0)
     width: parent ? parent.width : 200
 
+    TapHandler {
+        onPressedChanged: {
+            if (pressed) navigationBar.clearKeyboardFocus()
+        }
+    }
+
     Button {
         id: itemBtn
         // anchors.fill: parent
@@ -45,6 +81,7 @@ Item {
         anchors.bottomMargin: 2
         clip: true
         flat: true
+        focusPolicy: Qt.NoFocus
         accessibliityIndicator: false
         background.opacity: navigationItems.highlighted ? 1 : hovered ? 1 : 0
 
@@ -52,6 +89,7 @@ Item {
         FocusIndicator {
             control: parent
             anchors.margins: 2
+            visible: navigationItems.keyboardFocused
         }
 
         Row {
@@ -151,20 +189,7 @@ Item {
         }
 
         onClicked: {
-            if (subItem) {
-                if (!navigationBar.collapsed) {
-                    collapsed = !collapsed
-                    if (navigationBar && typeof navigationBar.requestLayoutUpdate === "function") {
-                        Qt.callLater(navigationBar.requestLayoutUpdate)
-                    }
-                } else {
-                    subMenu.open()
-                }
-            }
-            if (itemData.page && currentPage && String(navigationBar.currentPage) !== String(itemData.page)) {
-                // 记录上一次的索引
-                navigationView.safePush(itemData.page, false, false)
-            }
+            navigationItems.activate()
         }
     }
 

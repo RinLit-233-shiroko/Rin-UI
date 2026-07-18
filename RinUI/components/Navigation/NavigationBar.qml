@@ -57,6 +57,97 @@ Item {
     property string currentPage: ""  // 当前页面的URL
     property bool collapsedByAutoResize: false
     property int cachedOptimalWidth: 280  // 缓存的最优宽度
+    property var topKeyboardCurrent: null
+    property var middleKeyboardCurrent: null
+    property var bottomKeyboardCurrent: null
+
+    function keyboardRepeater(zone) {
+        if (zone === "top") return topRepeater
+        if (zone === "middle") return mainRepeater
+        return bottomRepeater
+    }
+
+    function keyboardFlickable(zone) {
+        if (zone === "top") return topFlickable
+        if (zone === "middle") return flickable
+        return bottomFlickable
+    }
+
+    function keyboardCurrent(zone) {
+        if (zone === "top") return topKeyboardCurrent
+        if (zone === "middle") return middleKeyboardCurrent
+        return bottomKeyboardCurrent
+    }
+
+    function setKeyboardCurrent(zone, target) {
+        let current = keyboardCurrent(zone)
+        if (current && current !== target) {
+            current.keyboardFocused = false
+        }
+        if (zone === "top") topKeyboardCurrent = target
+        else if (zone === "middle") middleKeyboardCurrent = target
+        else bottomKeyboardCurrent = target
+        if (target) {
+            target.keyboardFocused = true
+            ensureKeyboardTargetVisible(zone, target)
+        }
+    }
+
+    function keyboardTargets(zone) {
+        let targets = []
+        let repeater = keyboardRepeater(zone)
+        for (let i = 0; i < repeater.count; i++) {
+            let item = repeater.itemAt(i)
+            if (item) {
+                targets = targets.concat(item.navigationTargets())
+            }
+        }
+        return targets
+    }
+
+    function ensureKeyboardTargetVisible(zone, target) {
+        let area = keyboardFlickable(zone)
+        let targetY = target.mapToItem(area.contentItem, 0, 0).y
+        if (targetY < area.contentY) {
+            area.contentY = targetY
+        } else if (targetY + target.height > area.contentY + area.height) {
+            area.contentY = targetY + target.height - area.height
+        }
+    }
+
+    function enterKeyboardZone(zone) {
+        let targets = keyboardTargets(zone)
+        if (targets.length === 0) return
+        let current = keyboardCurrent(zone)
+        if (targets.indexOf(current) === -1) {
+            current = targets[0]
+        }
+        setKeyboardCurrent(zone, current)
+    }
+
+    function leaveKeyboardZone(zone) {
+        let current = keyboardCurrent(zone)
+        if (current) current.keyboardFocused = false
+    }
+
+    function clearKeyboardFocus() {
+        leaveKeyboardZone("top")
+        leaveKeyboardZone("middle")
+        leaveKeyboardZone("bottom")
+    }
+
+    function moveKeyboardCurrent(zone, offset) {
+        let targets = keyboardTargets(zone)
+        if (targets.length === 0) return
+        let index = targets.indexOf(keyboardCurrent(zone))
+        index = index < 0 ? 0 : Math.max(0, Math.min(targets.length - 1, index + offset))
+        setKeyboardCurrent(zone, targets[index])
+    }
+
+    function activateKeyboardCurrent(zone) {
+        let current = keyboardCurrent(zone)
+        if (current) current.activate()
+    }
 
     function isNotOverMinimumWidth() {  // 判断窗口是否小于最小宽度
         return windowWidth < minimumExpandWidth;
@@ -315,6 +406,7 @@ Item {
     // 置顶导航项（固定在顶部，支持滚动）
     Flickable {
         id: topFlickable
+        activeFocusOnTab: visible
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
@@ -325,6 +417,36 @@ Item {
         contentHeight: topNavigationColumn.implicitHeight
         clip: true
         visible: getTopItems().length > 0
+
+        onActiveFocusChanged: {
+            if (activeFocus) navigationBar.enterKeyboardZone("top")
+            else navigationBar.leaveKeyboardZone("top")
+        }
+
+        Keys.onUpPressed: function(event) {
+            navigationBar.moveKeyboardCurrent("top", -1)
+            event.accepted = true
+        }
+
+        Keys.onDownPressed: function(event) {
+            navigationBar.moveKeyboardCurrent("top", 1)
+            event.accepted = true
+        }
+
+        Keys.onReturnPressed: function(event) {
+            navigationBar.activateKeyboardCurrent("top")
+            event.accepted = true
+        }
+
+        Keys.onEnterPressed: function(event) {
+            navigationBar.activateKeyboardCurrent("top")
+            event.accepted = true
+        }
+
+        Keys.onSpacePressed: function(event) {
+            navigationBar.activateKeyboardCurrent("top")
+            event.accepted = true
+        }
 
         Column {
             id: topNavigationColumn
@@ -375,6 +497,7 @@ Item {
     // 中间可滚动导航区域
     Flickable {
         id: flickable
+        activeFocusOnTab: true
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: topSeparator.visible ? topSeparator.bottom : topFlickable.bottom
@@ -384,6 +507,36 @@ Item {
         contentWidth: parent.width
         contentHeight: navigationColumn.implicitHeight
         clip: true
+
+        onActiveFocusChanged: {
+            if (activeFocus) navigationBar.enterKeyboardZone("middle")
+            else navigationBar.leaveKeyboardZone("middle")
+        }
+
+        Keys.onUpPressed: function(event) {
+            navigationBar.moveKeyboardCurrent("middle", -1)
+            event.accepted = true
+        }
+
+        Keys.onDownPressed: function(event) {
+            navigationBar.moveKeyboardCurrent("middle", 1)
+            event.accepted = true
+        }
+
+        Keys.onReturnPressed: function(event) {
+            navigationBar.activateKeyboardCurrent("middle")
+            event.accepted = true
+        }
+
+        Keys.onEnterPressed: function(event) {
+            navigationBar.activateKeyboardCurrent("middle")
+            event.accepted = true
+        }
+
+        Keys.onSpacePressed: function(event) {
+            navigationBar.activateKeyboardCurrent("middle")
+            event.accepted = true
+        }
 
         Column {
             id: navigationColumn
@@ -433,6 +586,7 @@ Item {
     // 底部导航项（固定在底部，支持滚动）
     Flickable {
         id: bottomFlickable
+        activeFocusOnTab: visible
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
@@ -443,6 +597,36 @@ Item {
         contentHeight: bottomNavigationColumn.implicitHeight
         clip: true
         visible: getBottomItems().length > 0
+
+        onActiveFocusChanged: {
+            if (activeFocus) navigationBar.enterKeyboardZone("bottom")
+            else navigationBar.leaveKeyboardZone("bottom")
+        }
+
+        Keys.onUpPressed: function(event) {
+            navigationBar.moveKeyboardCurrent("bottom", -1)
+            event.accepted = true
+        }
+
+        Keys.onDownPressed: function(event) {
+            navigationBar.moveKeyboardCurrent("bottom", 1)
+            event.accepted = true
+        }
+
+        Keys.onReturnPressed: function(event) {
+            navigationBar.activateKeyboardCurrent("bottom")
+            event.accepted = true
+        }
+
+        Keys.onEnterPressed: function(event) {
+            navigationBar.activateKeyboardCurrent("bottom")
+            event.accepted = true
+        }
+
+        Keys.onSpacePressed: function(event) {
+            navigationBar.activateKeyboardCurrent("bottom")
+            event.accepted = true
+        }
 
         // 默认滚动到底部
         Component.onCompleted: {

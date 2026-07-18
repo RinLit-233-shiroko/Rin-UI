@@ -9,19 +9,33 @@ ItemDelegate {
     property var itemData
     property int parentIndex: -1
     property var currentPage
+    property bool keyboardFocused: false
     highlighted: String(navigationBar.currentPage) === String(itemData.page)
 
     height: 40
 
-    focusPolicy: collapsed ? Qt.NoFocus : Qt.StrongFocus  // to get keyboard focus
+    focusPolicy: Qt.NoFocus
+
+    function activate() {
+        if (itemData.page && currentPage && !root.highlighted && !collapsed) {
+            navigationView.safePush(itemData.page, false, false)
+        }
+    }
 
     // accessibility
     FocusIndicator {
         control: parent
         anchors.margins: 2
+        visible: root.keyboardFocused
     }
 
     width: parent ? parent.width : 200
+
+    TapHandler {
+        onPressedChanged: {
+            if (pressed) navigationBar.clearKeyboardFocus()
+        }
+    }
 
     background: Rectangle {
         id: itemBg
@@ -99,9 +113,6 @@ ItemDelegate {
     }
 
     onClicked: {
-        if (itemData.page && currentPage && !root.highlighted && !collapsed) {
-            // 记录上一次的索引
-            navigationView.safePush(itemData.page, false, false)
-        }
+        root.activate()
     }
 }
