@@ -11,16 +11,15 @@ PageIndicator {
     spacing: 0
     implicitHeight: 24
 
-    property bool carel: false
+    property bool caret: false
 
-    leftPadding: carel ? 24 : 0
-    rightPadding: carel ? 24 : 0
-    // property var orientation: Qt.Horizontal
+    leftPadding: caret ? 24 : 0
+    rightPadding: caret ? 24 : 0
 
     Item {
-        width: carel ? 24 : 0
+        width: caret ? 24 : 0
         height: 24
-        visible: carel && control.currentIndex > 0
+        visible: caret && control.currentIndex > 0
         anchors.left: parent.left
         enabled: control.enabled && control.interactive
 
@@ -48,7 +47,7 @@ PageIndicator {
     Item {
         width: 24
         height: 24
-        visible: carel && control.currentIndex < control.count - 1
+        visible: caret && control.currentIndex < control.count - 1
         anchors.right: parent.right
         enabled: control.enabled && control.interactive
 
@@ -120,6 +119,11 @@ PageIndicator {
 
         HoverHandler {
             id: hoverHandler
+        }
+
+        TapHandler {
+            enabled: control.interactive
+            onTapped: control.currentIndex = index
         }
     }
 }

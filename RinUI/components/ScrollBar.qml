@@ -58,6 +58,7 @@ ScrollBar {
         size: 8
         color: Theme.currentTheme.colors.textSecondaryColor
         icon.name: vertical ? "ic_fluent_triangle_up_20_filled" : "ic_fluent_triangle_left_20_filled"
+        focusPolicy: Qt.NoFocus
         anchors {
             top: vertical ? parent.top : undefined
             left: horizontal ? parent.left : undefined
@@ -78,6 +79,7 @@ ScrollBar {
         size: 8
         color: Theme.currentTheme.colors.textSecondaryColor
         icon.name: vertical ? "ic_fluent_triangle_down_20_filled" : "ic_fluent_triangle_right_20_filled"
+        focusPolicy: Qt.NoFocus
         anchors {
             bottom: vertical ? parent.bottom : undefined
             right: horizontal ? parent.right : undefined

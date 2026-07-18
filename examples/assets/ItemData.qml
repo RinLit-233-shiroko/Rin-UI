@@ -298,6 +298,14 @@ QtObject {
             page: Qt.resolvedUrl("../pages/controls/SpinBox.qml")
         },
         {
+            icon: Qt.resolvedUrl("controls/FlipView.png"),
+            title: qsTr("SwipeView"),
+            type: "collections",
+            desc: qsTr("Present a collection of items that the user can swipe through, one item at a time."),
+            page: Qt.resolvedUrl("../pages/controls/SwipeView.qml"),
+            added: true,
+        },
+        {
             icon: Qt.resolvedUrl("controls/Button.png"),
             title: qsTr("PillButton"),
             type: "basicInput",
@@ -325,7 +333,6 @@ QtObject {
             desc: qsTr("A switch that can toggled between 2 states."),
             page: Qt.resolvedUrl("../pages/controls/Switch.qml"),
         },
-        // TODO: TableView
         {
             icon: Qt.resolvedUrl("controls/VariableSizedWrapGrid.png"),
             title: qsTr("TableView"),

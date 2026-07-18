@@ -30,7 +30,6 @@ Button {
     // accessibility
     FocusIndicator {
         control: parent
-        opacity: accessibliityIndicator
     }
 
     padding: 6

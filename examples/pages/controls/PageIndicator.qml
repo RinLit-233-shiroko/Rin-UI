@@ -31,19 +31,26 @@ ControlPage {
             ColumnLayout {
                 SwipeView {
                     id: view
-                    currentIndex: pageIndicator.currentIndex
+                    clip: true
+                    currentIndex: 0
                     Layout.preferredWidth: 400
                     Layout.preferredHeight: 270
-                    clip: true
+                    onCurrentIndexChanged: pageIndicator.currentIndex = currentIndex
 
-                    Page {
-                        title: qsTr("Home")
+                    Rectangle {
+                        color: "red"
                     }
-                    Page {
-                        title: qsTr("Discover")
+                    Rectangle {
+                        color: "blue"
                     }
-                    Page {
-                        title: qsTr("Activity")
+                    Rectangle {
+                        color: "purple"
+                    }
+                    Rectangle {
+                        color: "green"
+                    }
+                    Rectangle {
+                        color: "cyan"
                     }
                 }
 
@@ -52,7 +59,8 @@ ControlPage {
                     interactive: true
                     count: view.count
                     currentIndex: view.currentIndex
-                    carel: true
+                    caret: true
+                    onCurrentIndexChanged: view.currentIndex = currentIndex
 
                     anchors.bottom: parent.bottom
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -75,16 +83,16 @@ ControlPage {
             PageIndicator {
                 count: 8
                 interactive: true
-                carel: carelSwitch.checked
+                caret: caretSwitch.checked
             }
             showcase: [
                 Text {
-                    text: qsTr("Carel")
+                    text: qsTr("Caret")
                 },
                 Row {
                     spacing: 32
                     Switch {
-                        id: carelSwitch
+                        id: caretSwitch
                         checked: true
                     }
                 }

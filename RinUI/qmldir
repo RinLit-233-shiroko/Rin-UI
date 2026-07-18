@@ -80,6 +80,7 @@ HorizontalHeaderView 1.0 components/ListAndCollections/HorizontalHeaderView.qml
 HorizontalHeaderViewDelegate 1.0 components/ListAndCollections/HorizontalHeaderViewDelegate.qml
 VerticalHeaderView 1.0 components/ListAndCollections/VerticalHeaderView.qml
 VerticalHeaderViewDelegate 1.0 components/ListAndCollections/VerticalHeaderViewDelegate.qml
+SwipeView 1.0 components/ListAndCollections/SwipeView.qml
 
 # Menus & Toolbars
 Menu 1.0 components/MenusAndToolbars/Menu.qml

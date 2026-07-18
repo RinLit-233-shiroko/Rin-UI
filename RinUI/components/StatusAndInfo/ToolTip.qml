@@ -1,6 +1,8 @@
 import QtQuick 2.15
 import QtQuick.Controls.Basic 2.15
 import QtQuick.Shapes 1.15
+import QtQuick.Effects
+
 import "../../themes"
 import "../../components"
 
