@@ -277,6 +277,13 @@ QtObject {
             page: Qt.resolvedUrl("../pages/controls/SelectorBar.qml")
         },
         {
+            icon: Qt.resolvedUrl("controls/CommandBar.png"),
+            title: qsTr("SettingCard"),
+            type: "layout",
+            desc: qsTr("A control that can be used to display settings in your experience."),
+            page: Qt.resolvedUrl("../pages/controls/SettingCard.qml"),
+        },
+        {
             icon: Qt.resolvedUrl("controls/Expander.png"),
             title: qsTr("SettingExpander"),
             type: "layout",

@@ -117,6 +117,7 @@ Frame {
                 size: 16
                 bold: true
                 visible: clickable
+                opacity: !enabled ? 0.5 : 1
             }
         }
 

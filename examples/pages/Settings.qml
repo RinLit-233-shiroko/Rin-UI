@@ -175,19 +175,20 @@ FluentPage {
             SettingItem {
                 id: repo
                 title: qsTr("To clone this repository")
+                actionIcon.name: "ic_fluent_copy_20_regular"
+                clickable: true
 
                 TextInput {
                     id: repoUrl
+                    font.family: "Consolas"
                     readOnly: true
                     text: "git clone https://github.com/RinLit-233-shiroko/Rin-UI.git"
                     wrapMode: TextInput.Wrap
+                    opacity: 0.8
                 }
-                ToolButton {
-                    flat: true
-                    icon.name: "ic_fluent_copy_20_regular"
-                    onClicked: {
-                        Backend.copyToClipboard(repoUrl.text)
-                    }
+
+                onClicked: {
+                    Backend.copyToClipboard(repoUrl.text)
                 }
             }
             SettingItem {
@@ -195,10 +196,7 @@ FluentPage {
                 clickable: true
                 onClicked: Qt.openUrlExternally("https://github.com/RinLit-233-shiroko/Rin-UI/issues/new/choose")
 
-                // Hyperlink {
-                //     text: qsTr("Create an issue on GitHub")
-                //     openUrl:
-                // }
+                actionIcon.name: "ic_fluent_open_20_regular"
             }
             SettingItem {
                 Column {

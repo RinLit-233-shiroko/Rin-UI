@@ -24,7 +24,7 @@ ControlPage {
 
         Text {
             typography: Typography.BodyStrong
-            text: qsTr("An Expander with text in the header and content areas")
+            text: qsTr("An Expander with ComboBox in the header and SettingItems")
         }
         ControlShowcase {
             width: parent.width
@@ -58,6 +58,11 @@ ControlPage {
                     Button {
                         text: qsTr("Button")
                     }
+                }
+                SettingItem {
+                    title: qsTr("This SettingItem can be clicked")
+                    description: qsTr("SettingCard control can be clicked too!")
+                    clickable: true
                 }
                 SettingItem {
                     Column {

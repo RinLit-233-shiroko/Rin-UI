@@ -83,6 +83,8 @@ Frame {
             name: "ic_fluent_chevron_right_20_regular"
             size: 16
             visible: clickable
+            opacity: !enabled ? 0.5 : 1
         }
     }
+    opacity: tapHandler.pressed ? 0.6 : 1
 }
