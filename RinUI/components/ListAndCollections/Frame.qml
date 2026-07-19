@@ -9,7 +9,7 @@ Frame {
     property bool frameless: false
     property bool hoverable: true  // 悬浮特效
     // hovered: false
-    property color color: root.hovered ? Theme.currentTheme.colors.controlSecondaryColor: Theme.currentTheme.colors.controlColor
+    property color color: root.hovered ? Theme.currentTheme.colors.controlSecondaryColor: Theme.currentTheme.colors.cardColor
     property alias radius: background.radius
     // Qt 6.7+ 分角圆角，避免整控件 layer+OpacityMask 导致 HiDPI 文字模糊
     property real topLeftRadius: -1

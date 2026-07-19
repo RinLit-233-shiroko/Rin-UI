@@ -11,13 +11,24 @@ Frame {
     // property alias showcase: showcaseContainer.data
     property string title
     property alias icon: icon
+    property alias actionIcon: actIcon
     property string description
+
+    signal clicked()
+    property bool clickable: false  // 需要手动启用
+    hoverable: clickable  // hover效果
 
     leftPadding: 18
     rightPadding: 18
     topPadding: 16
     bottomPadding: 16
     // implicitHeight: 62
+
+    TapHandler {
+        id: tapHandler
+        enabled: clickable
+        onTapped: clicked()
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -65,6 +76,13 @@ Frame {
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignRight
             spacing: 8
+        }
+
+        Icon {
+            id: actIcon
+            name: "ic_fluent_chevron_right_20_regular"
+            size: 16
+            visible: clickable
         }
     }
 }

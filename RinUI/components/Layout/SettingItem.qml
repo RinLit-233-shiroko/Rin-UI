@@ -10,6 +10,8 @@ Frame {
     property string title
     property string description
     property bool showDivider: true
+    property alias actionIcon: actIcon
+
     readonly property bool _roundsContentEdge: parent
         && parent.roundContentEdgeItems
         && parent.children.filter(function(item) {
@@ -59,7 +61,7 @@ Frame {
             Layout.minimumHeight: 32
 
             Layout.leftMargin: 58
-            Layout.rightMargin: 44
+            Layout.rightMargin: clickable ? 15 : 44
             Layout.topMargin: 9
             Layout.bottomMargin: 9
             Layout.fillWidth: true
@@ -110,8 +112,10 @@ Frame {
             }
 
             Icon {
+                id: actIcon
                 name: "ic_fluent_chevron_right_20_regular"
                 size: 16
+                bold: true
                 visible: clickable
             }
         }
