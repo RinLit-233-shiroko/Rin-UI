@@ -192,17 +192,23 @@ FluentPage {
             }
             SettingItem {
                 title: qsTr("File a bug or request new sample")
+                clickable: true
+                onClicked: Qt.openUrlExternally("https://github.com/RinLit-233-shiroko/Rin-UI/issues/new/choose")
 
-                Hyperlink {
-                    text: qsTr("Create an issue on GitHub")
-                    openUrl: "https://github.com/RinLit-233-shiroko/Rin-UI/issues/new/choose"
-                }
+                // Hyperlink {
+                //     text: qsTr("Create an issue on GitHub")
+                //     openUrl:
+                // }
             }
             SettingItem {
                 Column {
                     Layout.fillWidth: true
                     Text {
                         text: qsTr("Dependencies & references")
+                    }
+                    Item {
+                        width: parent.width
+                        height: 6
                     }
                     Hyperlink {
                         text: qsTr("Qt & Qt Quick")

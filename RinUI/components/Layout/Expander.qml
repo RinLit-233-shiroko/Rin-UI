@@ -19,10 +19,12 @@ Item {
     enum ExpandDirection { Up, Down }
     property var expandDirection: Expander.Down
     readonly property bool directionUp: root.expandDirection === Expander.Up
+    property bool roundContentEdgeItems: false
     property real radius: Theme.currentTheme.appearance.smallRadius
 
     property alias header: headerCustom.data
     property string text
+    property alias contentFrame: content
     default property alias contentData: contentLayout.data  //折叠内容
 
     implicitWidth: Math.max(
@@ -137,6 +139,8 @@ Item {
             // 内容区域 - 布局
             ColumnLayout {
                 id: contentLayout
+                property bool roundContentEdgeItems: root.roundContentEdgeItems
+                property bool directionUp: root.directionUp
                 anchors.fill: parent
                 anchors.margins: content.border.width
             }

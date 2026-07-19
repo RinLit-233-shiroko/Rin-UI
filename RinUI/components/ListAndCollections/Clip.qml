@@ -18,18 +18,9 @@ Button {
     background: Frame {
         id: background
         anchors.fill: parent
-        color: root.backgroundColor
+        // color: root.backgroundColor
         opacity: 1
-
-        border.color: {
-            if (hovered && !pressed) {
-                return Theme.currentTheme.colors.controlBorderStrongColor
-            }
-            return Theme.currentTheme.colors.cardBorderColor
-        }
     }
-
-    opacity: hovered && !pressed ? 0.9 : 1
 
     contentItem: Item {}
 }

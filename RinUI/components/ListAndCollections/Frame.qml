@@ -8,8 +8,8 @@ Frame {
     id: root
     property bool frameless: false
     property bool hoverable: true  // 悬浮特效
-    property bool hover: false
-    property color color: Theme.currentTheme.colors.cardColor
+    // hovered: false
+    property color color: root.hovered ? Theme.currentTheme.colors.controlSecondaryColor: Theme.currentTheme.colors.controlColor
     property alias radius: background.radius
     // Qt 6.7+ 分角圆角，避免整控件 layer+OpacityMask 导致 HiDPI 文字模糊
     property real topLeftRadius: -1
@@ -19,6 +19,7 @@ Frame {
     property alias border: background.border
 
     clip: true
+    hoverEnabled: hoverable
     // leftPadding: 0
     // rightPadding: 0
     // topPadding: 0
@@ -36,16 +37,16 @@ Frame {
         color: root.color
         border.width: Theme.currentTheme.appearance.borderWidth
         border.color: Theme.currentTheme.colors.cardBorderColor
-        opacity: root.hover? 0.7 : 1
+        // opacity: root.hover? 0.7 : 1
         visible: !root.frameless
 
         // mouse area / hover区域
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: root.hoverable
-            onEntered: root.hover = true
-            onExited: root.hover = false
-        }
+        // MouseArea {
+        //     anchors.fill: parent
+        //     hoverEnabled: root.hoverable
+        //     onEntered: root.hovered = true
+        //     onExited: root.hovered = false
+        // }
 
         Behavior on opacity { NumberAnimation { duration: Utils.animationSpeedFaster; easing.type: Easing.OutQuad } }
         Behavior on color { ColorAnimation { duration: Utils.appearanceSpeed; easing.type: Easing.OutQuad } }

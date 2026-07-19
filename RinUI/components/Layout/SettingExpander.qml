@@ -17,6 +17,8 @@ Expander {
 
     contentPadding: 0
     contentSpacing: 0
+    roundContentEdgeItems: true
+    contentFrame.color: "transparent"
 
     header: RowLayout {
         Layout.margins: 13
