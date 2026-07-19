@@ -20,7 +20,13 @@ Slider {
 
     component SliderToolTip: QtObject {
         property bool visible: true
-        property var text: root.value.toFixed(Math.ceil(Math.log10(1 / root.stepSize)))
+        property var text: {
+            var step = root.stepSize > 0 ? root.stepSize : 0.01
+            var digits = Math.ceil(Math.log10(1 / step))
+            if (digits > 20) digits = 20
+            if (digits < 0) digits = 0
+            return root.value.toFixed(digits)
+        }
     }
 
     // notification of showTooltip
