@@ -11,8 +11,7 @@ Window {
     property bool isWindows: Qt.platform.os === "windows"
     // Native traffic lights + single custom titlebar integration on macOS.
     property bool useNativeMacFrame: isMacOS
-    // Fine-tune custom title content baseline to match native traffic lights.
-    property int macNativeContentVerticalOffset: useNativeMacFrame ? -2 : 0
+    property int macNativeContentVerticalOffset: 0
     property int expandedClientAreaHint: typeof Qt.ExpandedClientAreaHint !== "undefined"
         ? Qt.ExpandedClientAreaHint
         : 0
@@ -26,6 +25,25 @@ Window {
         | expandedClientAreaHint
         | noTitleBarBackgroundHint
     property int windowsNativeTitleBarFlags: Qt.Window
+    readonly property int macSafeTop: {
+        if (!useNativeMacFrame)
+            return 0
+        if (typeof SafeArea === "undefined" || SafeArea.margins === undefined)
+            return 0
+        return Math.round(SafeArea.margins.top)
+    }
+    readonly property int macSafeLeft: {
+        if (!isMacOS)
+            return 0
+        var left = 0
+        if (typeof SafeArea !== "undefined" && SafeArea.margins !== undefined)
+            left = Math.round(SafeArea.margins.left)
+        if (left > 0)
+            return left + 8
+        if (useNativeMacFrame)
+            return 84
+        return 0
+    }
 
     flags: (useNativeMacFrame
         ? macNativeTitleBarFlags

@@ -24,7 +24,6 @@ Item {
     property int macControlSpacing: 8
     property int macControlLeftMargin: 20
     property int macDragGap: 12
-    property int macNativeControlExtraInset: useNativeMacControls ? 18 : 0
     property int titleBarHeight: window && window.titleBarHeight !== undefined
         ? window.titleBarHeight
         : Theme.currentTheme.appearance.windowTitleBarHeight
@@ -33,9 +32,18 @@ Item {
             ? 3
             : (closeButtonVisible ? 1 : 0) + (minimizeButtonVisible ? 1 : 0) + (maximizeButtonVisible ? 1 : 0))
         : 0
-    property int macTitleSafeInset: isMacOS && macVisibleControlCount > 0
-        ? macControlLeftMargin + (macVisibleControlCount * macControlSize) + ((macVisibleControlCount - 1) * macControlSpacing) + macDragGap + macNativeControlExtraInset
-        : 0
+    // TitleBar already reserves the native traffic-light gutter when this row
+    // is reparented into titleBarLeadingHost. Only inset when we stay local.
+    property int macTitleSafeInset: {
+        if (!isMacOS || macVisibleControlCount <= 0)
+            return 0
+        if (title.parent === (window && window.titleBarLeadingHost))
+            return 0
+        if (useNativeMacControls && window && window.macSafeLeft > 0)
+            return window.macSafeLeft
+        return macControlLeftMargin + (macVisibleControlCount * macControlSize)
+            + ((macVisibleControlCount - 1) * macControlSpacing) + macDragGap
+    }
 
     // property int currentSubIndex: -1
     property bool titleBarEnabled: true

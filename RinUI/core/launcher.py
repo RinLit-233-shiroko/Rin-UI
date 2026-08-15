@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 from typing import Union
 
-from PySide6.QtCore import QCoreApplication, QObject, QUrl, QTimer
+from PySide6.QtCore import QCoreApplication, QObject, QUrl
 from PySide6.QtGui import QColor, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
@@ -50,11 +50,6 @@ class RinUIWindow:
             )
         self._mac_objc = None
         self._mac_appkit = None
-        # Fine-tune native macOS traffic-light position.
-        self._mac_traffic_lights_offset_x = 10
-        self._mac_traffic_lights_offset_down = 10
-        self._mac_traffic_lights_retry_interval_ms = 50
-        self._mac_traffic_lights_max_retries = 8
         self.qml_path = qml_path
         self._loaded_root_count = len(self.engine.rootObjects())
         self._initialized = True
@@ -173,7 +168,12 @@ class RinUIWindow:
             window.setProperty("_rinuiTransparentRenderClearInstalled", True)
 
     def _setup_macos_native_window(self) -> None:
-        """Apply macOS native titlebar tweaks for custom title content."""
+        """Hide the system title text while keeping native traffic lights.
+
+        Qt 6.9 flags already expand the client area. AppKit is only used as a
+        fallback to hide the stock title label. Traffic lights stay at the
+        system default position; missing pyobjc must not disable the native frame.
+        """
         if sys.platform != "darwin":
             return
 
@@ -181,8 +181,7 @@ class RinUIWindow:
             import AppKit
             import objc
         except Exception as err:
-            print(f"Cannot enable native macOS titlebar integration: {err}")
-            self._disable_native_mac_frame()
+            print(f"AppKit unavailable, using Qt window flags only: {err}")
             return
 
         self._mac_appkit = AppKit
@@ -201,14 +200,7 @@ class RinUIWindow:
 
     def _on_macos_window_visible_changed(self, window: QQuickWindow, visible: bool) -> None:
         if visible and window.property("useNativeMacFrame"):
-            window.setProperty("_rinuiMacTrafficLightsShiftApplied", False)
-            window.setProperty("_rinuiMacTrafficLightsShiftRetryCount", 0)
             self._apply_macos_window_style(window)
-
-    def _disable_native_mac_frame(self) -> None:
-        for window in self.windows:
-            if window.property("useNativeMacFrame"):
-                window.setProperty("useNativeMacFrame", False)
 
     def _apply_macos_window_style(self, window: QQuickWindow) -> None:
         if not self._mac_objc or not self._mac_appkit:
@@ -220,90 +212,14 @@ class RinUIWindow:
             if not ns_window:
                 return
 
-            # Hide the system title visuals and keep traffic lights in place.
             ns_window.setTitleVisibility_(self._mac_appkit.NSWindowTitleHidden)
             ns_window.setTitlebarAppearsTransparent_(True)
-            ns_window.setMovableByWindowBackground_(False)
             style_mask = int(ns_window.styleMask()) | int(
                 self._mac_appkit.NSWindowStyleMaskFullSizeContentView
             )
             ns_window.setStyleMask_(style_mask)
-            self._schedule_macos_traffic_light_shift(window, retry_count=0)
         except Exception as err:
             print(f"Failed to apply macOS native titlebar style: {err}")
-            window.setProperty("useNativeMacFrame", False)
-
-    def _schedule_macos_traffic_light_shift(
-        self, window: QQuickWindow, retry_count: int
-    ) -> None:
-        if window.property("_rinuiMacTrafficLightsShiftApplied"):
-            return
-
-        moved = self._shift_macos_traffic_lights_once(window)
-        if moved:
-            window.setProperty("_rinuiMacTrafficLightsShiftApplied", True)
-            window.setProperty("_rinuiMacTrafficLightsShiftRetryCount", retry_count)
-            return
-
-        if retry_count >= self._mac_traffic_lights_max_retries:
-            return
-
-        next_retry = retry_count + 1
-        window.setProperty("_rinuiMacTrafficLightsShiftRetryCount", next_retry)
-        QTimer.singleShot(
-            self._mac_traffic_lights_retry_interval_ms,
-            lambda w=window, c=next_retry: self._schedule_macos_traffic_light_shift(
-                w, c
-            ),
-        )
-
-    def _shift_macos_traffic_lights_once(self, window: QQuickWindow) -> bool:
-        if not self._mac_objc or not self._mac_appkit:
-            return False
-
-        try:
-            ns_view = self._mac_objc.objc_object(c_void_p=int(window.winId()))
-            ns_window = ns_view.window() if ns_view else None
-            if not ns_window:
-                return False
-
-            close_button = ns_window.standardWindowButton_(
-                self._mac_appkit.NSWindowCloseButton
-            )
-            minimize_button = ns_window.standardWindowButton_(
-                self._mac_appkit.NSWindowMiniaturizeButton
-            )
-            zoom_button = ns_window.standardWindowButton_(
-                self._mac_appkit.NSWindowZoomButton
-            )
-            buttons = [btn for btn in (close_button, minimize_button, zoom_button) if btn]
-            if not buttons:
-                return False
-
-            # Move the shared container first to preserve native spacing.
-            button_host = close_button.superview() if close_button else buttons[0].superview()
-            if button_host:
-                host_frame = button_host.frame()
-                button_host.setFrameOrigin_(
-                    (
-                        host_frame.origin.x + self._mac_traffic_lights_offset_x,
-                        host_frame.origin.y - self._mac_traffic_lights_offset_down,
-                    )
-                )
-                return True
-
-            for button in buttons:
-                frame = button.frame()
-                button.setFrameOrigin_(
-                    (
-                        frame.origin.x + self._mac_traffic_lights_offset_x,
-                        frame.origin.y - self._mac_traffic_lights_offset_down,
-                    )
-                )
-            return True
-        except Exception as err:
-            print(f"Failed to shift macOS traffic lights: {err}")
-            return False
 
     def setIcon(self, path: Union[str, Path] = None) -> None:
         """

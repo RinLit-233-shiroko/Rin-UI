@@ -18,28 +18,52 @@ ApplicationWindow {
     property bool isWindows: Qt.platform.os === "windows"
     // Native traffic lights + single custom titlebar integration on macOS.
     property bool useNativeMacFrame: isMacOS
-    // Fine-tune custom title content baseline to match native traffic lights.
-    property int macNativeContentVerticalOffset: useNativeMacFrame ? -2 : 0
+    property int macNativeContentVerticalOffset: 0
     property int expandedClientAreaHint: typeof Qt.ExpandedClientAreaHint !== "undefined"
         ? Qt.ExpandedClientAreaHint
         : 0
     property int noTitleBarBackgroundHint: typeof Qt.NoTitleBarBackgroundHint !== "undefined"
         ? Qt.NoTitleBarBackgroundHint
         : 0
+    property int macNativeTitleBarFlags: Qt.Window
+        | Qt.CustomizeWindowHint
+        | Qt.WindowTitleHint
+        | Qt.WindowSystemMenuHint
+        | expandedClientAreaHint
+        | noTitleBarBackgroundHint
+    readonly property int macSafeTop: {
+        if (!useNativeMacFrame)
+            return 0
+        if (typeof SafeArea === "undefined" || SafeArea.margins === undefined)
+            return 0
+        return Math.round(SafeArea.margins.top)
+    }
+    readonly property int macSafeLeft: {
+        if (!isMacOS)
+            return 0
+        var left = 0
+        if (typeof SafeArea !== "undefined" && SafeArea.margins !== undefined)
+            left = Math.round(SafeArea.margins.left)
+        if (left > 0)
+            return left + 8
+        if (useNativeMacFrame)
+            return 84
+        return 0
+    }
 
     flags: (useNativeMacFrame
-        ? (Qt.Window
-            | Qt.CustomizeWindowHint
-            | Qt.WindowTitleHint
-            | Qt.WindowSystemMenuHint
-            | Qt.ExpandedClientAreaHint
-            | Qt.NoTitleBarBackgroundHint)
+        ? macNativeTitleBarFlags
         : (Qt.Window | Qt.FramelessWindowHint))
         | Qt.WindowMinimizeButtonHint
         | Qt.WindowMaximizeButtonHint
         | Qt.WindowCloseButtonHint
     color: useNativeMacFrame ? Theme.currentTheme.colors.backgroundColor : "transparent"
+    // ExpandedClientAreaHint would otherwise inset the whole contentItem.
+    // TitleBar applies macSafeLeft itself so the sidebar can stay edge-to-edge.
     topPadding: 0
+    leftPadding: 0
+    rightPadding: 0
+    bottomPadding: 0
     
     Component.onCompleted: {
         if (baseWindow.isWindows) {

@@ -1,7 +1,7 @@
-import QtQuick 2.12
-import QtQuick.Controls 2.3
+import QtQuick 2.15
+import QtQuick.Controls 2.15
 import QtQuick.Layouts
-import QtQuick.Window 2.3
+import QtQuick.Window 2.15
 import "../themes"
 import "../components"
 import "../windows"
@@ -29,11 +29,8 @@ Item {
     property int macDragGap: 12
     // Reserve a small leading no-drag zone for overlay actions (e.g. NavigationView back button).
     property int macLeadingInteractiveWidth: 40
-    // Align custom title content with native traffic lights on macOS.
-    property real macNativeContentVerticalOffset: root.isMacOS && root.useNativeMacControls
-        ? ((root.window && root.window.macNativeContentVerticalOffset !== undefined)
-            ? root.window.macNativeContentVerticalOffset
-            : -2)
+    property real macNativeContentVerticalOffset: root.window && root.window.macNativeContentVerticalOffset !== undefined
+        ? root.window.macNativeContentVerticalOffset
         : 0
     property int macNativeControlCount: root.isMacOS && root.useNativeMacControls ? 3 : 0
     property int macVisibleControlCount: root.showMacCustomControls
@@ -46,6 +43,12 @@ Item {
     property int macLeadingInset: root.isMacOS && macControlOccupyCount > 0
         ? root.macControlLeftMargin + (macControlOccupyCount * root.macControlSize) + ((macControlOccupyCount - 1) * root.macControlSpacing) + root.macDragGap
         : 0
+    property int macSafeLeft: root.window && root.window.macSafeLeft > 0
+        ? root.window.macSafeLeft
+        : root.macLeadingInset
+    property int macContentLeftMargin: root.isMacOS && root.useNativeMacControls
+        ? root.macSafeLeft
+        : (root.isMacOS ? 0 : 4)
     property bool macControlsHovered: root.showMacCustomControls && (
         (macCloseBtn.visible && (macCloseBtn.localHovered || macCloseBtn.localPressed)) ||
         (macMinimizeBtn.visible && (macMinimizeBtn.localHovered || macMinimizeBtn.localPressed)) ||
@@ -84,44 +87,40 @@ Item {
         id:rectBk
         anchors.fill: parent
         color: "transparent"
+    }
 
-        MouseArea {
-            enabled: !root.useNativeMacControls
-            anchors.fill: parent
-            anchors.leftMargin: root.isMacOS
-                ? root.macLeadingInset + root.macLeadingInteractiveWidth
-                : 48
-            anchors.margins: Utils.windowDragArea
-            propagateComposedEvents: true
-            acceptedButtons: Qt.LeftButton
-            property point clickPos: "0,0"
-
-            onPressed: {
-                clickPos = Qt.point(mouseX, mouseY)
-
-                if (Qt.platform.os !== "windows" || !WindowManager._isWinMgrInitialized()) {
-                    return
-                }
-                WindowManager.sendDragWindowEvent(window)
+    // Declared on the title bar itself so empty regions start a system move,
+    // while child controls (back, search, window buttons) keep their handlers.
+    DragHandler {
+        id: titleDragHandler
+        target: null
+        x: root.isMacOS ? root.macSafeLeft : 0
+        width: Math.max(0, root.width - x - (root.isMacOS ? 0 : 48))
+        height: root.height
+        acceptedButtons: Qt.LeftButton
+        grabPermissions: PointerHandler.TakeOverForbidden
+        onActiveChanged: {
+            if (!active || !root.window)
+                return
+            if (root.window.visibility === Window.Maximized
+                    || root.window.visibility === Window.FullScreen)
+                return
+            if (Qt.platform.os === "windows" && WindowManager._isWinMgrInitialized()) {
+                WindowManager.sendDragWindowEvent(root.window)
+                return
             }
-            onDoubleClicked: toggleMaximized()
-            onPositionChanged: (mouse) => {
-                if (window.isMaximized || window.isFullScreen || window.visibility === Window.Maximized) {
-                    return
-                }
-
-                if (Qt.platform.os !== "windows" && WindowManager._isWinMgrInitialized()) {
-                    log("Windows only")
-                    return  // 在win环境使用原生方法拖拽
-                }
-
-                //鼠标偏移量
-                let delta = Qt.point(mouse.x-clickPos.x, mouse.y-clickPos.y)
-
-                window.setX(window.x+delta.x)
-                window.setY(window.y+delta.y)
-            }
+            if (typeof root.window.startSystemMove === "function")
+                root.window.startSystemMove()
         }
+    }
+
+    TapHandler {
+        x: titleDragHandler.x
+        width: titleDragHandler.width
+        height: root.height
+        acceptedButtons: Qt.LeftButton
+        grabPermissions: PointerHandler.TakeOverForbidden
+        onDoubleTapped: root.toggleMaximized()
     }
 
     RowLayout {
@@ -130,7 +129,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: root.macNativeContentVerticalOffset
         height: parent.height
-        anchors.leftMargin: root.isMacOS ? 0 : 4
+        anchors.leftMargin: root.macContentLeftMargin
         spacing: root.isMacOS ? (root.showMacCustomControls ? 12 : 0) : 48
 
         // macOS traffic-light controls stay on the left side of the title.
@@ -177,7 +176,7 @@ Item {
             visible: root.titleEnabled
             Layout.fillHeight: true
             Layout.preferredWidth: visible ? implicitWidth : 0
-            Layout.leftMargin: root.isMacOS ? (root.useNativeMacControls ? root.macLeadingInset : 0) : 16
+            Layout.leftMargin: root.isMacOS ? 0 : 16
             spacing: 16
 
             //图标

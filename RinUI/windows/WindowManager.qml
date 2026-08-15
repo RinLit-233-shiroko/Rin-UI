@@ -29,7 +29,9 @@ Item {
     function toggleMaximizeWindow(window) {
         if (!window) return;
 
-        if (window.visibility === Window.Maximized || window.isMaximized) {
+        if (window.visibility === Window.FullScreen
+                || window.visibility === Window.Maximized
+                || window.isMaximized) {
             window.showNormal();
         } else {
             window.showMaximized();
