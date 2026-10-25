@@ -45,7 +45,7 @@ Item {
     }
 
     // 主体
-    Clip {
+    Card {
         id: header
         enabled: root.enabled
         y: directionUp ? content.height * expanded : 0

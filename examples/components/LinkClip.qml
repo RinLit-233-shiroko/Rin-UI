@@ -3,7 +3,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
 import RinUI
 
-Clip {
+Card {
     width: 232
     height: 172
     radius: 8

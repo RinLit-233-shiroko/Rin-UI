@@ -69,7 +69,7 @@ ToolTip 1.0 components/StatusAndInfo/ToolTip.qml
 BusyIndicator 1.0 components/StatusAndInfo/BusyIndicator.qml
 
 # ListAndCollections
-Clip 1.0 components/ListAndCollections/Clip.qml
+Card 1.0 components/ListAndCollections/Card.qml
 Frame 1.0 components/ListAndCollections/Frame.qml
 SettingCard 1.0 components/ListAndCollections/SettingCard.qml
 ListView 1.0 components/ListAndCollections/ListView.qml

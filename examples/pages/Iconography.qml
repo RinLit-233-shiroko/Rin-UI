@@ -106,7 +106,7 @@ ControlPage {
 
                         currentIndex: 0
 
-                        delegate: Clip {
+                        delegate: Card {
                             id: iconFrame
                             property bool isSelected: index === iconGrid.currentIndex
 
