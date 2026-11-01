@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 2.15
+import QtQuick.Effects
 import "../../themes"
 import "../../components"
 
@@ -40,24 +41,36 @@ QQC2.Dialog {
         standardButtons: root.standardButtons
     }
 
-    background: Rectangle {
-        id: background
-        anchors.fill: parent
-        color: Theme.currentTheme.colors.backgroundAcrylicColor
-        border.color: Theme.currentTheme.colors.windowBorderColor
-        border.width: 1
-        radius: Theme.currentTheme.appearance.windowRadius
+    // The shadow used to be a layer-enabled Qt5Compat DropShadow. Besides
+    // rasterizing the whole dialog through an extra texture, that effect had to
+    // be re-rendered on every frame while the dialog's size changed (for
+    // example during page transitions in a wizard), which made the animation
+    // drop frames. RectangularShadow is drawn directly in the scene graph and
+    // only rebuilds the shadow geometry, so resizing stays cheap.
+    background: Item {
+        id: dialogBackground
 
-        Behavior on color {
-            ColorAnimation {
-                duration: Utils.backdropEnabled ? 0 : 150
-            }
+        RectangularShadow {
+            anchors.fill: panel
+            radius: panel.radius
+            blur: Theme.currentTheme.shadows.dialog.blur
+            offset.y: Theme.currentTheme.shadows.dialog.offsetY
+            color: Theme.currentTheme.shadows.dialog.color
         }
 
-        layer.enabled: true
-        layer.effect: Shadow {
-            style: "dialog"
-            source: background
+        Rectangle {
+            id: panel
+            anchors.fill: parent
+            color: Theme.currentTheme.colors.backgroundAcrylicColor
+            border.color: Theme.currentTheme.colors.windowBorderColor
+            border.width: 1
+            radius: Theme.currentTheme.appearance.windowRadius
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: Utils.backdropEnabled ? 0 : 150
+                }
+            }
         }
     }
 
