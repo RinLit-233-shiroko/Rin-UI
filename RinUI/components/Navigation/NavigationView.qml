@@ -305,8 +305,6 @@ RowLayout {
                 currentPage = previousPage
                 safePush(previousPage, false, true)  // 重新加载页面
             }
-        } else {
-            console.log("Can't pop: no pages in history")
         }
     }
 

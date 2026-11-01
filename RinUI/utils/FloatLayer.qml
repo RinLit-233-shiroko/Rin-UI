@@ -125,7 +125,7 @@ Item {
         case undefined:
             return topCenter;
         default:
-            console.log("Invalid position")
+            console.error("Invalid position")
             return topCenter;
         }
     }

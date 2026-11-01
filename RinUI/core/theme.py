@@ -15,6 +15,7 @@ from .config import (
     is_win11_22h2,
     is_windows,
 )
+from .logger import logger
 
 
 def check_darkdetect_support():
@@ -70,7 +71,7 @@ class ThemeListener(QThread):
             if current_theme != last_theme:
                 last_theme = current_theme
                 self.themeChanged.emit(current_theme)
-                print(f"Theme changed: {current_theme}")
+                logger.debug("Theme changed: %s", current_theme)
             time.sleep(1)
 
     def stop(self):
@@ -108,10 +109,10 @@ class ThemeManager(QObject):
         """
         if self.listener:
             RinConfig.save_config()
-            print("Save config.")
+            logger.debug("Saving config.")
             self.listener.stop()
             self.listener.wait()  # 等待线程结束
-            print("Theme listener stopped.")
+            logger.debug("Theme listener stopped.")
 
     def __new__(cls, *args, **kwargs):
         """
@@ -137,13 +138,15 @@ class ThemeManager(QObject):
         try:
             self.current_theme = RinConfig["theme"]["current_theme"]
         except Exception as e:
-            print(f"Failed to load config because of {e}, using default config")
+            logger.warning(
+                "Failed to load theme config (%s); using defaults.", e
+            )
 
         self.start_listener()
 
     def start_listener(self):
         if not self.is_darkdetect_supported:
-            print("darkdetect not supported on this platform")
+            logger.warning("darkdetect is not supported on this platform")
             return
         self.listener = ThemeListener()
         self.listener.themeChanged.connect(self._handle_system_theme)
@@ -151,8 +154,21 @@ class ThemeManager(QObject):
 
     def set_window(self, window):  # 绑定窗口句柄
         hwnd = int(window.winId())
-        self.windows.append(hwnd)
-        print(f"Window handle set: {hwnd}")
+        if hwnd not in self.windows:
+            self.windows.append(hwnd)
+        logger.debug("Window handle set: %s", hwnd)
+
+    def remove_window(self, window_or_handle) -> None:
+        """Forget a window handle when its QML object tree is released."""
+        try:
+            hwnd = int(window_or_handle.winId())
+        except (AttributeError, RuntimeError, TypeError, ValueError):
+            try:
+                hwnd = int(window_or_handle)
+            except (TypeError, ValueError):
+                return
+        while hwnd in self.windows:
+            self.windows.remove(hwnd)
 
     def _handle_system_theme(self):
         if self.current_theme == "Auto":
@@ -170,19 +186,24 @@ class ThemeManager(QObject):
         """
         self._update_window_theme()
         if not is_windows() or not self.windows:
-            print(f'Cannot apply effect "{effect_type}" on this platform')
+            logger.warning('Cannot apply effect "%s" on this platform', effect_type)
             return -2  # 非 windows或未绑定窗口
         self.backdropChanged.emit(effect_type)
 
         # Win11 21H2 不支持 acrylic/tabbed，fallback 为 mica
         applied_effect = effect_type
         if is_win11() and not is_win11_22h2() and effect_type in ("acrylic", "tabbed"):
-            print(f'Effect "{effect_type}" not supported on Win11 21H2, fallback to "mica"')
+            logger.warning(
+                'Effect "%s" is not supported on Win11 21H2; using "mica".',
+                effect_type,
+            )
             applied_effect = "mica"
 
         accent_state = ACCENT_STATES.get(applied_effect, 0)
         if not ACCENT_SUPPORT.get(applied_effect, False):
-            print(f'Effect "{applied_effect}" not supported on this platform')
+            logger.warning(
+                'Effect "%s" is not supported on this platform', applied_effect
+            )
             return -1  # 效果不支持
 
         for hwnd in self.windows:
@@ -262,7 +283,7 @@ class ThemeManager(QObject):
             set_window_composition = ctypes.windll.user32.SetWindowCompositionAttribute
             set_window_composition(hwnd, ctypes.byref(data))
         except Exception as e:
-            print(f"Failed to apply acrylic on Win10: {e}")
+            logger.exception("Failed to apply acrylic on Win10: %s", e)
 
     def apply_window_effects(self):  # 启用圆角阴影
         if sys.platform != "win32" or not self.windows:
@@ -308,7 +329,7 @@ class ThemeManager(QObject):
             ):
                 self._apply_win10_effect(RinConfig["backdrop_effect"], hwnd)
             else:
-                print(f"Cannot apply backdrop on {platform.system()}")
+                logger.warning("Cannot apply backdrop on %s", platform.system())
 
         # print(f"Window theme updated to {actual_theme}")
 
@@ -331,7 +352,7 @@ class ThemeManager(QObject):
         if theme not in ["Auto", "Light", "Dark"]:  # 三状态
             return
         if self.current_theme != theme:
-            print(f"Switching to '{theme}' theme")
+            logger.debug("Switching to '%s' theme", theme)
             self.current_theme = theme
             RinConfig["theme"]["current_theme"] = theme
             self._update_window_theme()

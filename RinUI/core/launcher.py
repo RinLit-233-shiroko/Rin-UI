@@ -1,18 +1,65 @@
+import os
 import sys
 from pathlib import Path
 from typing import Union
 
-from PySide6.QtCore import QCoreApplication, QObject, QUrl, QTimer
+from PySide6.QtCore import (
+    QCoreApplication,
+    QObject,
+    QStandardPaths,
+    QTimer,
+    QUrl,
+    Slot,
+)
 from PySide6.QtGui import QColor, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickWindow
 from PySide6.QtWidgets import QApplication
 
-from .config import RINUI_PATH, BackdropEffect, Theme, is_windows
+from .config import RINUI_PATH, BackdropEffect, Theme, init_config, is_windows
+from .logger import logger
 from .theme import ThemeManager
 
 
 _shared_engine = None
+_theme_cleanup_connected = False
+_dll_directory_handles = []
+
+
+def _register_windows_qt_dll_directory() -> None:
+    """Make PySide6's Qt DLLs discoverable for QML plugins on Windows."""
+    if not sys.platform.startswith("win") or not hasattr(os, "add_dll_directory"):
+        return
+    try:
+        import PySide6
+
+        pyside_dir = Path(PySide6.__file__).resolve().parent
+        _dll_directory_handles.append(os.add_dll_directory(str(pyside_dir)))
+    except OSError:
+        pass
+
+
+_register_windows_qt_dll_directory()
+
+
+def _write_qml_log(message: str) -> None:
+    """Persist QML diagnostics because packaged windowed apps have no console."""
+    try:
+        base = QStandardPaths.writableLocation(QStandardPaths.AppLocalDataLocation)
+        log_dir = Path(base or Path.home() / ".RinUI") / "logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        with (log_dir / "qml-runtime.log").open("a", encoding="utf-8") as log_file:
+            log_file.write(f"{message}\n")
+    except Exception:
+        pass
+
+
+def _write_qml_failure(qml_path: Path, warnings: list, message: str) -> None:
+    """Write details only when QML loading actually fails."""
+    _write_qml_log(f"[load] qml={qml_path} rinui={RINUI_PATH}")
+    for warning in warnings:
+        _write_qml_log(f"[qml-warning] {warning}")
+    _write_qml_log(f"[load-failed] {message}")
 
 
 def _get_shared_engine() -> QQmlApplicationEngine:
@@ -23,7 +70,11 @@ def _get_shared_engine() -> QQmlApplicationEngine:
 
 
 class RinUIWindow:
-    def __init__(self, qml_path: Union[str, Path] = None, shared_engine: bool = True):
+    def __init__(
+        self,
+        qml_path: Union[str, Path] = None,
+        shared_engine: bool = True,
+    ):
         """
         Create an application window with RinUI.
         If qml_path is provided, it will automatically load the specified QML file.
@@ -35,9 +86,21 @@ class RinUIWindow:
         if hasattr(self, "_initialized") and self._initialized:
             return
 
+        # 确保 QApplication 已创建（QStandardPaths 等依赖 QCoreApplication）
+        app_instance = QCoreApplication.instance()
+        if not app_instance:
+            msg = "QApplication must be created before RinUIWindow."
+            raise RuntimeError(msg)
+
+        # 初始化配置（仅载入一次），必须在 ThemeManager 之前
+        init_config()
+
         self.root_window = None
+        self._released = False
+        self._qml_warnings = []
         self.shared_engine = shared_engine
         self.engine = _get_shared_engine() if shared_engine else QQmlApplicationEngine()
+        self.engine.warnings.connect(self._on_qml_warnings)
         self.theme_manager = ThemeManager()
         self.win_event_filter = None
         self.win_event_manager = None
@@ -59,15 +122,14 @@ class RinUIWindow:
         self._loaded_root_count = len(self.engine.rootObjects())
         self._initialized = True
 
-        print("✨ RinUIWindow Initializing")
+        logger.debug("RinUIWindow initializing")
 
-        # 退出清理
-        app_instance = QCoreApplication.instance()
-        if not app_instance:
-            msg = "QApplication must be created before RinUIWindow."
-            raise RuntimeError(msg)
-
-        app_instance.aboutToQuit.connect(self.theme_manager.clean_up)
+        # ThemeManager is a process-wide singleton. Connect its shutdown hook once,
+        # rather than once for every window instance.
+        global _theme_cleanup_connected
+        if not _theme_cleanup_connected:
+            app_instance.aboutToQuit.connect(self.theme_manager.clean_up)
+            _theme_cleanup_connected = True
 
         if qml_path is not None:
             self.load(qml_path)
@@ -78,8 +140,10 @@ class RinUIWindow:
         :param qml_path:
         :return:
         """
-        # RInUI 模块
-        print(f"UI Module Path: {RINUI_PATH}")
+        logger.debug("RinUI module path: %s", RINUI_PATH)
+
+        if self._released:
+            raise RuntimeError("Cannot load QML after RinUIWindow.release().")
 
         if qml_path is None:
             msg = "QML path must be provided to load the window."
@@ -97,21 +161,24 @@ class RinUIWindow:
             msg = f"Cannot find RinUI module: {RINUI_PATH}"
             raise FileNotFoundError(msg)
 
-        # 主题管理器
+        # Existing RinUI users may configure context properties on the engine
+        # root context before calling load(), so keep the engine.load contract.
         self.engine.rootContext().setContextProperty("ThemeManager", self.theme_manager)
         try:
             self.engine.load(self.qml_path)
         except Exception as e:
-            print(f"Cannot Load QML file: {e}")
+            logger.exception("Cannot load QML file: %s", e)
 
         root_objects = self.engine.rootObjects()
         if len(root_objects) <= self._loaded_root_count:
             msg = f"Error loading QML file: {self.qml_path}"
+            _write_qml_failure(self.qml_path, self._qml_warnings, msg)
             raise RuntimeError(msg)
 
         # 窗口设置
         self.root_window = root_objects[-1]
         self._loaded_root_count = len(root_objects)
+        self._released = False
 
         all_windows = [self.root_window] + self.root_window.findChildren(QQuickWindow)
         self.windows = [w for w in all_windows if w.property("isRinUIWindow")]
@@ -124,6 +191,14 @@ class RinUIWindow:
         self._setup_macos_native_window()
 
         self._print_startup_info()
+
+    @Slot(list)
+    def _on_qml_warnings(self, warnings: list) -> None:
+        for warning in warnings:
+            logger.warning("QML: %s", warning)
+            self._qml_warnings.append(str(warning))
+            if os.environ.get("RINUI_QML_LOG"):
+                _write_qml_log(f"[qml-warning] {warning}")
 
     def _window_handle_setup(self) -> None:
         """
@@ -181,7 +256,7 @@ class RinUIWindow:
             import AppKit
             import objc
         except Exception as err:
-            print(f"Cannot enable native macOS titlebar integration: {err}")
+            logger.warning("Cannot enable native macOS titlebar integration: %s", err)
             self._disable_native_mac_frame()
             return
 
@@ -230,7 +305,7 @@ class RinUIWindow:
             ns_window.setStyleMask_(style_mask)
             self._schedule_macos_traffic_light_shift(window, retry_count=0)
         except Exception as err:
-            print(f"Failed to apply macOS native titlebar style: {err}")
+            logger.warning("Failed to apply macOS native titlebar style: %s", err)
             window.setProperty("useNativeMacFrame", False)
 
     def _schedule_macos_traffic_light_shift(
@@ -302,7 +377,7 @@ class RinUIWindow:
                 )
             return True
         except Exception as err:
-            print(f"Failed to shift macOS traffic lights: {err}")
+            logger.warning("Failed to shift macOS traffic lights: %s", err)
             return False
 
     def setIcon(self, path: Union[str, Path] = None) -> None:
@@ -330,6 +405,67 @@ class RinUIWindow:
                 self.theme_manager.get_backdrop_effect()
             )
             self.theme_manager.apply_window_effects()
+
+    def release(self) -> None:
+        """Release this window's QML object tree and native event resources.
+
+        ``QQuickWindow.close()`` only hides a window; it does not destroy its
+        QML object tree. Applications that create transient windows should call
+        this method when the window will not be reused. The shared engine and
+        its compiled QML component cache intentionally remain alive.
+        """
+        if self._released:
+            return
+        self._released = True
+
+        try:
+            self.engine.warnings.disconnect(self._on_qml_warnings)
+        except (RuntimeError, TypeError):
+            pass
+
+        app_instance = QCoreApplication.instance()
+        if app_instance is not None and self.win_event_filter is not None:
+            try:
+                app_instance.removeNativeEventFilter(self.win_event_filter)
+            except (RuntimeError, TypeError):
+                pass
+        self.win_event_filter = None
+
+        if self.win_event_manager is not None:
+            self.win_event_manager.set_windows([])
+            self.win_event_manager.pending_frame_sync_windows = []
+
+        for window in self.windows or []:
+            try:
+                self.theme_manager.remove_window(window)
+            except (RuntimeError, TypeError):
+                pass
+        self.windows = []
+
+        root = self.root_window
+        self.root_window = None
+
+        if root is not None:
+            try:
+                root.hide()
+                root.releaseResources()
+                root.deleteLater()
+            except RuntimeError:
+                pass
+        # Component caches may only be trimmed after the object tree is gone.
+        # Do not trim the shared engine here: other windows may still use it.
+        if not self.shared_engine:
+            QTimer.singleShot(0, self._cleanup_private_engine)
+
+    def _cleanup_private_engine(self) -> None:
+        if self.shared_engine or self.engine is None:
+            return
+        try:
+            self.engine.clearComponentCache()
+            self.engine.collectGarbage()
+            self.engine.deleteLater()
+        except RuntimeError:
+            pass
 
     # func名称遵循 Qt 命名规范
     def setBackdropEffect(self, effect: BackdropEffect) -> None:
@@ -361,14 +497,13 @@ class RinUIWindow:
             raise AttributeError(msg) from err
 
     def _print_startup_info(self) -> None:
-        border = "=" * 40
-        print(f"\n{border}")
-        print("✨ RinUIWindow Loaded Successfully!")
-        print(f"QML File Path: {self.qml_path}")
-        print(f"Current Theme: {self.theme_manager.current_theme}")
-        print(f"Backdrop Effect: {self.theme_manager.get_backdrop_effect()}")
-        print(f"OS: {sys.platform}")
-        print(border + "\n")
+        logger.debug(
+            "RinUIWindow loaded: qml=%s theme=%s backdrop=%s os=%s",
+            self.qml_path,
+            self.theme_manager.current_theme,
+            self.theme_manager.get_backdrop_effect(),
+            sys.platform,
+        )
 
 
 if __name__ == "__main__":

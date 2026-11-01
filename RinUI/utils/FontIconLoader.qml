@@ -9,6 +9,4 @@ Item {
         id: fontLoader
         source: Utils.fontIconSource
     }
-
-    Component.onCompleted: console.log("Font Source:", fontLoader.name, "Status:", fontLoader.status)
 }

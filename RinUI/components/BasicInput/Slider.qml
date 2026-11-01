@@ -32,7 +32,7 @@ Slider {
     // notification of showTooltip
     Component.onCompleted: {
         if (!showTooltip) {
-            console.log(" DeprecationWarning: 'showTooltip' will be removed in the future. Use 'toolTip.visible' instead.")
+            console.warn("DeprecationWarning: 'showTooltip' will be removed in the future. Use 'toolTip.visible' instead.")
         }
     }
 

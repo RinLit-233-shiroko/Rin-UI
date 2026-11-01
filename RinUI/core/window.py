@@ -20,6 +20,7 @@ from win32con import (
 from win32gui import FindWindow, GetWindowPlacement, ReleaseCapture
 
 from RinUI.core.config import is_windows
+from RinUI.core.logger import logger
 
 
 # 定义 Windows 类型
@@ -217,17 +218,18 @@ class WinEventManager(QObject):
     @Slot(QObject, result=int)
     def getWindowId(self, window):
         """获取窗口的句柄"""
-        print(f"GetWindowId: {window.winId()}")
+        logger.debug("GetWindowId: %s", window.winId())
         return int(window.winId())
 
     @Slot(int)
     def drag_window_event(self, hwnd: int):
         """在Windows 用原生方法拖动"""
         if not is_windows() or type(hwnd) is not int or hwnd == 0:
-            print(
-                f"Use Qt method to drag window on: {platform.system()}"
+            logger.debug(
+                "Use Qt method to drag window on: %s"
                 if not is_windows()
-                else f"Invalid window handle: {hwnd}"
+                else "Invalid window handle: %s",
+                platform.system() if not is_windows() else hwnd,
             )
             return
 
@@ -274,10 +276,11 @@ class WinEventManager(QObject):
     def maximizeWindow(self, window):
         """在Windows上最大化或还原窗口"""
         if not is_windows() or window is None:
-            print(
-                f"Use Qt method to drag window on: {platform.system()}"
+            logger.debug(
+                "Use Qt method to toggle window state on: %s"
                 if not is_windows()
-                else "Invalid window object"
+                else "Invalid window object",
+                platform.system(),
             )
             return
 
@@ -289,8 +292,7 @@ class WinEventManager(QObject):
                 window.showMaximized()
 
         except Exception as err:
-            msg = f"Error toggling window state: {err}"
-            print(msg)
+            logger.error("Error toggling window state: %s", err)
 
 
 class WinEventFilter(QAbstractNativeEventFilter):

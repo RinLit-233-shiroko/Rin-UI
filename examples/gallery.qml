@@ -39,7 +39,6 @@ FluentWindow {
                 navigationView.push(selected.page)
             } else {
                 // 没找到，跳到搜索页面
-                console.log("Search for: " + searchField.text)
                 navigationView.push(Qt.resolvedUrl("pages/Search.qml"), { query: searchField.text || "" })
             }
         }

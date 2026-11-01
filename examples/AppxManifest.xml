@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Package
+    xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+    xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+    xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities">
+
+    <Identity
+        Name="RinLit.RinUIGallery"
+        Publisher="CN=RinLit"
+        Version="0.4.4.1"
+        ProcessorArchitecture="x64" />
+
+    <Properties>
+        <DisplayName>RinUI Gallery</DisplayName>
+        <PublisherDisplayName>RinLit</PublisherDisplayName>
+        <Description>RinUI Gallery</Description>
+        <Logo>assets\StoreLogo.png</Logo>
+    </Properties>
+
+    <Resources>
+        <Resource Language="zh-CN" />
+    </Resources>
+
+    <Dependencies>
+        <TargetDeviceFamily
+            Name="Windows.Desktop"
+            MinVersion="10.0.19041.0"
+            MaxVersionTested="10.0.26100.0" />
+    </Dependencies>
+
+    <Capabilities>
+        <rescap:Capability Name="runFullTrust" />
+    </Capabilities>
+
+    <Applications>
+        <Application
+            Id="RinUIGallery"
+            Executable="gallery.exe"
+            EntryPoint="Windows.FullTrustApplication">
+
+            <uap:VisualElements
+                DisplayName="RinUI Gallery"
+                Description="RinUI Gallery"
+                BackgroundColor="#FFFFFF"
+                Square44x44Logo="assets\Square44x44Logo.png"
+                Square150x150Logo="assets\Square150x150Logo.png"
+                AppListEntry="default" />
+
+        </Application>
+    </Applications>
+
+</Package>

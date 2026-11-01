@@ -91,7 +91,6 @@ FluentPage {
                         visible: parent.hovered
                     }
                     onClicked: {
-                        console.log(Theme.currentTheme.isDark)
                         if (Theme.currentTheme.isDark) {
                             Theme.setTheme("Light")
                         } else {

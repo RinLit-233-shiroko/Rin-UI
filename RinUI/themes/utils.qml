@@ -51,13 +51,4 @@ QtObject {
         }
         return value
     }
-
-    Component.onCompleted: {
-        console.log("Font Family: " + fontFamily)
-        console.log("[RinUI] DPI Scale Factor (devicePixelRatio): " + dpiScale)
-        console.log(
-            "[RinUI] HiDPI note: avoid layer+OpacityMask on text containers; "
-            + "PassThrough scale policy is set in RinUI/__init__.py"
-        )
-    }
 }

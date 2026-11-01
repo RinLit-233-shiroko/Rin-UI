@@ -1,17 +1,19 @@
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
 
-from config import cfg
+from config import cfg, init_app_config
 from PySide6.QtCore import QLocale, QObject, Qt, QTranslator, Signal, Slot
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QApplication
 
 import RinUI
-from RinUI import RinUITranslator, RinUIWindow, __version__
+from RinUI import RinUITranslator, RinUIWindow, __version__, configure_logging, get_logger
 
 SCRIPT_DIR = Path(__file__).parent.absolute()
 PROJECT_ROOT = SCRIPT_DIR.parent
+logger = get_logger("Gallery")
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -48,7 +50,7 @@ class Backend(QObject):
     def copyToClipboard(self, text):
         clipboard = QGuiApplication.clipboard()
         clipboard.setText(text)
-        print(f"Copied: {text}")
+        logger.debug("Copied: %s", text)
 
     @Slot(result=str)
     def getLanguage(self):
@@ -64,7 +66,9 @@ class Backend(QObject):
         lang_path = SCRIPT_DIR / "languages" / f"{lang}.qm"
 
         if not lang_path.exists():
-            print(f"Language file {lang_path} not found. Fallback to default (en_US)")
+            logger.warning(
+                "Language file %s not found; falling back to en_US.", lang_path
+            )
             lang = "en_US"
             lang_path = SCRIPT_DIR / "languages" / f"{lang}.qm"
 
@@ -129,11 +133,17 @@ class Backend(QObject):
 
 
 if __name__ == "__main__":
-    print(RinUI.__file__)
+    log_level = os.environ.get("RINUI_LOG_LEVEL")
+    if log_level:
+        configure_logging(log_level, os.environ.get("RINUI_LOG_FILE"))
+    logger.debug("RinUI loaded from %s", RinUI.__file__)
     QGuiApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
     )
     app = QApplication(sys.argv)
+    app.setOrganizationName("RinUI")
+    app.setApplicationName("Gallery")
+    init_app_config()
 
     # i18n
     lang = cfg["language"]

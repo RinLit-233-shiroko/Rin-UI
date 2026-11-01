@@ -7,45 +7,59 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag (e.g. v1.2.3)"
+        description: "Release tag (e.g. v1.2.3); required when publish_release is true"
         required: false
+        type: string
+      publish_release:
+        description: "Create or update a GitHub Release"
+        required: true
+        default: false
+        type: boolean
+      build_target:
+        description: "Build target: all = Windows ZIP + macOS ZIP + MSIX"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - win
+          - mac
+          - win+msix
 
 concurrency:
   group: build-${{ github.head_ref || github.ref_name || github.event.inputs.tag || github.run_id }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-windows:
+    if: |
+      github.event_name == 'push' ||
+      github.event.inputs.build_target == 'all' ||
+      github.event.inputs.build_target == 'win' ||
+      github.event.inputs.build_target == 'win+msix'
+    runs-on: windows-latest
     permissions:
       contents: read
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            icon: "examples/assets/gallery.ico"
-          - os: macos-latest
-            icon: "examples/assets/gallery.icns"
 
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: 📦 Set up Python & Install uv
+      - name: Set up Python & uv
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: |
           uv sync
           uv pip install pyinstaller
 
-      - name: 🔨 Build RinUI Gallery
+      - name: Build RinUI Gallery (Windows)
         shell: bash
         run: |
           uv run pyinstaller --noconsole \
-            --icon "${{ matrix.icon }}" \
+            --icon "examples/assets/gallery.ico" \
             --add-data "RinUI:RinUI" \
             --add-data "examples/assets:assets" \
             --add-data "examples/components:components" \
@@ -57,28 +71,153 @@ jobs:
             --name=RinUIGallery \
             examples/gallery.py
 
-      - name: 📦 Create archive (Windows)
-        if: runner.os == 'Windows'
+      - name: Build MSIX package
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.build_target == 'all' ||
+          github.event.inputs.build_target == 'win+msix'
+        shell: pwsh
+        env:
+          MSIX_CERTIFICATE_BASE64: ${{ secrets.MSIX_CERTIFICATE_BASE64 }}
+          MSIX_CERTIFICATE_PASSWORD: ${{ secrets.MSIX_CERTIFICATE_PASSWORD }}
+        run: |
+          $is_release = "${{ github.event_name }}" -eq "push" -or "${{ github.event.inputs.publish_release }}" -eq "true"
+          if ($is_release -and -not $env:MSIX_CERTIFICATE_BASE64) {
+            throw "MSIX_CERTIFICATE_BASE64 is required for release builds."
+          }
+
+          $version = "${{ github.event.inputs.tag }}"
+          if (-not $version -and "${{ github.ref }}".StartsWith("refs/tags/")) {
+            $version = "${{ github.ref_name }}"
+          }
+          if (-not $version) {
+            $version = "0.0.${{ github.run_number }}.0"
+          }
+
+          $parameters = @{
+            Version = $version
+            OutputDirectory = "dist/msix"
+          }
+          if ($env:MSIX_CERTIFICATE_BASE64) {
+            $pfx = Join-Path $env:RUNNER_TEMP "RinUI-msix.pfx"
+            [IO.File]::WriteAllBytes(
+              $pfx,
+              [Convert]::FromBase64String($env:MSIX_CERTIFICATE_BASE64)
+            )
+            $parameters.CertificatePath = $pfx
+            $parameters.CertificatePassword = $env:MSIX_CERTIFICATE_PASSWORD
+          } else {
+            $parameters.SkipSign = $true
+          }
+          ./packaging/msix/package_msix.ps1 @parameters
+
+      - name: Create Windows archive
         shell: pwsh
         run: |
-          Compress-Archive -Path "dist/RinUIGallery/*" -DestinationPath "dist/RinUIGallery-Windows.zip" -CompressionLevel Optimal
+          Compress-Archive `
+            -Path "dist/RinUIGallery/*" `
+            -DestinationPath "dist/RinUIGallery-Windows.zip" `
+            -CompressionLevel Optimal
           Get-ChildItem dist/ -Name
 
-      - name: 📦 Create archive (macOS)
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          cd dist && ditto -c -k --sequesterRsrc --keepParent RinUIGallery.app RinUIGallery-macOS.zip && cd ..
-          ls -lh dist/
-
-      - name: ☁️ Upload artifact
+      - name: Upload Windows artifact
         uses: actions/upload-artifact@v7
         with:
-          name: RinUIGallery-${{ runner.os }}
-          path: dist/RinUIGallery-${{ runner.os }}.zip
+          name: RinUIGallery-Windows
+          path: dist/RinUIGallery-Windows.zip
+
+      - name: Upload MSIX artifact
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.build_target == 'all' ||
+          github.event.inputs.build_target == 'win+msix'
+        uses: actions/upload-artifact@v7
+        with:
+          name: RinUIGallery-MSIX
+          path: dist/msix/*.msix
+
+      - name: Create MSIX scaffold archive
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.build_target == 'all' ||
+          github.event.inputs.build_target == 'win+msix'
+        shell: pwsh
+        run: |
+          $stage = "dist/RinUI-MSIX-Template"
+          New-Item -ItemType Directory -Path $stage -Force | Out-Null
+          Copy-Item "packaging/msix/README.md" "$stage/README.md"
+          Copy-Item "packaging/msix/package_msix.ps1" $stage
+          Copy-Item "packaging/msix/gallery.spec" $stage
+          Copy-Item "examples/AppxManifest.xml" $stage
+          Compress-Archive `
+            -Path "$stage/*" `
+            -DestinationPath "dist/RinUI-MSIX-Template.zip" `
+            -CompressionLevel Optimal
+
+      - name: Upload MSIX scaffold
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.build_target == 'all' ||
+          github.event.inputs.build_target == 'win+msix'
+        uses: actions/upload-artifact@v7
+        with:
+          name: RinUI-MSIX-Template
+          path: dist/RinUI-MSIX-Template.zip
+
+  build-macos:
+    if: |
+      github.event_name == 'push' ||
+      github.event.inputs.build_target == 'all' ||
+      github.event.inputs.build_target == 'mac'
+    runs-on: macos-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python & uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: |
+          uv sync
+          uv pip install pyinstaller
+
+      - name: Build RinUI Gallery (macOS)
+        shell: bash
+        run: |
+          uv run pyinstaller --noconsole \
+            --icon "examples/assets/gallery.icns" \
+            --add-data "RinUI:RinUI" \
+            --add-data "examples/assets:assets" \
+            --add-data "examples/components:components" \
+            --add-data "examples/languages:languages" \
+            --add-data "examples/pages:pages" \
+            --add-data "examples/gallery.qml:." \
+            --paths=. \
+            --contents-directory . \
+            --name=RinUIGallery \
+            examples/gallery.py
+
+      - name: Create macOS archive
+        shell: bash
+        run: |
+          cd dist
+          ditto -c -k --sequesterRsrc --keepParent RinUIGallery.app RinUIGallery-macOS.zip
+          ls -lh
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: RinUIGallery-macOS
+          path: dist/RinUIGallery-macOS.zip
 
   release:
-    needs: [build]
+    needs: [build-windows, build-macos]
     permissions:
       contents: write
       id-token: write
@@ -86,49 +225,66 @@ jobs:
       artifact-metadata: write
     runs-on: ubuntu-latest
     if: |
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.tag)
-
+      always() &&
+      !cancelled() &&
+      (github.event_name == 'push' || github.event.inputs.publish_release == 'true') &&
+      (needs.build-windows.result == 'success' || needs.build-windows.result == 'skipped') &&
+      (needs.build-macos.result == 'success' || needs.build-macos.result == 'skipped') &&
+      (needs.build-windows.result == 'success' || needs.build-macos.result == 'success')
     env:
       TAG_NAME: ${{ github.event.inputs.tag || github.ref_name }}
 
     steps:
-      - name: ⬇️ Checkout code
+      - name: Validate dispatch release tag
+        if: |
+          github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.publish_release == 'true' &&
+          github.event.inputs.tag == ''
+        shell: bash
+        run: |
+          echo "publish_release=true requires a non-empty tag input."
+          exit 1
+
+      - name: Checkout code
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: ⬇️ Download artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
           path: dist/
+          pattern: RinUI-*
+          merge-multiple: true
 
-      - name: 🧱 Set up git-cliff
+      - name: List release files
+        run: ls -lh dist/
+
+      - name: Set up git-cliff
         uses: kenji-miyake/setup-git-cliff@v2
 
-      - name: 📜 Generate CHANGELOG
+      - name: Generate CHANGELOG
         id: changelog
         env:
           GITHUB_REPO: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git cliff --latest --tag "$TAG_NAME" --config .git-cliff.toml --github-repo "${{ github.repository }}" --output changelog.md
-          # cat changelog.md >> $GITHUB_STEP_SUMMARY >> $GITHUB_OUTPUT
+          git cliff --latest --tag "$TAG_NAME" --config .git-cliff.toml --github-repo "$GITHUB_REPO" --output changelog.md
 
-      - name: 🛡️ Attest artifacts
+      - name: Attest artifacts
         id: attest
         uses: actions/attest@v4
         with:
-          subject-path: dist/*/RinUIGallery-*.zip
+          subject-path: dist/*
 
-      - name: 🚀 Create GitHub Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           name: RinUI Gallery ${{ env.TAG_NAME }}
           tag_name: ${{ env.TAG_NAME }}
           body_path: changelog.md
           files: |
-            dist/*/RinUIGallery-*.zip
+            dist/*
             ${{ steps.attest.outputs.bundle-path }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -3,6 +3,7 @@ from pathlib import Path
 from PySide6.QtCore import QLocale, QTranslator
 
 from .config import RINUI_PATH
+from .logger import logger
 
 
 class RinUITranslator(QTranslator):
@@ -23,10 +24,12 @@ class RinUITranslator(QTranslator):
         :param locale: QLocale, the locale to load (eg = QLocale(QLocale.Chinese, QLocale.China), QLocale("zh_CN"))
         :return: bool
         """
-        print(f"🌏 Current locale: {locale.name()}")
+        logger.debug("Current locale: %s", locale.name())
         path = Path(RINUI_PATH) / "RinUI" / "languages" / f"{locale.name()}.qm"
         if not path.exists():
-            print(f'Language file "{path}" not found. Fallback to default (en_US)')
+            logger.warning(
+                'Language file "%s" not found; falling back to en_US.', path
+            )
             path = Path(RINUI_PATH) / "RinUI" / "languages" / "en_US.qm"
             QLocale().setDefault(QLocale("en_US"))
 
