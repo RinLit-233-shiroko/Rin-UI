@@ -5,7 +5,7 @@ from pathlib import Path
 import PySide6
 
 
-ROOT = Path(SPECPATH).resolve().parent
+ROOT = Path(SPECPATH).resolve().parent.parent
 PYSIDE6_DIR = Path(PySide6.__file__).resolve().parent
 
 
