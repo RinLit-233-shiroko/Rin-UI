@@ -28,7 +28,7 @@ class Gallery(RinUIWindow):
         self.engine.rootContext().setContextProperty("Backend", self.backend)
         self.load(str(qml_file))
 
-        icon_path = SCRIPT_DIR / "assets" / "gallery.png"
+        icon_path = SCRIPT_DIR / "assets" / "icons" / "app" / "gallery.png"
         self.setIcon(str(icon_path))
         self.setProperty(
             "title", f"RinUI Gallery {datetime.now().year}"

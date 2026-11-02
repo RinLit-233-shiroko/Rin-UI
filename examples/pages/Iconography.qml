@@ -264,20 +264,20 @@ ControlPage {
 
                     Icon {
                         Layout.fillWidth: true
-                        source: Qt.resolvedUrl("../assets/山海经 B.svg")
+                        source: Qt.resolvedUrl("../assets/icons/brand/山海经 B.svg")
                         size: width
                         enableColorOverlay: svgNavSwitch.checked
                         color: Theme.currentTheme.colors.textColor
                     }
                     Icon {
-                        source: Qt.resolvedUrl("../assets/SCHALELogo_B.svg")
+                        source: Qt.resolvedUrl("../assets/icons/brand/SCHALELogo_B.svg")
                         Layout.fillWidth: true
                         size: width
                         enableColorOverlay: svgNavSwitch.checked
                         color: Theme.currentTheme.colors.textColor
                     }
                     Icon {
-                        source: Qt.resolvedUrl("../assets/SRT B.svg")
+                        source: Qt.resolvedUrl("../assets/icons/brand/SRT B.svg")
                         Layout.fillWidth: true
                         size: width
                         enableColorOverlay: svgNavSwitch.checked

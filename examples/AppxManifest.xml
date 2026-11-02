@@ -15,7 +15,7 @@
         <DisplayName>RinUI Gallery</DisplayName>
         <PublisherDisplayName>RinLit</PublisherDisplayName>
         <Description>RinUI Gallery</Description>
-        <Logo>assets\StoreLogo.png</Logo>
+        <Logo>assets\icons\store\package\StoreLogo.png</Logo>
     </Properties>
 
     <Resources>
@@ -42,9 +42,9 @@
             <uap:VisualElements
                 DisplayName="RinUI Gallery"
                 Description="RinUI Gallery"
-                BackgroundColor="#FFFFFF"
-                Square44x44Logo="assets\Square44x44Logo.png"
-                Square150x150Logo="assets\Square150x150Logo.png"
+                BackgroundColor="transparent"
+                Square44x44Logo="assets\icons\store\package\Square44x44Logo.png"
+                Square150x150Logo="assets\icons\store\package\Square150x150Logo.png"
                 AppListEntry="default" />
 
         </Application>

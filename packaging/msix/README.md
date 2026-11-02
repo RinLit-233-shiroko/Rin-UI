@@ -28,6 +28,18 @@ Use `-SkipSign` to produce an unsigned package for layout testing:
 Use `-SkipPyInstaller -SourceDirectory <path>` to test only manifest staging,
 MakeAppx, and signing against an existing PyInstaller output.
 
+## Gallery Icons
+
+The Gallery icon source lives at `examples/assets/icons/app/gallery.png`.
+Regenerate the native ICO/ICNS files and all MSIX package variants with:
+
+```powershell
+./.venv/Scripts/python.exe scripts/generate_gallery_icons.py
+```
+
+Microsoft Store listing images live in `examples/assets/icons/store/listing/`.
+MSIX package assets live in `examples/assets/icons/store/package/`.
+
 ## Signing
 
 The signing certificate subject must exactly match the manifest `Publisher`.

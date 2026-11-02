@@ -109,7 +109,7 @@ FluentPage {
                     {
                         title: qsTr("Getting Started"),
                         desc: qsTr("Get started with RinUI and explore detailed documentation."),
-                        icon: Qt.resolvedUrl("../assets/gallery.png"),
+                        icon: Qt.resolvedUrl("../assets/icons/app/rin-ui.png"),
                         url: qsTr("https://ui.rinlit.cn/guide/getting-started.html")
                     },
                     {
@@ -121,8 +121,8 @@ FluentPage {
                     {
                         title: qsTr("RinUI on GitHub"),
                         desc: qsTr("Explore the RinUI source code and repository."),
-                        icon: Theme.isDark() ? Qt.resolvedUrl("../assets/github_light.svg")
-                                            : Qt.resolvedUrl("../assets/github.svg"),
+                        icon: Theme.isDark() ? Qt.resolvedUrl("../assets/icons/social/github_light.svg")
+                                            : Qt.resolvedUrl("../assets/icons/social/github.svg"),
                         url: "https://github.com/RinLit-233-shiroko/Rin-UI"
                     },
                 ]

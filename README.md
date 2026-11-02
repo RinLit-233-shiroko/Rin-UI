@@ -1,16 +1,22 @@
 <div align="center">
-<img src="docs/img/logo.png" alt="RinUI Logo" width="18%">
-<h1>RinUI</h1>
+
+<a href="https://rinlit.cn">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="docs/img/logo-dark.png">
+    <img width="200px"
+      src="docs/img/logo-light.png"
+      alt="Rin UI Logo">
+  </picture>
+</a>
+
+<h1 hidden>RinUI</h1>
 <p>A Fluent Design-like UI library for Qt Quick (QML)</p>
 
 **English** | [中文](./docs/README_zhCN.MD)
 
 </div>
-
-> [!TIP]
-> This project is still in development and not ready for production use!
->
-> Of course, you are welcome to contribute to this project.
 
 > [!NOTE]
 > ### RinUI has reached 100 ⭐!
