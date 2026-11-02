@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
 import QtQuick.Window 2.15
+import QtQuick.Shapes 1.15
 import "../../themes"
 import "../../animations"
 import "../../components"
@@ -78,18 +79,80 @@ RowLayout {
     }
 
     // 主体内容区域
-    // HiDPI 治本：不对 StackView/页面做 layer+OpacityMask（会糊字）。
-    // 圆角底：appLayer；圆角剪影：RoundedCornerOverlay 盖住四角溢出，文字仍直接绘制。
+    // 圆角底：appLayer（带 1px 描边），只有右下角是圆角 —— 内容贴着窗口边缘，
+    // 方角会从窗口右下角戳出去，所以用一个卡片色的楔形把它削圆。
+    // 左上角保持直角（要圆就必须给整页加 layer/遮罩，实测会把页面渲糊 18%）。
     Item {
         id: contentArea
         Layout.fillWidth: true
         Layout.fillHeight: true
-        clip: true
+        // 不能 clip：内容区要向右/下各溢出 Utils.windowDragArea，
+        // 才能真正贴住窗口边缘（外层 ColumnLayout 留了 5px 拖动边距）
+        clip: false
 
         readonly property real contentRadius: {
             if (window && window.visibility === Window.Maximized)
                 return 0
             return Theme.currentTheme.appearance.windowRadius
+        }
+
+        // 右下角共用半径：卡片底(appLayer)与楔形必须一致，否则卡片描边会落在
+        // 楔形圆弧内侧露出浅色弧线。比窗口圆角稍大，角才看得出来是圆的。
+        readonly property real contentCornerRadius: contentRadius > 0
+                                                    ? Math.ceil(contentRadius) + 3.5 : 0
+
+        // 右下角楔形的填色：跟随窗口边框。
+        // windowBorderColor 是半透明的（light #757575 @ 0.0924 / dark @ 0.0698），
+        // 不能直接当填充（会把内容盖成半透明），所以先和背景色合成为不透明色，
+        // 这样楔形和窗口描边是同一块材质。
+        readonly property color cornerFillColor: {
+            var fg = Theme.currentTheme.colors.windowBorderColor
+            var bg = Theme.currentTheme.colors.backgroundColor
+            var a = fg.a
+            return Qt.rgba(fg.r * a + bg.r * (1 - a),
+                           fg.g * a + bg.g * (1 - a),
+                           fg.b * a + bg.b * (1 - a), 1)
+        }
+
+        // 右下角：内容贴着窗口边缘，方角会从窗口右下戳出来。
+        // 这里用 Shape 画一个"角以外"的楔形（正方形减去四分之一圆），填窗口边框色盖住它，
+        // 于是角看起来是圆的，且完全不经 layer，页面保持 1:1 像素不糊。
+        Shape {
+            id: brCornerShape
+            // 贴到窗口客户区的真实右下角：内容区因为 ColumnLayout 的 5px 拖拽边距
+            // 比窗口小一圈，用 contentArea + 负 margin 才能把楔形的圆心放正，
+            // 否则楔形整体内缩，窗口角上会漏出一条直角边。
+            anchors.right: contentArea.right
+            anchors.bottom: contentArea.bottom
+            anchors.rightMargin: -Utils.windowDragArea
+            anchors.bottomMargin: -Utils.windowDragArea
+            width: r
+            height: r
+            z: 2
+            visible: r > 0 && navigationView.contentCornerClipEnabled
+            // 与 appLayer 的右下圆角必须用同一个半径：两个图形半径不一致时，
+            // 卡片那条 1px 描边会落在楔形圆弧内侧，露出一条浅色弧线。
+            readonly property real r: contentArea.contentCornerRadius
+
+            ShapePath {
+                // layerColor 是半透明的（light 0.5 / dark 0.3），直接盖上去只会给内容"调亮"，
+                // 看起来是一块方形半透明。这里把它和自己下面的背景色先合成成不透明色。
+                fillColor: contentArea.cornerFillColor
+                strokeColor: "transparent"
+                startX: 0
+                startY: brCornerShape.r
+                PathAngleArc {
+                    centerX: 0
+                    centerY: 0
+                    radiusX: brCornerShape.r
+                    radiusY: brCornerShape.r
+                    startAngle: 90
+                    sweepAngle: -90
+                    moveToStart: false
+                }
+                PathLine { x: brCornerShape.r; y: brCornerShape.r }
+                PathLine { x: 0; y: brCornerShape.r }
+            }
         }
 
         // 导航栏展开自动收起
@@ -110,13 +173,16 @@ RowLayout {
 
         Rectangle {
             id: appLayer
-            width: parent.width + Utils.windowDragArea + radius
-            height: parent.height + Utils.windowDragArea + radius
+            // 卡片底色：右侧/底部贴到窗口边框内侧 1px（留出窗口自己的描边），
+            // 左上角是直角，右下角是圆角（和窗口右下角对齐）
+            width: parent.width + Utils.windowDragArea - 1
+            height: parent.height + Utils.windowDragArea - 1
             color: Theme.currentTheme.colors.layerColor
             border.color: Theme.currentTheme.colors.cardBorderColor
             border.width: 1
             opacity: (window && window.appLayerEnabled !== undefined) ? window.appLayerEnabled : navigationView.appLayerEnabled
-            radius: contentArea.contentRadius
+            radius: 0
+            bottomRightRadius: contentArea.contentCornerRadius
         }
 
         StackView {
@@ -124,7 +190,14 @@ RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 1
             anchors.topMargin: 1
+            // 右/下各外扩 windowDragArea，抵消 ColumnLayout 的拖动边距，使内容贴住窗口边缘
+            anchors.rightMargin: 1 - Utils.windowDragArea
+            anchors.bottomMargin: 1 - Utils.windowDragArea
             clip: true
+
+            // 内容区不再做 layer + 遮罩：那是为了裁左上圆角，代价是整页走一层
+            // 按逻辑像素分配的纹理，1.5x 屏上锐度会掉约 18%（实测边缘能量 0.954 → 0.784）。
+            // 现在左上角是直角，不需要裁；右下角由下面的 Shape 楔形盖色处理。
 
             // 切换动画 / Page Transition //
             pushEnter : Transition {
@@ -262,19 +335,19 @@ RowLayout {
 
         }
 
-        // 库层圆角剪影：与旧 FluentPage OpacityMask 一致——仅左上圆角
-        // （右侧/底侧为直角；不 layer 文字，避免 HiDPI 发糊）
+        // 旧做法（左上/右下遮罩真裁切）已删除：遮罩要求 layer 整块内容，
+        // 1.5x 屏上会让整页发糊，且纹理分辨率无法强制到物理像素。
+
+        // 左上角：恢复原有方案 —— 用 RoundedCornerOverlay 在角上盖一层背景色，
+        // 视觉上和窗口圆角一致（不做裁切、不加 layer，所以内容不会被渲糊）。
         RoundedCornerOverlay {
-            id: contentCornerClip
-            anchors.fill: stackView
-            z: 1000
+            anchors.fill: parent
+            z: 2
+            visible: contentArea.contentRadius > 0 && navigationView.contentCornerClipEnabled
             radius: contentArea.contentRadius
-            fillColor: Theme.currentTheme.colors.backgroundColor
             topLeft: true
-            topRight: false
-            bottomLeft: false
             bottomRight: false
-            visible: navigationView.contentCornerClipEnabled && contentArea.contentRadius > 0
+            fillColor: Theme.currentTheme.colors.backgroundColor
         }
 
         Component.onCompleted: {
