@@ -208,6 +208,18 @@ class RinUIWindow:
         if not is_windows():
             return
 
+        # [RinUI FIX] 诊断开关: 设为 1 时完全不装原生事件过滤器、也不改写窗口样式,
+        # 窗口退回普通的、带系统边框的 Windows 窗口(自定义标题栏仍然画在客户区里)。
+        # 用途是把"框架对窗口做的原生 hack"和其它因素分开对照, 出问题时也能一键排掉。
+        if os.environ.get("RINUI_DISABLE_NATIVE_FILTER", "").strip().lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        ):
+            logger.info("[RinUI] RINUI_DISABLE_NATIVE_FILTER=1, 跳过原生窗口处理")
+            return
+
         from .window import WinEventFilter, WinEventManager
 
         self.win_event_filter = WinEventFilter(self.windows, self._apply_windows_effects)

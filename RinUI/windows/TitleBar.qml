@@ -8,6 +8,9 @@ import "../windows"
 
 Item {
     id: root
+    // [RinUI FIX] 给原生过滤器定位用: WM_NCHITTEST 需要沿着项树找出标题栏里
+    // 真正会接收鼠标事件的控件(搜索框、返回按钮……), 让它们留在客户区。
+    objectName: "rinuiTitleBar"
     property int titleBarHeight: Theme.currentTheme.appearance.dialogTitleBarHeight
     property alias title: titleLabel.text
     property alias icon: iconLabel.source
@@ -73,6 +76,41 @@ Item {
     implicitWidth: 200
 
     property var window: null
+    // [RinUI FIX] 右侧窗口控制按钮区的宽度, 由宿主窗口 alias 出去,
+    // 供 WinEventManager 的 WM_NCHITTEST 把按钮那块留在客户区。
+    readonly property real windowControlsWidth: windowControls ? windowControls.width : 0
+    // [RinUI FIX] 最大化按钮在窗口内容区里的矩形(逻辑像素), 推给宿主窗口的
+    // titleBarMaxButtonRect —— WM_NCHITTEST 靠它在那一小块返回 HTMAXBUTTON,
+    // Windows 11 才会在鼠标悬停时弹出 Snap Layouts 布局选择器。
+    readonly property rect maxButtonRect: {
+        // mapToItem() 不会替这个绑定建立依赖, 布局变化时不会重新求值。
+        // 这里先显式读一遍位置/尺寸, 保证窗口缩放后矩形跟着更新。
+        var _dep = root.width + root.height + windowControls.x + windowControls.y
+                + windowControls.width + maximizeBtn.x + maximizeBtn.y
+                + maximizeBtn.width + maximizeBtn.height
+        if (!maximizeBtn || !maximizeBtn.visible || !windowControls.visible)
+            return Qt.rect(0, 0, 0, 0)
+        var p = maximizeBtn.mapToItem(null, 0, 0)
+        return Qt.rect(Math.round(p.x), Math.round(p.y),
+                       Math.round(maximizeBtn.width), Math.round(maximizeBtn.height))
+    }
+    Binding {
+        target: root.window
+        property: "titleBarMaxButtonRect"
+        value: root.maxButtonRect
+        when: root.window !== null
+    }
+    // [RinUI FIX] 三个窗口按钮左边留一条"必定可拖动"的安全区。无论窗口多窄、
+    // 标题栏里的控件多长, 这条带子始终保持 HTCAPTION, 窗口永远拖得动。
+    // (修复标题栏拖动之前, 整条标题栏都是客户区, 自然处处能拖; 现在交给系统后
+    //  需要显式留出这条带子, 否则控件一挤满就没地方按了)
+    readonly property int titleBarSafeWidth: 32
+    Binding {
+        target: root.window
+        property: "titleBarSafeWidth"
+        value: root.titleBarSafeWidth
+        when: root.window !== null
+    }
     function toggleMaximized() {
         if (!maximizeEnabled) {
             return
@@ -95,31 +133,56 @@ Item {
             propagateComposedEvents: true
             acceptedButtons: Qt.LeftButton
             property point clickPos: "0,0"
+            // 仅在 titleBarNativeDragDisabled 为 true 时使用: 按下瞬间光标相对窗口的偏移
+            property point grabOffset: "0,0"
+
+            readonly property bool nativeDrag: window
+                && Qt.platform.os === "windows"
+                && window.titleBarNativeDragDisabled !== true
 
             onPressed: {
                 clickPos = Qt.point(mouseX, mouseY)
+                if (Qt.platform.os === "windows" && !nativeDrag
+                        && window && WindowManager._isWinMgrInitialized()) {
+                    var c0 = WinEventManager.cursorPos()
 
-                if (Qt.platform.os !== "windows" || !WindowManager._isWinMgrInitialized()) {
-                    return
+                    grabOffset = Qt.point(c0.x - window.x, c0.y - window.y)
                 }
-                WindowManager.sendDragWindowEvent(window)
             }
             onDoubleClicked: toggleMaximized()
             onPositionChanged: (mouse) => {
+                if (!window)
+                    return
+
                 if (window.isMaximized || window.isFullScreen || window.visibility === Window.Maximized) {
                     return
                 }
 
-                if (Qt.platform.os !== "windows" && WindowManager._isWinMgrInitialized()) {
-                    log("Windows only")
-                    return  // 在win环境使用原生方法拖拽
+                // [RinUI FIX] Windows 上标题栏已经是真正的非客户区(HTCAPTION),
+                // 拖动 / 双击最大化 / Aero Snap 全部由系统接管, QML 这边不要再插手:
+                //  - 之前在这里同步 SendMessage(SC_MOVE) 会进入模态移动循环, 吞掉
+                //    WM_LBUTTONUP, 让 MouseArea.pressed 永久停在 true, 标题栏再也拖不动;
+                //  - 改成手动 setX/setY 之后, 又和原生拖动路径打架、还会抖动。
+                //
+                // 只有应用显式设了 titleBarNativeDragDisabled: true(标题栏里放了自定义
+                // 可交互内容)时, 才走下面这条手动拖动兜底路径。
+                if (Qt.platform.os === "windows") {
+                    if (nativeDrag || !WindowManager._isWinMgrInitialized()) {
+                        return
+                    }
+
+                    var c = WinEventManager.cursorPos()
+
+                    window.setX(c.x - grabOffset.x)
+                    window.setY(c.y - grabOffset.y)
+                    return
                 }
 
-                //鼠标偏移量
-                let delta = Qt.point(mouse.x-clickPos.x, mouse.y-clickPos.y)
+                //其他平台: 保持原有算法
+                let delta = Qt.point(mouse.x - clickPos.x, mouse.y - clickPos.y)
 
-                window.setX(window.x+delta.x)
-                window.setY(window.y+delta.y)
+                window.setX(window.x + delta.x)
+                window.setY(window.y + delta.y)
             }
         }
     }
@@ -202,6 +265,7 @@ Item {
 
         Item {
             id: leadingContentItem
+            objectName: "rinuiTitleBarLeadingHost"
             Layout.fillHeight: true
             Layout.preferredWidth: childrenRect.width
             visible: children.length > 0
@@ -211,8 +275,13 @@ Item {
         Item {
             // custom
             id: contentItem
+            objectName: "rinuiTitleBarContentHost"
             Layout.fillWidth: true
             Layout.fillHeight: true
+            // [RinUI FIX] 窗口变窄时先把内容区压小(控件跟着缩), 而不是让控件
+            // 一路盖到右上角三个按钮和它们左边的安全区上。
+            Layout.maximumWidth: Math.max(0, root.width - windowControls.width
+                                          - root.titleBarSafeWidth - 48)
             clip: true
         }
 
@@ -232,9 +301,14 @@ Item {
             }
             CtrlBtn {
                 id: maximizeBtn
+                objectName: "rinuiMaximizeBtn"
                 mode: 0
                 enabled: root.maximizeEnabled
                 visible: root.maximizeVisible
+                // 这块区域交给系统做 HTMAXBUTTON 之后收不到客户区 hover,
+                // 悬停高亮由原生过滤器回填到窗口的 titleBarMaxButtonHovered 上
+                externalHovered: root.window ? root.window.titleBarMaxButtonHovered === true : false
+                externalPressed: root.window ? root.window.titleBarMaxButtonPressed === true : false
 
             }
             CtrlBtn {

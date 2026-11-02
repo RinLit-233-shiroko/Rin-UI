@@ -66,6 +66,26 @@ ApplicationWindow {
     property alias titleBarLeadingArea: titleBar.leadingContent
     property alias titleBarLeadingHost: titleBar.leadingContentHost
 
+    // [RinUI FIX] 标题栏右侧按钮区宽度, WM_NCHITTEST 用它把按钮排除在 HTCAPTION 之外
+    property real titleBarButtonWidth: titleBar.windowControlsWidth
+    // [RinUI FIX] 三个按钮左边那条"必定可拖动"安全区的宽度(逻辑像素)
+    property real titleBarSafeWidth: 32
+    // [RinUI FIX] 最大化按钮在内容区里的矩形, WM_NCHITTEST 用它返回 HTMAXBUTTON
+    // 从而让 Windows 11 弹出 Snap Layouts 布局选择器
+    property rect titleBarMaxButtonRect: Qt.rect(0, 0, 0, 0)
+    // [RinUI FIX] 指针是否停在该按钮上(该区域是非客户区, QML 收不到 hover)
+    property bool titleBarMaxButtonHovered: false
+    // [RinUI FIX] 该按钮是否正被按下(同上, 客户的按下/松开事件也收不到)
+    property bool titleBarMaxButtonPressed: false
+    // [RinUI FIX] 标题栏里应用自定义控件的矩形, WM_NCHITTEST 命中时返回 HTCLIENT,
+    // 免得标题栏上的搜索框/返回按钮被当成拖动区域、点不动
+    property var titleBarInteractiveRects: []
+    // [RinUI FIX] 标题栏里若放了自定义可交互内容, 置 true 可让整条标题栏保持在客户区
+    property bool titleBarNativeDragDisabled: false
+    // [RinUI FIX] 窗口处于贴靠 / 最大化状态时为 true: 这些状态下 Windows 11 的窗口
+    // 是直角的, QML 自己画的圆角(背景、关闭按钮高亮)必须跟着关掉
+    property bool windowCornersSquare: false
+
 
     // 直接添加子项
     property alias framelessMenuBar: menuBarArea.children  // 无边框模式时菜单栏
@@ -75,17 +95,11 @@ ApplicationWindow {
     // 最大化样式
     onVisibilityChanged: {
         if (baseWindow.useNativeMacFrame) {
-            background.radius = 0
             background.border.width = 0
             return
         }
-        if (baseWindow.visibility === Window.Maximized) {
-            background.radius = 0
-            background.border.width = 1
-        } else {
-            background.radius = Theme.currentTheme.appearance.windowRadius
-            background.border.width = 1
-        }
+        // 圆角交给下面的绑定(windowCornersSquare), 这里只处理边框
+        background.border.width = 1
     }
 
     // 布局
@@ -138,7 +152,9 @@ ApplicationWindow {
         color: Utils.backdropEnabled ? "transparent" : Theme.currentTheme.colors.backgroundColor
         border.color: Theme.currentTheme.colors.windowBorderColor
         border.width: baseWindow.useNativeMacFrame ? 0 : 1
-        radius: baseWindow.useNativeMacFrame ? 0 : Theme.currentTheme.appearance.windowRadius
+        radius: (baseWindow.useNativeMacFrame || baseWindow.windowCornersSquare)
+            ? 0
+            : Theme.currentTheme.appearance.windowRadius
         z: -1
         clip: true
 
