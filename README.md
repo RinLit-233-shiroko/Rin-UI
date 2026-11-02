@@ -40,15 +40,15 @@ With simple configuration, you can quickly develop elegant UI interfaces in the 
 * Development documentation, [preview](https://ui.rinlit.cn/) now. (WIP)
 
 ### Screenshots
-![Screenshot 1](/docs/img/shot_1.png)
+![RinUI Gallery home](/docs/img/shot_1.png)
 
 <details style="text-align: center">
 <summary>More screenshots...</summary>
 
-![img.png](/docs/img/img.png)
-![img_1.png](/docs/img/img_1.png)
-![img_2.png](/docs/img/img_2.png)
-![img_3.png](/docs/img/img_3.png)
+![RinUI Gallery icon library](/docs/img/img_1.png)
+![RinUI Gallery ColorPicker sample](/docs/img/img_2.png)
+![RinUI Gallery dark theme](/docs/img/img_3.png)
+![RinUI Gallery overview](/docs/img/img.png)
 </details>
 
 > The image in the banner comes from Pixiv, PID: [125975786](https://www.pixiv.net/artworks/125975786)

@@ -40,15 +40,15 @@ RinUI 是一个类 Fluent Design 的 Qt Quick (QML) UI 库，RinUI 将提供高�
 * 在线开发文档，[现在可以在此预览](https://ui.rinlit.cn/)（WIP）
 
 ### 截图展示
-![Screenshot 1](/docs/img/shot_1.png)
+![RinUI Gallery 首页](/docs/img/shot_1.png)
 
 <details style="text-align: center">
 <summary>更多截图...</summary>
 
-![img.png](/docs/img/img.png)
-![img_1.png](/docs/img/img_1.png)
-![img_2.png](/docs/img/img_2.png)
-![img_3.png](/docs/img/img_3.png)
+![RinUI Gallery 图标库](/docs/img/img_1.png)
+![ColorPicker 控件示例](/docs/img/img_2.png)
+![RinUI Gallery 深色主题](/docs/img/img_3.png)
+![RinUI Gallery 概览](/docs/img/img.png)
 </details>
 
 > 横幅中的图片来自 Pixiv，PID：[125975786](https://www.pixiv.net/artworks/125975786)
