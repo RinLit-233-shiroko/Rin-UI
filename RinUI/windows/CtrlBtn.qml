@@ -13,11 +13,18 @@ Base {
     property alias icon: icon.icon
     property alias localHovered: hoverHandler.hovered
     property alias localPressed: mouseArea.pressed
+    // [RinUI FIX] 最大化按钮被 WM_NCHITTEST 判成 HTMAXBUTTON 后, 这块区域不再产生
+    // 客户区鼠标事件, QML 自己收不到 hover; 由原生过滤器把悬停状态回填进来。
+    property bool externalHovered: false
+    readonly property bool hoverActive: hoverHandler.hovered || externalHovered
+    // 同理: 最大化按钮的按下也由原生侧接管, 需要回填才能画出按下态
+    property bool externalPressed: false
+    readonly property bool pressedActive: mouseArea.pressed || externalPressed
     // Keep macOS detection resilient across Qt variants.
     property bool macStyle: Qt.platform.os === "osx" || Qt.platform.os === "macos" || Qt.platform.os === "darwin"
     property bool macGroupHovered: false
     property bool macWindowActive: !macStyle || !window || window.active
-    property bool macGlyphVisible: macStyle && root.enabled && macWindowActive && (macGroupHovered || hoverHandler.hovered || mouseArea.pressed)
+    property bool macGlyphVisible: macStyle && root.enabled && macWindowActive && (macGroupHovered || hoverActive || mouseArea.pressed)
     property bool macUnsavedChanges: false
     property color macGlyphColor: "#1f1f1f"
 
@@ -25,7 +32,7 @@ Base {
     ToolTip {
         parent: parent
         delay: 500
-        visible: !macStyle && hoverHandler.hovered
+        visible: !macStyle && hoverActive
         text: mode === 0 ? qsTr("Maximize") : mode === 1 ? qsTr("Minimize") : mode === 2 ? qsTr("Close") : qsTr("Unknown")
     }
 
@@ -73,17 +80,31 @@ Base {
     width: implicitWidth
     height: macStyle ? implicitHeight : (parent ? parent.height : implicitHeight)
 
+    // [RinUI FIX] 跟随窗口圆角状态。
+    //
+    // Windows 11 的窗口是圆角的, 关闭按钮那抹红色高亮必须被圆角裁掉, 而且
+    // 不能盖住窗口自己那 1px 边框 —— 原生窗口的高亮是缩在边框里面的。
+    // 贴靠 / 最大化时窗口变直角, 这里也要一起变回直角、不再内缩。
+    readonly property real captionCornerRadius: (!macStyle && window
+        && window.windowCornersSquare !== true)
+        ? Theme.currentTheme.appearance.windowRadius
+        : 0
+    readonly property int captionInset: captionCornerRadius > 0 ? 1 : 0
+
 
     // 背景 / Background
     Rectangle {
         id: background
         anchors.fill: parent
+        anchors.topMargin: macStyle ? 0 : root.captionInset
+        anchors.rightMargin: (!macStyle && root.mode === 2) ? root.captionInset : 0
         color: macStyle
             ? macButtonColor(mode)
             : mode === 2
                 ? Theme.currentTheme.colors.captionCloseColor
                 : Theme.currentTheme.colors.subtleSecondaryColor
         radius: macStyle ? width / 2 : 0
+        topRightRadius: (!macStyle && root.mode === 2) ? root.captionCornerRadius : radius
         border.width: macStyle ? 1 : 0
         border.color: macStyle ? Qt.darker(background.color, 1.15) : "transparent"
         opacity: macStyle ? (root.enabled ? 1 : 0.28) : 0
@@ -214,7 +235,7 @@ Base {
         },
         State {
             name: "pressedCtrl"
-            when: !macStyle && mouseArea.pressed
+            when: !macStyle && pressedActive
             PropertyChanges {
                 target: background;
                 opacity: 0.8
@@ -227,7 +248,7 @@ Base {
         },
         State {
             name: "hoveredCtrl"
-            when: !macStyle && hoverHandler.hovered
+            when: !macStyle && hoverActive
             PropertyChanges {
                 target: background;
                 opacity: 1
