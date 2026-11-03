@@ -16,7 +16,7 @@ on:
         default: false
         type: boolean
       build_target:
-        description: "Build target: all = Windows ZIP + macOS ZIP + MSIX"
+        description: "Build target: all = Windows ZIP + macOS ZIP + signed MSIX"
         required: true
         default: all
         type: choice
@@ -72,6 +72,7 @@ jobs:
             examples/gallery.py
 
       - name: Build MSIX package
+        id: msix
         if: |
           github.event_name == 'push' ||
           github.event.inputs.build_target == 'all' ||
@@ -101,6 +102,11 @@ jobs:
             )
             $parameters.CertificatePath = $pfx
             $parameters.CertificatePassword = $env:MSIX_CERTIFICATE_PASSWORD
+            $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($pfx, $env:MSIX_CERTIFICATE_PASSWORD)
+            $publicCert = Join-Path $env:RUNNER_TEMP "RinUI-Gallery-Signing.cer"
+            [IO.File]::WriteAllBytes($publicCert, $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
+            Copy-Item $publicCert "dist/RinUI-Gallery-Signing.cer"
+            "has_certificate=true" >> $env:GITHUB_OUTPUT
           } else {
             Write-Warning "MSIX_CERTIFICATE_BASE64 is not configured; creating an unsigned MSIX package."
             $parameters.SkipSign = $true
@@ -131,6 +137,13 @@ jobs:
         with:
           name: RinUIGallery-MSIX
           path: dist/msix/*.msix
+
+      - name: Upload MSIX signing certificate
+        if: steps.msix.outputs.has_certificate == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: RinUIGallery-MSIX-Certificate
+          path: dist/RinUI-Gallery-Signing.cer
 
       - name: Create MSIX scaffold archive
         if: |
@@ -250,7 +263,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: dist/
-          pattern: RinUI-*
+          pattern: RinUIGallery-*
           merge-multiple: true
 
       - name: List release files
