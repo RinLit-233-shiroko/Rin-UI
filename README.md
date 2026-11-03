@@ -1,43 +1,27 @@
 <div align="center">
 
-<a href="https://rinlit.cn">
-  <picture>
-    <source
-      media="(prefers-color-scheme: dark)"
-      srcset="docs/img/logo-dark.png">
-    <img width="200px"
-      src="docs/img/logo-light.png"
-      alt="Rin UI Logo">
-  </picture>
-</a>
-
-<h1 hidden>RinUI</h1>
-<p>A Fluent Design-like UI library for Qt Quick (QML)</p>
+<h1>
+    <a href="https://rinlit.cn">
+      <picture>
+        <source
+          media="(prefers-color-scheme: dark)"
+          srcset="docs/img/logo-dark.png">
+        <img width="175px"
+          src="docs/img/logo-light.png"
+          alt="Rin UI Logo">
+      </picture>
+    </a>
+</h1>
+<p>An open-source Fluent-style UI library <br> built with PySide and Qt Quick</p>
 
 **English** | [中文](./docs/README_zhCN.MD)
 
 </div>
 
-> [!NOTE]
-> ### RinUI has reached 100 ⭐!
-> This milestone came as a pleasant surprise to me. Thank you to everyone who follows, uses, and supports the project.
-> 
-> I would also like to give special thanks to all contributors.
-> Whether through code contributions, issue reports, or suggestions and discussions, your efforts have helped make RinUI better.
-
-## 📄 Introduction
-
 RinUI is a UI library similar to Fluent Design for Qt Quick (QML), RinUI will provide high-quality components and practical functions.
 With simple configuration, you can quickly develop elegant UI interfaces in the Fluent style.
 
-### Features
-* Elegant Fluent Design controls (WIP)
-* Dark and light mode, automatic switching
-* Compatible with original QML control names
-* i18n Internationalization
-* Multi-programming language support (WIP)
-* Theme system (WIP)
-* Development documentation, [preview](https://ui.rinlit.cn/) now. (WIP)
+Explore RinUI's Fluent-inspired Qt Quick/QML controls through interactive samples, documentation, icons, and source links.
 
 ### Screenshots
 ![RinUI Gallery home](/docs/img/en/shot_1.png)
@@ -51,7 +35,36 @@ With simple configuration, you can quickly develop elegant UI interfaces in the 
 ![RinUI Gallery overview](/docs/img/en/img.png)
 </details>
 
+
+<p align="center">
+<a href="https://apps.microsoft.com/detail/9NJGH90NLXDM?referrer=appbadge&mode=full" target="_blank"  rel="noopener noreferrer">
+	<picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://get.microsoft.com/images/en-us%20light.svg">
+    <img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200"/>
+  </picture>
+</a>
+</p>
+
 > The image in the banner comes from Pixiv, PID: [125975786](https://www.pixiv.net/artworks/125975786)
+
+
+> [!NOTE]
+> ### RinUI has reached 100 ⭐!
+> This milestone came as a pleasant surprise to me. Thank you to everyone who follows, uses, and supports the project.
+> 
+> I would also like to give special thanks to all contributors.
+> Whether through code contributions, issue reports, or suggestions and discussions, your efforts have helped make RinUI better.
+
+### Features
+* Elegant Fluent Design controls (WIP)
+* Dark and light mode, automatic switching
+* Compatible with original QML control names
+* i18n Internationalization
+* Multi-programming language support (WIP)
+* Theme system (WIP)
+* Development documentation, [preview](https://ui.rinlit.cn/) now.
 
 ## 🪄 Usage
 

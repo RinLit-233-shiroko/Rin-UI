@@ -51,11 +51,45 @@ For GitHub Actions, configure:
 - `MSIX_CERTIFICATE_BASE64`: base64-encoded PFX file
 - `MSIX_CERTIFICATE_PASSWORD`: PFX password
 
+The build workflow also publishes `RinUI-Gallery-Signing.cer` beside the MSIX
+when the certificate secret is present. Users who install the self-signed
+package outside the Microsoft Store may need to trust this public certificate.
+
 When `MSIX_CERTIFICATE_BASE64` is not configured, GitHub Actions creates an
 unsigned MSIX package and continues the release workflow. Such a package is
 intended for layout testing or local installation with developer settings; it
 cannot be treated as a production-signed package. Configure both certificate
 secrets before publishing a package intended for regular users.
+
+## Microsoft Store publishing
+
+`.github/workflows/store-publish.yml` submits the MSIX from a published GitHub
+Release to the existing Partner Center application. It runs automatically when
+a Release is published and can also be started manually with a release tag.
+Create these GitHub Actions secrets from the Partner Center Azure AD app:
+
+- `AZURE_AD_APPLICATION_CLIENT_ID`: the Entra app registration client ID
+- `AZURE_AD_APPLICATION_SECRET`: the Entra app registration client secret
+- `AZURE_AD_TENANT_ID`: the Entra tenant ID
+- `SELLER_ID`: the Partner Center seller ID
+
+Also create the repository variable `STORE_PRODUCT_ID` containing the Microsoft
+Store product ID. The workflow uses the Microsoft documented
+`microsoft/microsoft-store-apppublisher@v1.1` action and runs `msstore
+reconfigure` followed by `msstore publish`.
+
+The workflow is protected by the repository variable `ENABLE_STORE_PUBLISH`.
+Leave it unset or set it to `false` while testing Tag based GitHub Releases.
+Set it to `true` only when each published Release should also be submitted to
+the Microsoft Store.
+
+Microsoft currently documents GitHub Actions publishing for free products.
+The submission may still require certification and approval before the update
+becomes visible to users.
+
+The app registration must be added in Partner Center with the documented
+administrator role for Store submissions.
+
 
 ## Manifest Inputs
 
