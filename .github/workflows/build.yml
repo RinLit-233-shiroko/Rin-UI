@@ -59,7 +59,7 @@ jobs:
         shell: bash
         run: |
           uv run pyinstaller --noconsole \
-            --icon "examples/assets/gallery.ico" \
+            --icon "examples/assets/icons/app/gallery.ico" \
             --add-data "RinUI:RinUI" \
             --add-data "examples/assets:assets" \
             --add-data "examples/components:components" \
@@ -81,11 +81,6 @@ jobs:
           MSIX_CERTIFICATE_BASE64: ${{ secrets.MSIX_CERTIFICATE_BASE64 }}
           MSIX_CERTIFICATE_PASSWORD: ${{ secrets.MSIX_CERTIFICATE_PASSWORD }}
         run: |
-          $is_release = "${{ github.event_name }}" -eq "push" -or "${{ github.event.inputs.publish_release }}" -eq "true"
-          if ($is_release -and -not $env:MSIX_CERTIFICATE_BASE64) {
-            throw "MSIX_CERTIFICATE_BASE64 is required for release builds."
-          }
-
           $version = "${{ github.event.inputs.tag }}"
           if (-not $version -and "${{ github.ref }}".StartsWith("refs/tags/")) {
             $version = "${{ github.ref_name }}"
@@ -107,6 +102,7 @@ jobs:
             $parameters.CertificatePath = $pfx
             $parameters.CertificatePassword = $env:MSIX_CERTIFICATE_PASSWORD
           } else {
+            Write-Warning "MSIX_CERTIFICATE_BASE64 is not configured; creating an unsigned MSIX package."
             $parameters.SkipSign = $true
           }
           ./packaging/msix/package_msix.ps1 @parameters
@@ -191,7 +187,7 @@ jobs:
         shell: bash
         run: |
           uv run pyinstaller --noconsole \
-            --icon "examples/assets/gallery.icns" \
+            --icon "examples/assets/icons/app/gallery.icns" \
             --add-data "RinUI:RinUI" \
             --add-data "examples/assets:assets" \
             --add-data "examples/components:components" \

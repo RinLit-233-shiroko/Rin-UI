@@ -1,6 +1,6 @@
 cd ..
 .venv\Scripts\pyinstaller.exe ^
-  --icon=examples/assets/gallery.ico ^
+  --icon=examples/assets/icons/app/gallery.ico ^
   --noconsole ^
   --contents-directory="." ^
   --add-data="RinUI;RinUI" ^

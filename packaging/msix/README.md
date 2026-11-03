@@ -51,8 +51,11 @@ For GitHub Actions, configure:
 - `MSIX_CERTIFICATE_BASE64`: base64-encoded PFX file
 - `MSIX_CERTIFICATE_PASSWORD`: PFX password
 
-Release builds reject unsigned MSIX output. Pull-request and manual layout
-tests may intentionally use `-SkipSign`.
+When `MSIX_CERTIFICATE_BASE64` is not configured, GitHub Actions creates an
+unsigned MSIX package and continues the release workflow. Such a package is
+intended for layout testing or local installation with developer settings; it
+cannot be treated as a production-signed package. Configure both certificate
+secrets before publishing a package intended for regular users.
 
 ## Manifest Inputs
 
