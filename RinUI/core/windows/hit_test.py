@@ -53,8 +53,12 @@ HTBOTTOMRIGHT = 17
 _MAX_BUTTON_SLOP = 2
 
 
-def hit_test(window, hwnd: int, l_param: int, resize_border: int = 8):
-    """处理 WM_NCHITTEST，返回 (是否处理, 命中码, 是否悬停在最大化按钮上)。"""
+def hit_test(window, hwnd: int, l_param: int, resize_border: int = 8, moving: bool = False):
+    """处理 WM_NCHITTEST，返回 (是否处理, 命中码, 是否悬停在最大化按钮上)。
+
+    ``moving`` 为真表示正处在系统的移动/缩放循环里：此时不查标题栏控件矩形，
+    拖动过程中也不可能去点它们，省掉每帧几毫秒的项树遍历。
+    """
     x = ctypes.c_short(l_param & 0xFFFF).value
     y = ctypes.c_short((l_param >> 16) & 0xFFFF).value
 
@@ -105,7 +109,7 @@ def hit_test(window, hwnd: int, l_param: int, resize_border: int = 8):
         drag_limit = (right - left) - button_px - safe_px
 
         # 标题栏里应用自己的控件要留在客户区，否则会被当成拖动窗口吃掉
-        if cx < drag_limit:
+        if not moving and cx < drag_limit:
             for ix, iy, iw, ih in title_bar_interactive_rects(window, ratio):
                 if ix <= cx < min(ix + iw, drag_limit) and iy <= cy < iy + ih:
                     return True, HTCLIENT, False
