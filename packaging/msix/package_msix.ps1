@@ -79,12 +79,11 @@ if (-not $Version) {
     $Version = (& $python -c "import RinUI; print(RinUI.__version__)").Trim()
 }
 $Version = $Version.Trim()
-if ($Version.StartsWith("v", [StringComparison]::OrdinalIgnoreCase)) {
-    $Version = $Version.Substring(1)
+$versionMatch = [regex]::Match($Version, "(?<![\d.])(\d+(?:\.\d+){2,3})$")
+if (-not $versionMatch.Success) {
+    throw "Version must end with three or four numeric parts: $Version"
 }
-if ($Version -notmatch "^\d+(\.\d+){2,3}$") {
-    throw "Version must contain three or four numeric parts: $Version"
-}
+$Version = $versionMatch.Groups[1].Value
 $parts = $Version.Split(".")
 while ($parts.Count -lt 4) {
     $parts += "0"
