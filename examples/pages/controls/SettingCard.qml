@@ -59,7 +59,7 @@ ControlPage {
 
                 SettingCard {
                     Layout.fillWidth: true
-                    icon.source: Qt.resolvedUrl("../../assets/gallery.png")
+                    icon.source: Qt.resolvedUrl("../../assets/icons/app/gallery.png")
                     title: "Icon Options"
                     description: "You can use \"icon.name\" or \"icon.source\" to set the card\'s Icon"
 
@@ -101,7 +101,7 @@ ControlPage {
                 Switch {
                     id: cardsSwitch
                     text: qsTr("Disable SettingCards")
-                },
+                }
             ]
         }
     }

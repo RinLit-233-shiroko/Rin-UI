@@ -63,7 +63,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=[str(ROOT / "examples" / "assets" / "gallery.ico")],
+    icon=[str(ROOT / "examples" / "assets" / "icons" / "app" / "gallery.ico")],
     contents_directory=".",
 )
 

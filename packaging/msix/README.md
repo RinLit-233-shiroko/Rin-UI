@@ -28,6 +28,18 @@ Use `-SkipSign` to produce an unsigned package for layout testing:
 Use `-SkipPyInstaller -SourceDirectory <path>` to test only manifest staging,
 MakeAppx, and signing against an existing PyInstaller output.
 
+## Gallery Icons
+
+The Gallery icon source lives at `examples/assets/icons/app/gallery.png`.
+Regenerate the native ICO/ICNS files and all MSIX package variants with:
+
+```powershell
+./.venv/Scripts/python.exe scripts/generate_gallery_icons.py
+```
+
+Microsoft Store listing images live in `examples/assets/icons/store/listing/`.
+MSIX package assets live in `examples/assets/icons/store/package/`.
+
 ## Signing
 
 The signing certificate subject must exactly match the manifest `Publisher`.
@@ -39,8 +51,11 @@ For GitHub Actions, configure:
 - `MSIX_CERTIFICATE_BASE64`: base64-encoded PFX file
 - `MSIX_CERTIFICATE_PASSWORD`: PFX password
 
-Release builds reject unsigned MSIX output. Pull-request and manual layout
-tests may intentionally use `-SkipSign`.
+When `MSIX_CERTIFICATE_BASE64` is not configured, GitHub Actions creates an
+unsigned MSIX package and continues the release workflow. Such a package is
+intended for layout testing or local installation with developer settings; it
+cannot be treated as a production-signed package. Configure both certificate
+secrets before publishing a package intended for regular users.
 
 ## Manifest Inputs
 

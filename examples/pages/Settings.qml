@@ -81,7 +81,7 @@ FluentPage {
                     visible: parent.hovered
                 }
                 onClicked: {
-                    accentColorPicker.color ="#605ed2"
+                    accentColorPicker.color ="#00CBD0"
                 }
             }
 
@@ -164,7 +164,7 @@ FluentPage {
             width: parent.width
             title: qsTr("RinUI Gallery")
             description: qsTr("© 2026 RinLit. All rights reserved.")
-            icon.source: Qt.resolvedUrl("../assets/gallery.png")
+            icon.source: Qt.resolvedUrl("../assets/icons/app/gallery.png")
             icon.size: 28
 
             content: Text {
