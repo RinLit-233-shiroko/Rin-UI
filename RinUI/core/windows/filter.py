@@ -11,12 +11,13 @@ from RinUI.core.logger import logger
 from . import frame
 from .corners import CornerController
 from .hit_test import apply_getminmaxinfo, apply_nccalcsize, hit_test
-from .title_bar import pointer_over_max_button
+from .title_bar import invalidate_interactive_rects, pointer_over_max_button
 from .winapi import (
     WM_ACTIVATE,
     WM_ACTIVATEAPP,
     WM_CANCELMODE,
     WM_DWMCOMPOSITIONCHANGED,
+    WM_ENTERSIZEMOVE,
     WM_EXITSIZEMOVE,
     WM_GETMINMAXINFO,
     WM_LBUTTONDOWN,
@@ -46,6 +47,8 @@ class WinEventFilter(QAbstractNativeEventFilter):
         self.resize_border = 8
         # 最大化按钮"按下中"的窗口：按下只点亮，松开才切换状态
         self.max_button_pressed_hwnd = 0
+        # 是否正处在系统的移动/缩放循环里（此时跳过标题栏控件命中测试）
+        self._in_move_loop = False
         self._corners = CornerController()
 
         for window in self.windows:
@@ -198,6 +201,15 @@ class WinEventFilter(QAbstractNativeEventFilter):
         if message_id in (WM_SIZE, WM_WINDOWPOSCHANGED, WM_DWMCOMPOSITIONCHANGED):
             frame.apply_fullscreen_border_workaround(window, hwnd)
 
+        # 移动/缩放循环里不做标题栏控件的项树遍历；尺寸或可见性变了则让缓存失效
+        if message_id == WM_ENTERSIZEMOVE:
+            self._in_move_loop = True
+        elif message_id == WM_EXITSIZEMOVE:
+            self._in_move_loop = False
+            invalidate_interactive_rects()
+        elif message_id in (WM_SIZE, WM_SHOWWINDOW):
+            invalidate_interactive_rects()
+
         if message_id in (
             WM_SIZE,
             WM_WINDOWPOSCHANGED,
@@ -217,7 +229,9 @@ class WinEventFilter(QAbstractNativeEventFilter):
         if message_id == WM_NCHITTEST:
             # 每次命中测试先清悬停，命中最大化按钮时再置回
             self._set_max_button_hover(window, False)
-            handled, code, hover = hit_test(window, hwnd, l_param, self.resize_border)
+            handled, code, hover = hit_test(
+                window, hwnd, l_param, self.resize_border, self._in_move_loop
+            )
             if hover:
                 self._set_max_button_hover(window, True)
             return handled, code

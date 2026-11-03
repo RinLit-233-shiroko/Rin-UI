@@ -1,6 +1,7 @@
 """标题栏几何：按钮区、最大化按钮、可交互控件与原生拖动开关。"""
 
 import os
+import time
 
 from PySide6.QtCore import QPointF, Qt
 
@@ -20,6 +21,10 @@ TITLE_BAR_CONTENT_HOST = "rinuiTitleBarContentHost"
 
 # Text/占位符本身会接左键，但标题栏里它们只是图标和标题，要留给系统拖动
 _PLAIN_TEXT_CLASSES = ("QQuickText", "QQuickPlaceholderText")
+
+# 标题栏可交互控件矩形的缓存：窗口很小但 NCHITTEST 很频繁
+_INTERACTIVE_CACHE_TTL = 0.2
+_interactive_cache = {}
 
 
 def _prop(window, name, default=None):
@@ -148,7 +153,26 @@ def title_bar_interactive_rects(window, dp_ratio: float):
 
     标题栏整体交给 HTCAPTION 之后，titleBarArea / titleBarLeadingArea 里的控件
     会落进非客户区，点不动；这里把它们挑出来，命中时返回 HTCLIENT 还给 QML。
+
+    走一遍 QML 项树在 Python 里要几毫秒，而 WM_NCHITTEST 在拖动时是高频消息，
+    所以结果带一个短 TTL 缓存（窗口尺寸变化时立即失效）。
     """
+    cache_key = (id(window), int(window.width()), int(window.height()), dp_ratio)
+    now = time.monotonic()
+    cached = _interactive_cache.get(cache_key)
+    if cached is not None and now - cached[0] < _INTERACTIVE_CACHE_TTL:
+        return cached[1]
+
+    rects = _collect_interactive_rects_from_window(window, dp_ratio)
+    _interactive_cache[cache_key] = (now, rects)
+    return rects
+
+
+def invalidate_interactive_rects():
+    _interactive_cache.clear()
+
+
+def _collect_interactive_rects_from_window(window, dp_ratio: float):
     try:
         root_item = window.contentItem()
     except Exception:
