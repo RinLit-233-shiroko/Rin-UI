@@ -280,8 +280,12 @@ Item {
             Layout.fillHeight: true
             // [RinUI FIX] 窗口变窄时先把内容区压小(控件跟着缩), 而不是让控件
             // 一路盖到右上角三个按钮和它们左边的安全区上。
-            Layout.maximumWidth: Math.max(0, root.width - windowControls.width
-                                          - root.titleBarSafeWidth - 48)
+            // macOS 上右侧没有这排按钮（用原生红绿灯），不需要限制；
+            // Windows / Linux 都有自绘的最小化/最大化/关闭，都要让位。
+            Layout.maximumWidth: root.isMacOS
+                                 ? Number.POSITIVE_INFINITY
+                                 : Math.max(0, root.width - windowControls.width
+                                            - root.titleBarSafeWidth - 48)
             clip: true
         }
 
