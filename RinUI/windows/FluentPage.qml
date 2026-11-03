@@ -17,6 +17,7 @@ Page {
     property alias pageFooter: fluentPage.footer
     property alias customHeader: headerRow.data
     property alias extraHeaderItems: extraHeaderRow.data
+    // 页面圆角：保持原值，不跟窗口的贴靠/最大化走（只有卡片的右下角才需要跟随）
     property int radius: Theme.currentTheme.appearance.windowRadius
     property int wrapperWidth: 1000
     horizontalPadding: 56
