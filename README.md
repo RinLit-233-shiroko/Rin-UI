@@ -12,9 +12,17 @@
       </picture>
     </a>
 </h1>
-<p>An open-source Fluent-style UI library <br> built with PySide and Qt Quick</p>
 
-**English** | [中文](./docs/README_zhCN.MD)
+<p>
+<span>An open-source Fluent-style UI library <br> built with PySide and Qt Quick</span>  &emsp;&emsp;
+<b>English</b> | <a href="./docs/README_zhCN.MD">中文</a>
+</p>
+
+[![Stars](https://img.shields.io/github/stars/rinlit-233-shiroko/rin-ui?style=for-the-badge&color=eac54f&label=Stars)](https://github.com/rinlit-233-shiroko/rin-ui)
+[![Stable](https://img.shields.io/github/v/release/rinlit-233-shiroko/rin-ui?label=Latest&color=00c7cc&style=for-the-badge)](https://github.com/rinlit-233-shiroko/rin-ui/releases)
+[![Open-Source License](https://img.shields.io/github/license/RinLit-233-shiroko/rin-ui?label=Open-Source%20License&style=for-the-badge)](https://github.com/rinlit-233-shiroko/rin-ui)
+[![Downloads](https://img.shields.io/github/downloads/rinlit-233-shiroko/rin-ui/total.svg?label=Downloads&color=da8b17&style=for-the-badge)](https://github.com/rinlit-233-shiroko/rin-ui/releases)
+[![PyPi-Downloads](https://img.shields.io/pypi/dm/RinUI?label=PyPI%20Downloads&color=0073b7&style=for-the-badge)](https://pypi.org/project/RinUI/)
 
 </div>
 
@@ -37,14 +45,14 @@ Explore RinUI's Fluent-inspired Qt Quick/QML controls through interactive sample
 
 
 <p align="center">
-<a href="https://apps.microsoft.com/detail/9NJGH90NLXDM?referrer=appbadge&mode=full" target="_blank"  rel="noopener noreferrer">
-	<picture>
-    <source
-      media="(prefers-color-scheme: dark)"
-      srcset="https://get.microsoft.com/images/en-us%20light.svg">
-    <img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200"/>
-  </picture>
-</a>
+    <a href="https://apps.microsoft.com/detail/9NJGH90NLXDM?referrer=appbadge&mode=full" target="_blank"  rel="noopener noreferrer">
+        <picture>
+        <source
+          media="(prefers-color-scheme: dark)"
+          srcset="https://get.microsoft.com/images/en-us%20light.svg">
+        <img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200"/>
+      </picture>
+    </a>
 </p>
 
 > The image in the banner comes from Pixiv, PID: [125975786](https://www.pixiv.net/artworks/125975786)

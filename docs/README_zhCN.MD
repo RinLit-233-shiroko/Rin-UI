@@ -1,20 +1,28 @@
 <div align="center">
 
-<a href="https://rinlit.cn">
-  <picture>
-    <source
-      media="(prefers-color-scheme: dark)"
-      srcset="docs/img/logo-dark.png">
-    <img width="175px"
-      src="docs/img/logo-light.png"
-      alt="Rin UI Logo">
-  </picture>
-</a>
+<h1>
+    <a href="https://rinlit.cn">
+      <picture>
+        <source
+          media="(prefers-color-scheme: dark)"
+          srcset="docs/img/logo-dark.png">
+        <img width="175px"
+          src="docs/img/logo-light.png"
+          alt="Rin UI Logo">
+      </picture>
+    </a>
+</h1>
 
-<h1 hidden>RinUI</h1>
-<p>基于 Qt Quick，由 PySide 构建 <br> Fluent 风格的开源 UI 库</p>
+<p>
+<span>基于 PySide 和 Qt Quick 构建的<br>Fluent 风格开源 UI 库</span>  &emsp;&emsp;
+<b>中文</b> | <a href="../README.md">English</a>
+</p>
 
-**中文** | [English](../README.md)
+[![Stars](https://img.shields.io/github/stars/rinlit-233-shiroko/rin-ui?style=for-the-badge&color=eac54f&label=Stars)](https://github.com/rinlit-233-shiroko/rin-ui)
+[![Stable](https://img.shields.io/github/v/release/rinlit-233-shiroko/rin-ui?label=Latest&color=00c7cc&style=for-the-badge)](https://github.com/rinlit-233-shiroko/rin-ui/releases)
+[![Open-Source License](https://img.shields.io/github/license/RinLit-233-shiroko/rin-ui?label=Open-Source%20License&style=for-the-badge)](https://github.com/RinLit-233-shiroko/rin-ui)
+[![Downloads](https://img.shields.io/github/downloads/rinlit-233-shiroko/rin-ui/total.svg?label=Downloads&color=da8b17&style=for-the-badge)](https://github.com/rinlit-233-shiroko/rin-ui/releases)
+[![PyPi-Downloads](https://img.shields.io/pypi/dm/RinUI?label=PyPI%20Downloads&color=0073b7&style=for-the-badge)](https://pypi.org/project/RinUI/)
 
 </div>
 
@@ -24,26 +32,26 @@ RinUI 是一个类 Fluent Design 的 Qt Quick (QML) UI 库，RinUI 将提供高�
 RinUI Gallery 用交互式示例浏览 RinUI 的 Fluent 风格 Qt Quick/QML 控件，查看组件说明、图标和源码入口。
 
 ### 截图展示
-![RinUI Gallery 首页](/docs/img/shot_1.png)
+![RinUI Gallery 首页](/docs/img/en/shot_1.png)
 
 <details style="text-align: center">
 <summary>更多截图...</summary>
 
-![RinUI Gallery 图标库](/docs/img/img_1.png)
-![ColorPicker 控件示例](/docs/img/img_2.png)
-![RinUI Gallery 深色主题](/docs/img/img_3.png)
-![RinUI Gallery 概览](/docs/img/img.png)
+![RinUI Gallery 图标库](/docs/img/en/img_1.png)
+![ColorPicker 控件示例](/docs/img/en/img_2.png)
+![RinUI Gallery 深色主题](/docs/img/en/img_3.png)
+![RinUI Gallery 概览](/docs/img/en/img.png)
 </details>
 
 <p align="center">
-<a href="https://apps.microsoft.com/detail/9NJGH90NLXDM?referrer=appbadge&mode=full" target="_blank"  rel="noopener noreferrer">
-	<picture>
-    <source
-      media="(prefers-color-scheme: dark)"
-      srcset="https://get.microsoft.com/images/zh-cn%20light.svg">
-    <img src="https://get.microsoft.com/images/zh-cn%20dark.svg" width="200"/>
-  </picture>
-</a>
+    <a href="https://apps.microsoft.com/detail/9NJGH90NLXDM?referrer=appbadge&mode=full" target="_blank"  rel="noopener noreferrer">
+        <picture>
+        <source
+          media="(prefers-color-scheme: dark)"
+          srcset="https://get.microsoft.com/images/zh-cn%20light.svg">
+        <img src="https://get.microsoft.com/images/zh-cn%20dark.svg" width="200"/>
+      </picture>
+    </a>
 </p>
 
 > 横幅中的图片来自 Pixiv，PID：[125975786](https://www.pixiv.net/artworks/125975786)

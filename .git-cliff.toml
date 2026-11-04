@@ -1,35 +1,43 @@
 [changelog]
-body = """## RinUI{% if version %} ({{ version }}){% endif %}
+body = """
+
+<img src="https://raw.githubusercontent.com/rinlit-233-shiroko/rin-ui/main/docs/img/GH_ReleaseNotes_Banner.png" width="100%" />
+
+## RinUI Release Notes
+> [!NOTE]
+> Current version: `{% if version %}{{ version }}{% else %}Unreleased{% endif %}`
+
+<p align="center">
+    <a href="https://apps.microsoft.com/detail/9NJGH90NLXDM?referrer=appbadge&mode=full" target="_blank" rel="noopener noreferrer">
+        <picture>
+            <source media="(prefers-color-scheme: dark)" srcset="https://get.microsoft.com/images/en-us%20light.svg">
+            <img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200" alt="Get it from Microsoft Store" />
+        </picture>
+    </a>
+</p>
 
 {% macro commit_line(commit) -%}
-  - {% if commit.scope %}**{{ commit.scope }}**: {% endif %}{{ commit.message | split(pat="\n") | first | trim | upper_first }}{% if commit.remote.username %} by @{{ commit.remote.username }}{% endif %}{% if commit.remote.pr_number %} ([#{{ commit.remote.pr_number }}]({{ self::remote_url() }}/pull/{{ commit.remote.pr_number }})){% endif %}
+- {% if commit.scope %}**{{ commit.scope }}**: {% endif %}{{ commit.message | split(pat="\\n") | first | trim | upper_first }}{% if commit.remote.username %} by @{{ commit.remote.username }}{% endif %}{% if commit.remote.pr_number %} ([#{{ commit.remote.pr_number }}]({{ self::remote_url() }}/pull/{{ commit.remote.pr_number }})){% endif %}
 {%- endmacro %}
 
 {% for group, commits in commits | group_by(attribute="group") %}
-{%- if group == "<!-- 11 -->📝 Other" %}
-### {{ group }}
+{% if group == "<!-- 11 -->📝 Other" %}
 <details>
-
-{% for commit in commits | unique(attribute="message") -%}
-  {{ self::commit_line(commit=commit) }}
+<summary><h3>{{ group }}</h3></summary>
+{% for commit in commits | unique(attribute="message") %}
+{{ self::commit_line(commit=commit) }}
 {% endfor %}
-
 </details>
-{%- else %}
+{% else %}
 ### {{ group }}
-{% for commit in commits | unique(attribute="message") -%}
-  {{ self::commit_line(commit=commit) }}
+{% for commit in commits | unique(attribute="message") %}
+{{ self::commit_line(commit=commit) }}
 {% endfor %}
-{%- endif %}
-
+{% endif %}
 {% endfor -%}
 
----
-
-{% if version %}
-    {% if previous.version %}
-      📋 **Full Changelog**: [{{ previous.version }}...{{ version }}]({{ self::remote_url() }}/compare/{{ previous.version }}...{{ version }})
-    {% endif %}
+{% if version and previous.version %}
+📋 **Full Changelog**: [{{ previous.version }}...{{ version }}]({{ self::remote_url() }}/compare/{{ previous.version }}...{{ version }})
 {% endif %}
 
 {%- macro remote_url() -%}
