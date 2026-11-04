@@ -5,9 +5,9 @@
       <picture>
         <source
           media="(prefers-color-scheme: dark)"
-          srcset="docs/img/logo-dark.png">
+          srcset="img/logo-dark.png">
         <img width="175px"
-          src="docs/img/logo-light.png"
+          src="img/logo-light.png"
           alt="Rin UI Logo">
       </picture>
     </a>
