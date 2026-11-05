@@ -66,6 +66,9 @@ ApplicationWindow {
     property alias titleBarLeadingArea: titleBar.leadingContent
     property alias titleBarLeadingHost: titleBar.leadingContentHost
 
+    property real titleBarButtonWidth: 0
+    property real titleBarSafeWidth: 32
+
 
     // 直接添加子项
     property alias framelessMenuBar: menuBarArea.children  // 无边框模式时菜单栏

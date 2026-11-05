@@ -73,6 +73,23 @@ Item {
     implicitWidth: 200
 
     property var window: null
+    readonly property real windowControlsWidth: windowControls ? windowControls.width : 0
+    readonly property real titleBarSafeWidth: 32
+
+    Binding {
+        target: root.window
+        property: "titleBarButtonWidth"
+        value: root.windowControlsWidth
+        when: root.window !== null
+    }
+
+    Binding {
+        target: root.window
+        property: "titleBarSafeWidth"
+        value: root.titleBarSafeWidth
+        when: root.window !== null
+    }
+
     function toggleMaximized() {
         if (!maximizeEnabled) {
             return
@@ -98,11 +115,6 @@ Item {
 
             onPressed: {
                 clickPos = Qt.point(mouseX, mouseY)
-
-                if (Qt.platform.os !== "windows" || !WindowManager._isWinMgrInitialized()) {
-                    return
-                }
-                WindowManager.sendDragWindowEvent(window)
             }
             onDoubleClicked: toggleMaximized()
             onPositionChanged: (mouse) => {
@@ -110,9 +122,8 @@ Item {
                     return
                 }
 
-                if (Qt.platform.os !== "windows" && WindowManager._isWinMgrInitialized()) {
-                    log("Windows only")
-                    return  // 在win环境使用原生方法拖拽
+                if (Qt.platform.os === "windows") {
+                    return
                 }
 
                 //鼠标偏移量
@@ -202,6 +213,7 @@ Item {
 
         Item {
             id: leadingContentItem
+            objectName: "rinuiTitleBarLeadingHost"
             Layout.fillHeight: true
             Layout.preferredWidth: childrenRect.width
             visible: children.length > 0
@@ -211,6 +223,7 @@ Item {
         Item {
             // custom
             id: contentItem
+            objectName: "rinuiTitleBarContentHost"
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
