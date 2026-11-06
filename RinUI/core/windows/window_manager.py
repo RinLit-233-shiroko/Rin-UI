@@ -1,5 +1,3 @@
-"""WinEventManager 与窗口边框（非客户区外观）相关的操作。"""
-
 import ctypes
 import platform
 
