@@ -1,5 +1,3 @@
-"""标题栏与边框区域的状态：把 QML 属性换算成像素尺寸。"""
-
 DEFAULT_TITLE_BAR_HEIGHT = 32
 RESIZE_BORDER = 8
 
