@@ -1,5 +1,3 @@
-"""Win32 常量、结构体与底层 API 封装。"""
-
 import ctypes
 from ctypes import wintypes
 
