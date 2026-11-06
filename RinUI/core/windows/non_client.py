@@ -1,5 +1,3 @@
-"""原生消息分发：命中测试、非客户区计算与窗口消息处理。"""
-
 import ctypes
 from ctypes import wintypes
 
