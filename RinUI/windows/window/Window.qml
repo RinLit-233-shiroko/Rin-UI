@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
 import "../../windows"
@@ -50,6 +51,14 @@ Window {
     property bool titleBarMaxButtonHovered: false
     property bool titleBarMaxButtonPressed: false
     property bool snapLayoutsSupported: false
+    property bool windowCornersSupported: true
+    property bool windowCornersSquare: false
+    readonly property int windowContentRadius: (
+        (windowCornersSquare || visibility === Window.Maximized
+         || windowCornersSupported === false)
+            ? 0
+            : Theme.currentTheme.appearance.windowRadius
+    )
     property alias titleEnabled: titleBar.titleEnabled
     property alias minimizeEnabled: titleBar.minimizeEnabled
     // property alias maximizeEnabled: titleBar.maximizeEnabled
@@ -108,7 +117,12 @@ Window {
         color: Utils.backdropEnabled ? "transparent" : Theme.currentTheme.colors.backgroundColor
         border.color: Theme.currentTheme.colors.windowBorderColor
         border.width: baseWindow.useNativeMacFrame ? 0 : 1
-        radius: baseWindow.useNativeMacFrame ? 0 : Theme.currentTheme.appearance.windowRadius
+        radius: (
+            (baseWindow.useNativeMacFrame || baseWindow.windowCornersSquare
+             || baseWindow.visibility === Window.Maximized)
+                ? 0
+                : Theme.currentTheme.appearance.windowRadius
+        )
         z: -1
         clip: true
 

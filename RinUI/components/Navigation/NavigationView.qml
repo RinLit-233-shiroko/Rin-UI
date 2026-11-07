@@ -11,7 +11,6 @@ import "../../windows"
 RowLayout {
     // 外观 / Appearance //
     property bool appLayerEnabled: true  // 应用层背景
-    // 内容卡片圆角：用上层角遮罩裁切（不 layer 文字），与 appLayer.radius 对齐
     property bool contentCornerClipEnabled: true
     property alias navExpandWidth: navigationBar.expandWidth  // 导航栏宽度
     property alias navMinimumExpandWidth: navigationBar.minimumExpandWidth  // 导航栏保持展开时窗口的最小宽度
@@ -77,20 +76,20 @@ RowLayout {
         Layout.fillHeight: true
     }
 
-    // 主体内容区域
-    // HiDPI 治本：不对 StackView/页面做 layer+OpacityMask（会糊字）。
-    // 圆角底：appLayer；圆角剪影：RoundedCornerOverlay 盖住四角溢出，文字仍直接绘制。
+    // 圆角只画在 appLayer 上，内容不裁切：裁内容要走 layer + 遮罩，1.5x 屏会发虚。
     Item {
         id: contentArea
         Layout.fillWidth: true
         Layout.fillHeight: true
-        clip: true
+        clip: false
 
-        readonly property real contentRadius: {
-            if (window && window.visibility === Window.Maximized)
-                return 0
-            return Theme.currentTheme.appearance.windowRadius
-        }
+        readonly property bool flushToFrame: !(window && window.useNativeMacFrame)
+
+        readonly property real bottomRightRadius: window && window.windowContentRadius !== undefined
+                                                  ? window.windowContentRadius : 0
+        readonly property real contentCornerRadius: Math.ceil(Theme.currentTheme.appearance.windowRadius) + 1
+        readonly property real bottomRightCornerRadius: bottomRightRadius > 0
+                                                        ? Math.ceil(bottomRightRadius) + 1 : 0
 
         // 导航栏展开自动收起
         MouseArea {
@@ -110,13 +109,17 @@ RowLayout {
 
         Rectangle {
             id: appLayer
-            width: parent.width + Utils.windowDragArea + radius
-            height: parent.height + Utils.windowDragArea + radius
+            width: contentArea.flushToFrame
+                   ? parent.width + Utils.windowDragArea - 1 : parent.width
+            height: contentArea.flushToFrame
+                    ? parent.height + Utils.windowDragArea - 1 : parent.height
             color: Theme.currentTheme.colors.layerColor
             border.color: Theme.currentTheme.colors.cardBorderColor
             border.width: 1
             opacity: (window && window.appLayerEnabled !== undefined) ? window.appLayerEnabled : navigationView.appLayerEnabled
-            radius: contentArea.contentRadius
+            radius: 0
+            topLeftRadius: contentArea.contentCornerRadius
+            bottomRightRadius: contentArea.bottomRightCornerRadius
         }
 
         StackView {
@@ -124,6 +127,8 @@ RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 1
             anchors.topMargin: 1
+            anchors.rightMargin: contentArea.flushToFrame ? 1 - Utils.windowDragArea : 0
+            anchors.bottomMargin: contentArea.flushToFrame ? 1 - Utils.windowDragArea : 0
             clip: true
 
             // 切换动画 / Page Transition //
@@ -262,20 +267,6 @@ RowLayout {
 
         }
 
-        // 库层圆角剪影：与旧 FluentPage OpacityMask 一致——仅左上圆角
-        // （右侧/底侧为直角；不 layer 文字，避免 HiDPI 发糊）
-        RoundedCornerOverlay {
-            id: contentCornerClip
-            anchors.fill: stackView
-            z: 1000
-            radius: contentArea.contentRadius
-            fillColor: Theme.currentTheme.colors.backgroundColor
-            topLeft: true
-            topRight: false
-            bottomLeft: false
-            bottomRight: false
-            visible: navigationView.contentCornerClipEnabled && contentArea.contentRadius > 0
-        }
 
         Component.onCompleted: {
             if (navigationItems.length > 0) {

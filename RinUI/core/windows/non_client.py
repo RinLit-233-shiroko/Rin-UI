@@ -62,6 +62,7 @@ from RinUI.core.windows.window_state import (
     inside_rect,
     interactive_rects,
     invalidate_interactive_rects,
+    is_window_snapped,
     max_button_rect,
     safe_width_px,
     set_window_property,
@@ -295,6 +296,7 @@ class WinEventFilter(QAbstractNativeEventFilter):
         hwnd = int(window.winId())
         self.hwnds[window] = hwnd
         set_window_property(window, "snapLayoutsSupported", bool(is_win11()))
+        set_window_property(window, "windowCornersSupported", bool(is_win11()))
         self.sync_window_backdrop(window)
 
     def sync_window_backdrop(self, window: QQuickWindow):
@@ -305,6 +307,10 @@ class WinEventFilter(QAbstractNativeEventFilter):
         set_window_styles(window, hwnd)
         extend_frame_into_client_area(window, hwnd)
         apply_fullscreen_opengl_border_workaround(window, hwnd)
+
+    def _update_window_corner(self, window, hwnd: int):
+        square = is_maximized(hwnd) or is_window_snapped(hwnd)
+        set_window_property(window, "windowCornersSquare", square)
 
     def nativeEventFilter(self, event_type: QByteArray, message):
         if event_type not in (b"windows_generic_MSG", b"windows_dispatcher_MSG"):
@@ -325,8 +331,12 @@ class WinEventFilter(QAbstractNativeEventFilter):
         elif message_id == WM_EXITSIZEMOVE:
             self._in_move_loop = False
             invalidate_interactive_rects(window)
+            self._update_window_corner(window, hwnd)
         elif message_id in (WM_SIZE, WM_SHOWWINDOW):
             invalidate_interactive_rects(window)
+
+        if message_id in (WM_SIZE, WM_WINDOWPOSCHANGED, WM_DWMCOMPOSITIONCHANGED):
+            self._update_window_corner(window, hwnd)
 
         if message_id in (WM_NCLBUTTONDOWN, WM_NCLBUTTONDBLCLK) and w_param == HTMAXBUTTON:
             self._max_button_pressed_hwnd = hwnd

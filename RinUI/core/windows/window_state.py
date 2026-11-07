@@ -1,6 +1,10 @@
+import ctypes
 import time
+from ctypes import wintypes
 
 from PySide6.QtCore import QPointF, Qt
+
+from RinUI.core.windows.winapi import MONITORINFO, MONITOR_DEFAULTTONEAREST, user32
 
 DEFAULT_TITLE_BAR_HEIGHT = 32
 RESIZE_BORDER = 8
@@ -164,3 +168,54 @@ def _is_plain_text(item) -> bool:
     except (AttributeError, RuntimeError):
         return False
     return name in _PLAIN_TEXT_TYPES or name.startswith(("Text_QMLTYPE", "Label_QMLTYPE"))
+
+
+def _work_area(hwnd: int):
+    monitor = user32.MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST)
+    if not monitor:
+        return None
+    info = MONITORINFO()
+    info.cbSize = ctypes.sizeof(MONITORINFO)
+    if not user32.GetMonitorInfoW(monitor, ctypes.byref(info)):
+        return None
+    return info.rcWork
+
+
+def _snap_targets(work):
+    left, top, right, bottom = work.left, work.top, work.right, work.bottom
+    width = right - left
+    height = bottom - top
+    half_w = width / 2.0
+    half_h = height / 2.0
+    third = height / 3.0
+    targets = [
+        (left, top, left + half_w, bottom),
+        (left + half_w, top, right, bottom),
+        (left, top, right, top + half_h),
+        (left, top + half_h, right, bottom),
+        (left, top, right, top + third),
+        (left, top + third, right, top + 2 * third),
+        (left, top + 2 * third, right, bottom),
+        (left, top, left + width / 3.0, bottom),
+        (left + width / 3.0, top, left + 2 * width / 3.0, bottom),
+        (left + 2 * width / 3.0, top, right, bottom),
+        (left, top, left + half_w, top + half_h),
+        (left + half_w, top, right, top + half_h),
+        (left, top + half_h, left + half_w, bottom),
+        (left + half_w, top + half_h, right, bottom),
+    ]
+    return targets
+
+
+def is_window_snapped(hwnd: int, tolerance: int = 12) -> bool:
+    rect = wintypes.RECT()
+    if not user32.GetWindowRect(hwnd, ctypes.byref(rect)):
+        return False
+    work = _work_area(hwnd)
+    if work is None:
+        return False
+    current = (rect.left, rect.top, rect.right, rect.bottom)
+    for target in _snap_targets(work):
+        if all(abs(a - b) <= tolerance for a, b in zip(current, target)):
+            return True
+    return False
