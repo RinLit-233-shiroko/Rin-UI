@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
 import "../themes"
@@ -72,28 +73,20 @@ ApplicationWindow {
     property bool titleBarMaxButtonHovered: false
     property bool titleBarMaxButtonPressed: false
     property bool snapLayoutsSupported: false
+    property bool windowCornersSupported: true
+    property bool windowCornersSquare: false
+    readonly property int windowContentRadius: (
+        (windowCornersSquare || visibility === Window.Maximized
+         || windowCornersSupported === false)
+            ? 0
+            : Theme.currentTheme.appearance.windowRadius
+    )
 
 
     // 直接添加子项
     property alias framelessMenuBar: menuBarArea.children  // 无边框模式时菜单栏
     default property alias content: contentArea.children
     property alias floatLayer: floatLayer
-
-    // 最大化样式
-    onVisibilityChanged: {
-        if (baseWindow.useNativeMacFrame) {
-            background.radius = 0
-            background.border.width = 0
-            return
-        }
-        if (baseWindow.visibility === Window.Maximized) {
-            background.radius = 0
-            background.border.width = 1
-        } else {
-            background.radius = Theme.currentTheme.appearance.windowRadius
-            background.border.width = 1
-        }
-    }
 
     // 布局
     ColumnLayout {
@@ -145,7 +138,13 @@ ApplicationWindow {
         color: Utils.backdropEnabled ? "transparent" : Theme.currentTheme.colors.backgroundColor
         border.color: Theme.currentTheme.colors.windowBorderColor
         border.width: baseWindow.useNativeMacFrame ? 0 : 1
-        radius: baseWindow.useNativeMacFrame ? 0 : Theme.currentTheme.appearance.windowRadius
+        radius: 0
+        topLeftRadius: baseWindow.useNativeMacFrame
+                       ? 0
+                       : Theme.currentTheme.appearance.windowRadius
+        topRightRadius: baseWindow.useNativeMacFrame ? 0 : baseWindow.windowContentRadius
+        bottomLeftRadius: baseWindow.useNativeMacFrame ? 0 : baseWindow.windowContentRadius
+        bottomRightRadius: baseWindow.useNativeMacFrame ? 0 : baseWindow.windowContentRadius
         z: -1
         clip: true
 
