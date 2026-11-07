@@ -12,8 +12,7 @@ ControlPage {
 
     Text {
         Layout.fillWidth: true
-        text: qsTr("A SplitButton combines a primary action with a separate flyout. " +
-                 "Click the main area to run the action, or click the arrow to open the menu.")
+        text: qsTr("The SplitButton is a dropdown button, but with an addition execution hit target.")
     }
 
     Column {
