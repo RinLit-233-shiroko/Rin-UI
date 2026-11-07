@@ -75,6 +75,13 @@ Item {
     property var window: null
     readonly property real windowControlsWidth: windowControls ? windowControls.width : 0
     readonly property real titleBarSafeWidth: 32
+    readonly property rect maxButtonRect: {
+        var _dep = root.width + root.height + windowControls.x + windowControls.y
+                + windowControls.width + maximizeBtn.x + maximizeBtn.y
+                + maximizeBtn.width + maximizeBtn.height
+        var pos = maximizeBtn.mapToItem(null, 0, 0)
+        return Qt.rect(pos.x, pos.y, maximizeBtn.width, maximizeBtn.height)
+    }
 
     Binding {
         target: root.window
@@ -87,6 +94,13 @@ Item {
         target: root.window
         property: "titleBarSafeWidth"
         value: root.titleBarSafeWidth
+        when: root.window !== null
+    }
+
+    Binding {
+        target: root.window
+        property: "titleBarMaxButtonRect"
+        value: root.maxButtonRect
         when: root.window !== null
     }
 
@@ -248,7 +262,9 @@ Item {
                 mode: 0
                 enabled: root.maximizeEnabled
                 visible: root.maximizeVisible
-
+                objectName: "rinuiMaximizeBtn"
+                externalHovered: root.window ? root.window.titleBarMaxButtonHovered === true : false
+                externalPressed: root.window ? root.window.titleBarMaxButtonPressed === true : false
             }
             CtrlBtn {
                 id: closeBtn

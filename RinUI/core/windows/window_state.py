@@ -30,6 +30,49 @@ def safe_width_px(window, dp_ratio: float) -> int:
     return int(_dip_property(window, "titleBarSafeWidth", SAFE_WIDTH_FALLBACK) * dp_ratio)
 
 
+def max_button_rect(window, dp_ratio: float):
+    """最大化按钮矩形（设备像素）；未提供时返回 None。"""
+    try:
+        rect = window.property("titleBarMaxButtonRect")
+    except Exception:
+        return None
+    if rect is None:
+        return None
+
+    try:
+        rect_x, rect_y = float(rect.x()), float(rect.y())
+        rect_w, rect_h = float(rect.width()), float(rect.height())
+    except (AttributeError, TypeError, RuntimeError):
+        return None
+
+    if rect_w <= 1 or rect_h <= 1:
+        return None
+
+    return (
+        rect_x * dp_ratio,
+        rect_y * dp_ratio,
+        rect_w * dp_ratio,
+        rect_h * dp_ratio,
+    )
+
+
+def inside_rect(rect, x: float, y: float, slack: float = 0.0) -> bool:
+    rect_x, rect_y, rect_w, rect_h = rect
+    return (
+        rect_x - slack <= x < rect_x + rect_w + slack
+        and rect_y - slack <= y < rect_y + rect_h + slack
+    )
+
+
+def set_window_property(window, name: str, value) -> None:
+    try:
+        if bool(window.property(name)) == bool(value):
+            return
+        window.setProperty(name, value)
+    except (AttributeError, RuntimeError):
+        pass
+
+
 def interactive_rects(window, dp_ratio: float):
     key = (id(window), int(window.width()), int(window.height()), dp_ratio)
     cached = _cache.get(key)

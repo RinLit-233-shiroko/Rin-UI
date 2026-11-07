@@ -1,17 +1,19 @@
 import ctypes
 from ctypes import wintypes
 
-from PySide6.QtCore import QAbstractNativeEventFilter, QByteArray
+from PySide6.QtCore import QAbstractNativeEventFilter, QByteArray, QTimer
 from PySide6.QtQuick import QQuickWindow
 from win32api import MonitorFromWindow
 from win32com.shell.shellcon import ABS_AUTOHIDE, ABM_GETSTATE, ABM_GETTASKBARPOS
 from win32con import MONITOR_DEFAULTTONEAREST, MONITOR_DEFAULTTOPRIMARY
 from win32gui import FindWindow
 
+from RinUI.core.config import is_win11
 from RinUI.core.windows.winapi import (
     APPBARDATA,
     HTCAPTION,
     HTCLIENT,
+    HTMAXBUTTON,
     MINMAXINFO,
     MONITORINFO,
     NCCALCSIZE_PARAMS,
@@ -25,11 +27,20 @@ from RinUI.core.windows.winapi import (
     HTTOPRIGHT,
     WM_ACTIVATE,
     WM_ACTIVATEAPP,
+    WM_CANCELMODE,
     WM_DWMCOMPOSITIONCHANGED,
     WM_GETMINMAXINFO,
+    WM_LBUTTONDOWN,
+    WM_LBUTTONUP,
+    WM_MOUSELEAVE,
     WM_NCACTIVATE,
     WM_NCCALCSIZE,
     WM_NCHITTEST,
+    WM_NCLBUTTONDBLCLK,
+    WM_NCLBUTTONDOWN,
+    WM_NCLBUTTONUP,
+    WM_NCMOUSEMOVE,
+    WM_NCMOUSELEAVE,
     WM_ENTERSIZEMOVE,
     WM_EXITSIZEMOVE,
     WM_SHOWWINDOW,
@@ -48,9 +59,12 @@ from RinUI.core.windows.window_manager import (
 from RinUI.core.windows.window_state import (
     RESIZE_BORDER,
     button_width_px,
+    inside_rect,
     interactive_rects,
     invalidate_interactive_rects,
+    max_button_rect,
     safe_width_px,
+    set_window_property,
     title_bar_height_px,
 )
 
@@ -127,6 +141,10 @@ def hit_test(window, hwnd: int, l_param: int, resize_border=RESIZE_BORDER, movin
     user32.ClientToScreen(hwnd, ctypes.byref(origin))
     cx = x - origin.x
     cy = y - origin.y
+
+    max_rect = max_button_rect(window, dp_ratio)
+    if not moving and max_rect is not None and inside_rect(max_rect, cx, cy, 2):
+        return True, HTMAXBUTTON
 
     button_px = button_width_px(window, dp_ratio)
     drag_limit = (right - left) - button_px - safe_width_px(window, dp_ratio)
@@ -258,6 +276,7 @@ class WinEventFilter(QAbstractNativeEventFilter):
         self.hwnds = {}
         self.resize_border = RESIZE_BORDER
         self._in_move_loop = False
+        self._max_button_pressed_hwnd = 0
 
         for window in self.windows:
             window.visibleChanged.connect(
@@ -275,6 +294,7 @@ class WinEventFilter(QAbstractNativeEventFilter):
     def _init_window_handle(self, window: QQuickWindow):
         hwnd = int(window.winId())
         self.hwnds[window] = hwnd
+        set_window_property(window, "snapLayoutsSupported", bool(is_win11()))
         self.sync_window_backdrop(window)
 
     def sync_window_backdrop(self, window: QQuickWindow):
@@ -308,14 +328,42 @@ class WinEventFilter(QAbstractNativeEventFilter):
         elif message_id in (WM_SIZE, WM_SHOWWINDOW):
             invalidate_interactive_rects(window)
 
+        if message_id in (WM_NCLBUTTONDOWN, WM_NCLBUTTONDBLCLK) and w_param == HTMAXBUTTON:
+            self._max_button_pressed_hwnd = hwnd
+            set_window_property(window, "titleBarMaxButtonPressed", True)
+            user32.SetCapture(hwnd)
+            return True, 0
+
+        if message_id in (WM_NCLBUTTONUP, WM_LBUTTONUP):
+            if self._max_button_pressed_hwnd == hwnd:
+                self._max_button_pressed_hwnd = 0
+                set_window_property(window, "titleBarMaxButtonPressed", False)
+                user32.ReleaseCapture()
+                if _pointer_over_max_button(window, hwnd):
+                    QTimer.singleShot(0, lambda w=window: _toggle_maximize(w))
+                return True, 0
+
+        if message_id in (WM_LBUTTONDOWN, WM_CANCELMODE) and self._max_button_pressed_hwnd:
+            self._max_button_pressed_hwnd = 0
+            set_window_property(window, "titleBarMaxButtonPressed", False)
+            user32.ReleaseCapture()
+
+        if message_id == WM_NCMOUSEMOVE:
+            _set_max_button_hover(window, _pointer_over_max_button(window, hwnd))
+        elif message_id in (WM_NCMOUSELEAVE, WM_MOUSELEAVE):
+            _set_max_button_hover(window, False)
+
         if message_id in _FRAME_MESSAGES:
             extend_frame_into_client_area(window, hwnd)
         if message_id in _FULLSCREEN_MESSAGES:
             apply_fullscreen_opengl_border_workaround(window, hwnd)
         if message_id == WM_NCHITTEST:
-            return hit_test(
+            handled, code = hit_test(
                 window, hwnd, l_param, self.resize_border, self._in_move_loop
             )
+            if handled:
+                _set_max_button_hover(window, code == HTMAXBUTTON)
+            return handled, code
         if message_id == WM_NCCALCSIZE and w_param:
             return apply_nccalcsize(hwnd, l_param)
         if message_id == WM_SYSCOMMAND:
@@ -323,3 +371,31 @@ class WinEventFilter(QAbstractNativeEventFilter):
         if message_id == WM_GETMINMAXINFO:
             return apply_getminmaxinfo(window, hwnd, l_param)
         return False, 0
+
+
+def _set_max_button_hover(window, hovered: bool) -> None:
+    set_window_property(window, "titleBarMaxButtonHovered", hovered)
+
+
+def _toggle_maximize(window) -> None:
+    hwnd = int(window.winId())
+    if is_maximized(hwnd):
+        window.showNormal()
+    else:
+        window.showMaximized()
+
+
+def _pointer_over_max_button(window, hwnd: int) -> bool:
+    screen = window.screen()
+    dp_ratio = screen.devicePixelRatio() if screen else 1.0
+    rect = max_button_rect(window, dp_ratio)
+    if rect is None:
+        return False
+
+    point = wintypes.POINT()
+    if not user32.GetCursorPos(ctypes.byref(point)):
+        return False
+
+    origin = wintypes.POINT(0, 0)
+    user32.ClientToScreen(hwnd, ctypes.byref(origin))
+    return inside_rect(rect, point.x - origin.x, point.y - origin.y, 2)
