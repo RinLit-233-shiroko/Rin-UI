@@ -9,7 +9,7 @@ QtObject {
     // Colors //
     property QtObject colors: QtObject {
         // Controls
-        property color controlColor: Qt.alpha("#ffffff", 0.065)
+        property color controlColor: Qt.alpha("#ffffff", 0.0605)
         property color controlSecondaryColor: Qt.alpha("#ffffff", 0.0837)
         property color controlTertiaryColor: Qt.alpha("#ffffff", 0.0419)
         property color controlQuaternaryColor: Qt.alpha("#ffffff", 0.0698)

@@ -69,7 +69,7 @@ Button {
             height: Theme.currentTheme.appearance.borderWidth
 
             color: flat ? "transparent" :
-                enabled ? highlighted ? Theme.currentTheme.colors.controlAccentBottomBorderColor
+                enabled ? highlighted ? Theme.currentTheme.colors.controlBorderAccentSecondaryColor
                         : Theme.currentTheme.colors.controlBottomBorderColor
                     : "transparent"
         }
