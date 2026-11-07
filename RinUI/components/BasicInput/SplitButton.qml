@@ -40,7 +40,7 @@ Button {
         }
     }
 
-    implicitWidth: Math.max(primaryButton.implicitWidth + dropdownWidth - dividerWidth, 60)
+    implicitWidth: Math.max(primaryButton.implicitWidth + dropdownWidth, 60)
     implicitHeight: Math.max(primaryButton.implicitHeight, 32)
 
     background: Rectangle {
@@ -54,7 +54,7 @@ Button {
         Button {
             id: primaryButton
             x: 0
-            width: Math.max(0, root.width - root.dropdownWidth + root.dividerWidth)
+            width: Math.max(0, root.width - root.dropdownWidth)
             height: root.height
 
             text: root.text
@@ -69,7 +69,7 @@ Button {
             hoverable: root.enabled
             padding: 0
 
-            implicitWidth: Math.max(primaryRow.implicitWidth + 24, 84)
+            implicitWidth: Math.max(primaryRow.implicitWidth + 24, 40)
             implicitHeight: Math.max(primaryRow.implicitHeight + 12, 32)
 
             onClicked: {
