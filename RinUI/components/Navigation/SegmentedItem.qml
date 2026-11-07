@@ -7,6 +7,13 @@ import "../../themes"
 
 TabButton {
     id: root
+    focusPolicy: Qt.NoFocus
+    property bool keyboardFocus: false
+
+    FocusIndicator {
+        control: root
+        keyboardFocus: root.keyboardFocus
+    }
 
     implicitWidth: Math.max(row.implicitWidth + 26 , 40)
     implicitHeight: 32
