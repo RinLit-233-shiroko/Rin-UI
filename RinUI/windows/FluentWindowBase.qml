@@ -68,6 +68,10 @@ ApplicationWindow {
 
     property real titleBarButtonWidth: 0
     property real titleBarSafeWidth: 32
+    property rect titleBarMaxButtonRect: Qt.rect(0, 0, 0, 0)
+    property bool titleBarMaxButtonHovered: false
+    property bool titleBarMaxButtonPressed: false
+    property bool snapLayoutsSupported: false
 
 
     // 直接添加子项
