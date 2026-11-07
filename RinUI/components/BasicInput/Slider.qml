@@ -12,7 +12,7 @@ Slider {
     property real borderWidth: 3   // 边框宽度
     property int ticksPadding: 4  // 刻度线间距
     property real trackHeight: 4
-    property bool showTooltip: true
+    // property bool showTooltip: true
     readonly property SliderToolTip toolTip: SliderToolTip { }
     property bool tickmarks: false
     property real tickFrequency: 0  // 刻度线频率
@@ -30,11 +30,11 @@ Slider {
     }
 
     // notification of showTooltip
-    Component.onCompleted: {
-        if (!showTooltip) {
-            console.warn("DeprecationWarning: 'showTooltip' will be removed in the future. Use 'toolTip.visible' instead.")
-        }
-    }
+    // Component.onCompleted: {
+    //     if (!showTooltip) {
+    //         console.warn("DeprecationWarning: 'showTooltip' will be removed in the future. Use 'toolTip.visible' instead.")
+    //     }
+    // }
 
     // accessibility
     FocusIndicator {
