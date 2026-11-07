@@ -12,8 +12,8 @@ ControlPage {
     // intro
     Text {
         Layout.fillWidth: true
-        text: qsTr("A ToggleButton looks like a Button, but works like a CheckBox. It typically has two states,  " +
-                 "checked (on) or unchecked (off).")
+        text: qsTr("A DropDownButton opens a Menu or Flyout when clicked. " +
+                 "Assign any Popup-derived control to its flyout property.")
     }
 
     Column {
@@ -22,7 +22,7 @@ ControlPage {
 
         Text {
             typography: Typography.BodyStrong
-            text: qsTr("A simple ToggleButton with text content.")
+            text: qsTr("A simple DropDownButton with a Menu flyout.")
         }
         ControlShowcase {
             width: parent.width
@@ -30,14 +30,16 @@ ControlPage {
                 text: qsTr("Email")
                 enabled: !buttonSwitch.checked
 
-                MenuItem {
-                    text: qsTr("Send")
-                }
-                MenuItem {
-                    text: qsTr("Reply")
-                }
-                MenuItem {
-                    text: qsTr("Reply All")
+                flyout: Menu {
+                    MenuItem {
+                        text: qsTr("Send")
+                    }
+                    MenuItem {
+                        text: qsTr("Reply")
+                    }
+                    MenuItem {
+                        text: qsTr("Reply All")
+                    }
                 }
             }
 
@@ -64,17 +66,60 @@ ControlPage {
                 icon.name: "ic_fluent_mail_20_regular"
                 text: qsTr("Email")
 
-                MenuItem {
-                    icon.name: "ic_fluent_send_20_filled"
-                    text: qsTr("Send")
+                flyout: Menu {
+                    MenuItem {
+                        icon.name: "ic_fluent_send_20_filled"
+                        text: qsTr("Send")
+                    }
+                    MenuItem {
+                        icon.name: "ic_fluent_mail_arrow_up_20_regular"
+                        text: qsTr("Reply")
+                    }
+                    MenuItem {
+                        icon.name: "ic_fluent_mail_arrow_double_back_20_regular"
+                        text: qsTr("Reply All")
+                    }
                 }
-                MenuItem {
-                    icon.name: "ic_fluent_mail_arrow_up_20_regular"
-                    text: qsTr("Reply")
-                }
-                MenuItem {
-                    icon.name: "ic_fluent_mail_arrow_double_back_20_regular"
-                    text: qsTr("Reply All")
+            }
+        }
+    }
+
+    Column {
+        Layout.fillWidth: true
+        spacing: 4
+
+        Text {
+            typography: Typography.BodyStrong
+            text: qsTr("DropDownButton with a Flyout")
+        }
+        Frame {
+            width: parent.width
+            DropDownButton {
+                text: qsTr("Delete file")
+
+                flyout: Flyout {
+                    id: deleteFlyout
+                    width: 350
+                    position: Position.Bottom
+                    text: qsTr("This action cannot be undone. \nDo you want to delete this file?")
+                    buttonBox: [
+                        Button {
+                            Layout.fillWidth: true
+                            text: qsTr("Delete")
+                            onClicked: deleteFlyout.close()
+                        },
+                        Button {
+                            Layout.fillWidth: true
+                            text: qsTr("Hide")
+                            onClicked: deleteFlyout.close()
+                        },
+                        Button {
+                            Layout.fillWidth: true
+                            highlighted: true
+                            text: qsTr("Cancel")
+                            onClicked: deleteFlyout.close()
+                        }
+                    ]
                 }
             }
         }

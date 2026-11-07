@@ -55,9 +55,12 @@ FluentPage {
                 DropDownButton {
                     icon.name: "ic_fluent_document_20_regular"
                     text: qsTr("Documentation")
-                    MenuItem {
-                        text: fluentPage.title + " - " + qsTr("Rin UI Documentation")
-                        onClicked: Qt.openUrlExternally(docsUrl)
+
+                    flyout: Menu {
+                        MenuItem {
+                            text: fluentPage.title + " - " + qsTr("Rin UI Documentation")
+                            onClicked: Qt.openUrlExternally(docsUrl)
+                        }
                     }
 
                     ToolTip {
