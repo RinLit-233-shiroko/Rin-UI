@@ -43,6 +43,9 @@ Window {
     property alias titleBarHost: titleBar.contentHost
     property alias titleBarLeadingArea: titleBar.leadingContent
     property alias titleBarLeadingHost: titleBar.leadingContentHost
+
+    property real titleBarButtonWidth: 0
+    property real titleBarSafeWidth: 32
     property alias titleEnabled: titleBar.titleEnabled
     property alias minimizeEnabled: titleBar.minimizeEnabled
     // property alias maximizeEnabled: titleBar.maximizeEnabled

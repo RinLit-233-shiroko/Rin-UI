@@ -10,6 +10,8 @@ from win32gui import FindWindow
 
 from RinUI.core.windows.winapi import (
     APPBARDATA,
+    HTCAPTION,
+    HTCLIENT,
     MINMAXINFO,
     MONITORINFO,
     NCCALCSIZE_PARAMS,
@@ -28,6 +30,8 @@ from RinUI.core.windows.winapi import (
     WM_NCACTIVATE,
     WM_NCCALCSIZE,
     WM_NCHITTEST,
+    WM_ENTERSIZEMOVE,
+    WM_EXITSIZEMOVE,
     WM_SHOWWINDOW,
     WM_SIZE,
     WM_SYSCOMMAND,
@@ -41,7 +45,14 @@ from RinUI.core.windows.window_manager import (
     extend_frame_into_client_area,
     set_window_styles,
 )
-from RinUI.core.windows.window_state import RESIZE_BORDER, title_bar_height_px
+from RinUI.core.windows.window_state import (
+    RESIZE_BORDER,
+    button_width_px,
+    interactive_rects,
+    invalidate_interactive_rects,
+    safe_width_px,
+    title_bar_height_px,
+)
 
 _FRAME_MESSAGES = (
     WM_SIZE,
@@ -82,8 +93,8 @@ def cursor_position(l_param: int) -> tuple[int, int]:
     return x, y
 
 
-def hit_test(window, hwnd: int, l_param: int, resize_border=RESIZE_BORDER):
-    """边框与标题栏的命中测试；未命中时返回 (False, 0) 交给 Qt。"""
+def hit_test(window, hwnd: int, l_param: int, resize_border=RESIZE_BORDER, moving=False):
+    """命中测试；未命中返回 (False, 0) 交给 Qt。"""
     x, y = cursor_position(l_param)
 
     rect = wintypes.RECT()
@@ -109,10 +120,26 @@ def hit_test(window, hwnd: int, l_param: int, resize_border=RESIZE_BORDER):
 
     screen = window.screen()
     dp_ratio = screen.devicePixelRatio() if screen else 1.0
-    if top <= y < top + title_bar_height_px(window, dp_ratio):
-        return True, 1  # HTCAPTION
+    if not top <= y < top + title_bar_height_px(window, dp_ratio):
+        return False, 0
 
-    return False, 0
+    origin = wintypes.POINT(0, 0)
+    user32.ClientToScreen(hwnd, ctypes.byref(origin))
+    cx = x - origin.x
+    cy = y - origin.y
+
+    button_px = button_width_px(window, dp_ratio)
+    drag_limit = (right - left) - button_px - safe_width_px(window, dp_ratio)
+
+    if not moving and cx < drag_limit:
+        for rect_x, rect_y, rect_w, rect_h in interactive_rects(window, dp_ratio):
+            if rect_x <= cx < min(rect_x + rect_w, drag_limit):
+                if rect_y <= cy < rect_y + rect_h:
+                    return True, HTCLIENT
+
+    if cx < (right - left) - button_px:
+        return True, HTCAPTION
+    return True, HTCLIENT
 
 
 def apply_nccalcsize(hwnd: int, l_param: int):
@@ -230,6 +257,7 @@ class WinEventFilter(QAbstractNativeEventFilter):
         self.windows = windows
         self.hwnds = {}
         self.resize_border = RESIZE_BORDER
+        self._in_move_loop = False
 
         for window in self.windows:
             window.visibleChanged.connect(
@@ -272,12 +300,22 @@ class WinEventFilter(QAbstractNativeEventFilter):
         return False, 0
 
     def _dispatch(self, window, hwnd: int, message_id: int, w_param: int, l_param: int):
+        if message_id == WM_ENTERSIZEMOVE:
+            self._in_move_loop = True
+        elif message_id == WM_EXITSIZEMOVE:
+            self._in_move_loop = False
+            invalidate_interactive_rects(window)
+        elif message_id in (WM_SIZE, WM_SHOWWINDOW):
+            invalidate_interactive_rects(window)
+
         if message_id in _FRAME_MESSAGES:
             extend_frame_into_client_area(window, hwnd)
         if message_id in _FULLSCREEN_MESSAGES:
             apply_fullscreen_opengl_border_workaround(window, hwnd)
         if message_id == WM_NCHITTEST:
-            return hit_test(window, hwnd, l_param, self.resize_border)
+            return hit_test(
+                window, hwnd, l_param, self.resize_border, self._in_move_loop
+            )
         if message_id == WM_NCCALCSIZE and w_param:
             return apply_nccalcsize(hwnd, l_param)
         if message_id == WM_SYSCOMMAND:
