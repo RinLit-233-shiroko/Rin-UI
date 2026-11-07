@@ -25,12 +25,14 @@ QtObject {
         property color controlFillTertiaryColor: Qt.alpha("#ffffff", 0.0326)
         property color controlFillQuaternaryColor: Qt.alpha("#ffffff", 0.0605)
 
-        property color controlBorderColor: Qt.alpha("#000000", 0.09)
-        property color controlBottomBorderColor: Qt.alpha("#000000", 0.03)
-        property color controlAccentBottomBorderColor: Qt.alpha("#000000", 0.14)
+        property color controlBorderColor: Qt.alpha("#FFFFFF", 0.09)
+        property color controlBottomBorderColor: Qt.alpha("#000000", 0.07)
         property color controlBorderStrongColor: Qt.alpha("#ffffff", 0.6047)
         property color controlBorderAccentColor: Qt.alpha("#ffffff", 0.08)
-        property color textControlBorderColor: Qt.alpha("#ffffff", 0.54)
+        property color controlBorderAccentSecondaryColor: Qt.alpha("#000000", 0.14)
+        property color controlBorderAccentTertiaryColor: Qt.alpha("#000000", 0.2169)
+        property color controlBorderAccentDisabledColor: Qt.alpha("#000000", 0.20)
+        property color textControlBorderColor: Qt.alpha("#FFFFFF", 0.14)
         property color textControlBorderFocusedColor: Utils.primaryColor
         property color flyoutBorderColor: Qt.alpha("#000000", 0.2)
 

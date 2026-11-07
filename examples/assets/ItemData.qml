@@ -305,6 +305,13 @@ QtObject {
             page: Qt.resolvedUrl("../pages/controls/SpinBox.qml")
         },
         {
+            icon: Qt.resolvedUrl("controls/SplitButton.png"),
+            title: qsTr("SplitButton"),
+            type: "basicInput",
+            desc: qsTr("A button with a primary action and a separate flyout menu."),
+            page: Qt.resolvedUrl("../pages/controls/SplitButton.qml")
+        },
+        {
             icon: Qt.resolvedUrl("controls/FlipView.png"),
             title: qsTr("SwipeView"),
             type: "collections",

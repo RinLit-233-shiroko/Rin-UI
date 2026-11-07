@@ -14,6 +14,7 @@ Button 1.0 components/BasicInput/Button.qml
 RoundButton 1.0 components/BasicInput/RoundButton.qml
 PillButton 1.0 components/BasicInput/PillButton.qml
 DropDownButton 1.0 components/BasicInput/DropDownButton.qml
+SplitButton 1.0 components/BasicInput/SplitButton.qml
 ToggleButton 1.0 components/BasicInput/ToggleButton.qml
 ToolButton 1.0 components/BasicInput/ToolButton.qml
 ComboBox 1.0 components/BasicInput/ComboBox.qml
