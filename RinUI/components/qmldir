@@ -68,6 +68,7 @@ ToolSeparator 1.0 MenusAndToolbars/ToolSeparator.qml
 MenuBar 1.0 MenusAndToolbars/MenuBar.qml
 
 # Navigation
+BreadcrumbBar 1.0 Navigation/BreadcrumbBar.qml
 NavigationView 1.0 Navigation/NavigationView.qml
 NavigationBar 1.0 Navigation/NavigationBar.qml
 NavigationItem 1.0 Navigation/NavigationItem.qml

@@ -212,6 +212,14 @@ QtObject {
             page: Qt.resolvedUrl("../pages/controls/MenuBar.qml"),
         },
         {
+            icon: Qt.resolvedUrl("controls/BreadcrumbBar.png"),
+            title: qsTr("BreadcrumbBar"),
+            type: "navigation",
+            desc: qsTr("Shows the trail of navigation taken to the current location."),
+            page: Qt.resolvedUrl("../pages/controls/BreadcrumbBar.qml"),
+            added: true,
+        },
+        {
             icon: Qt.resolvedUrl("controls/NavigationView.png"),
             title: qsTr("NavigationView"),
             type: "navigation",
